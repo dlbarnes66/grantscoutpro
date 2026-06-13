@@ -1,8 +1,11 @@
-import pkg from "bullmq";
-const { Queue, Job } = pkg;
+import { Queue, Job } from "bullmq";
 import IORedis from "ioredis";
 
-const connection = new IORedis(process.env.REDIS_URL);
+const connection = new IORedis(process.env.REDIS_URL, {
+  maxRetriesPerRequest: null,
+  enableReadyCheck: false,
+});
+
 const grantQueue = new Queue("grantQueue", { connection });
 
 export async function GET(req) {
