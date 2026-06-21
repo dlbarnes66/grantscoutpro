@@ -7,8 +7,8 @@ import type { Metadata } from "next";
 
 export function generateMetadata(): Metadata {
   return {
-    title: "Grant Engine",
-    description: "AI-powered grant search and indexing",
+    title: "GrantRadar",
+    description: "AI-powered grant monitoring, eligibility tracking, and funding intelligence.",
     other: {
       ...Sentry.getTraceData(),
     },
@@ -22,7 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Providers>
           <nav className="bg-white shadow px-6 py-4 flex items-center justify-between">
             <h1 className="text-xl font-bold">
-              <Link href="/">Grant Engine</Link>
+              <Link href="/">GrantRadar</Link>
             </h1>
 
             <div className="flex gap-6 text-sm font-medium items-center">

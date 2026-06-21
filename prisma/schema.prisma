@@ -28,6 +28,8 @@ model User {
   savedSearches SavedSearch[]
   savedGrants   SavedGrant[]
   comparisons   GrantComparison[]
+
+  profile       UserProfile?
 }
 
 model Account {
@@ -64,6 +66,56 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+//
+// =========================
+// USER PROFILE MODEL
+// =========================
+//
+
+model UserProfile {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+
+  // Basic identity
+  organizationName  String?
+  organizationType  String?   // nonprofit, for-profit, gov, tribal, etc.
+  mission           String?
+  website           String?
+
+  // Location
+  country           String?
+  state             String?
+  city              String?
+
+  // Legal + status
+  nonprofitStatus   String?   // 501(c)(3), 501(c)(6), etc.
+  ein               String?
+
+  // Capacity + size
+  staffSize         Int?
+  annualBudget      Int?
+  grantExperience   String?   // beginner, intermediate, advanced
+
+  // Program areas
+  focusAreas        String[]  // education, health, workforce, etc.
+  populationsServed String[]  // youth, veterans, seniors, etc.
+  geographicService String[]  // counties, regions, states
+
+  // History
+  pastGrants        String?
+  pastWins          Int?
+  pastLosses        Int?
+
+  // Strategy
+  strategicGoals    String?
+  priorityAreas     String?
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
 }
 
 //
@@ -173,10 +225,25 @@ model GrantPreview {
   amount    String?
   deadline  String?
   category  String?
+  agency    String?
   url       String?
-  score     Float?
   content   String?
+
+  // Scoring fields
+  eligibilityScore Float?
+  fitScore         Float?
+  riskScore        Float?
+  competitiveness  Float?
+  fundingStrength  Float?
+  overallScore     Float?
+
+  // AI explanations
+  fitExplanation   String?
+  risks            String?
+  nextSteps        String?
+
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   savedBy   SavedGrant[]
 }
@@ -191,7 +258,13 @@ model SavedGrant {
   id        String        @id @default(cuid())
   userId    String
   grantId   String
+
+  title     String
+  agency    String?
+  url       String?
+
   createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
   user      User          @relation(fields: [userId], references: [id])
   grant     GrantPreview  @relation(fields: [grantId], references: [id])

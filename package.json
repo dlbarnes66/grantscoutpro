@@ -1,7 +1,9 @@
 {
-  "name": "grant-platform-demo",
+  "name": "grant-radar",
   "version": "1.0.0",
   "private": true,
+  "description": "GrantRadar — AI-powered grant monitoring, eligibility tracking, and funding intelligence.",
+  "author": "Darryl Barnes",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

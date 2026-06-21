@@ -1,14 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 export default function CreateJobPage() {
-  const router = useRouter();
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function submitJob() {
+  async function submitJob(e) {
+    e.preventDefault();
     if (!text.trim()) return;
 
     setLoading(true);
@@ -19,41 +18,46 @@ export default function CreateJobPage() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ text }),
+      credentials: "include",
     });
 
-    if (!res.ok) {
-      console.error("Failed to create job:", await res.text());
+    if (res.ok) {
+      const data = await res.json();
+      window.location.href = `/jobs/${data.jobId}`;
+    } else {
+      console.error("Job creation failed:", await res.text());
       setLoading(false);
-      return;
     }
-
-    const data = await res.json();
-    router.push(`/jobs/${data.job.id}`);
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold">Create a New Job</h1>
+    <div className="min-h-screen px-6 py-12 bg-gray-50">
+      <div className="max-w-2xl mx-auto bg-white shadow-md rounded-xl p-8">
+        <h1 className="text-3xl font-bold mb-6">Create New Job</h1>
 
-      <textarea
-        className="w-full border rounded p-3 h-40"
-        placeholder="Paste your grant text or prompt here..."
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-      />
+        <form onSubmit={submitJob} className="space-y-6">
+          <div>
+            <label className="block font-medium mb-2">
+              Grant Search Query
+            </label>
+            <textarea
+              className="w-full px-4 py-3 border rounded-lg shadow-sm min-h-[120px]"
+              placeholder="Describe the type of grants you're looking for..."
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+            />
+          </div>
 
-      <button
-        onClick={submitJob}
-        disabled={loading}
-        className="px-6 py-3 bg-blue-600 text-white rounded disabled:opacity-50"
-      >
-        {loading ? "Submitting…" : "Submit Job"}
-      </button>
-
-      <div>
-        <a href="/jobs" className="text-blue-600 underline">
-          View All Jobs
-        </a>
+          <button
+            type="submit"
+            disabled={loading}
+            className={`w-full py-3 rounded-lg text-white font-semibold transition ${
+              loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
+            }`}
+          >
+            {loading ? "Creating Job..." : "Create Job"}
+          </button>
+        </form>
       </div>
     </div>
   );
