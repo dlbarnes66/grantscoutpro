@@ -80,7 +80,7 @@ model UserProfile {
 
   // Basic identity
   organizationName  String?
-  organizationType  String?   // nonprofit, for-profit, gov, tribal, etc.
+  organizationType  String?
   mission           String?
   website           String?
 
@@ -90,18 +90,18 @@ model UserProfile {
   city              String?
 
   // Legal + status
-  nonprofitStatus   String?   // 501(c)(3), 501(c)(6), etc.
+  nonprofitStatus   String?
   ein               String?
 
   // Capacity + size
   staffSize         Int?
   annualBudget      Int?
-  grantExperience   String?   // beginner, intermediate, advanced
+  grantExperience   String?
 
   // Program areas
-  focusAreas        String[]  // education, health, workforce, etc.
-  populationsServed String[]  // youth, veterans, seniors, etc.
-  geographicService String[]  // counties, regions, states
+  focusAreas        String[]
+  populationsServed String[]
+  geographicService String[]
 
   // History
   pastGrants        String?
@@ -158,6 +158,7 @@ model SavedSearch {
 model Job {
   id        String     @id @default(cuid())
   text      String
+  input     Json?      // ⭐ ADDED — required for rerun route
   status    String     @default("queued")
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
