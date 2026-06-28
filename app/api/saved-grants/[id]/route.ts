@@ -8,7 +8,9 @@ export async function DELETE(
 ) {
   try {
     const { userId } = auth();
-    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     await prisma.savedGrant.delete({
       where: { id: params.id },
@@ -17,6 +19,9 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("Delete Saved Grant Error:", err);
-    return NextResponse.json({ error: "Failed to delete saved grant" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to delete saved grant" },
+      { status: 500 }
+    );
   }
 }
