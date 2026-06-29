@@ -1,0 +1,81 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+function cosineSimilarity(a: number[], b: number[]) {
+  const dot = a.reduce((sum, x, i) => sum + x * b[i], 0);
+  const magA = Math.sqrt(a.reduce((sum, x) => sum + x * x, 0));
+  const magB = Math.sqrt(b.reduce((sum, x) => sum + x * x, 0));
+  return dot / (magA * magB);
+}
+
+export async function POST(req: Request) {
+  try {
+    const { k = 5 } = await req.json();
+
+    const grants = await prisma.grant.findMany({
+      where: { embedding: { not: null } },
+    });
+
+    if (grants.length < k) {
+      return NextResponse.json({ error: "Not enough grants to cluster" });
+    }
+
+    // Pick initial centroids
+    let centroids = grants.slice(0, k).map((g) => g.embedding as number[]);
+
+    let assignments = new Array(grants.length).fill(0);
+
+    for (let iter = 0; iter < 5; iter++) {
+      // Assign grants to nearest centroid
+      assignments = grants.map((g) => {
+        const emb = g.embedding as number[];
+        let best = 0;
+        let bestScore = -Infinity;
+
+        centroids.forEach((c, idx) => {
+          const score = cosineSimilarity(emb, c);
+          if (score > bestScore) {
+            bestScore = score;
+            best = idx;
+          }
+        });
+
+        return best;
+      });
+
+      // Recompute centroids
+      centroids = centroids.map((_, idx) => {
+        const clusterPoints = grants
+          .filter((_, i) => assignments[i] === idx)
+          .map((g) => g.embedding as number[]);
+
+        if (clusterPoints.length === 0) return centroids[idx];
+
+        const dim = clusterPoints[0].length;
+        const avg = new Array(dim).fill(0);
+
+        clusterPoints.forEach((p) => {
+          p.forEach((v, i) => (avg[i] += v));
+        });
+
+        return avg.map((v) => v / clusterPoints.length);
+      });
+    }
+
+    // Save clusters
+    for (let i = 0; i < grants.length; i++) {
+      await prisma.grant.update({
+        where: { id: grants[i].id },
+        data: { cluster: assignments[i] },
+      });
+    }
+
+    return NextResponse.json({ clusters: k });
+  } catch (err: any) {
+    console.error("Clustering compute error:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
