@@ -44,7 +44,8 @@ Respond in JSON array format.
       input: prompt,
     });
 
-    const text = completion.output[0]?.content[0]?.text ?? "[]";
+    // Correct way to extract text from Responses API
+    const text = completion.output_text ?? "[]";
 
     let grants;
     try {
