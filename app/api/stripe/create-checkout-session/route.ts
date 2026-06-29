@@ -1,14 +1,21 @@
-import Stripe from "stripe";
 import { NextResponse } from "next/server";
+import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-apiVersion: "2026-06-24.dahlia",
-
+  // Use Stripe's default API version to avoid type mismatches
+  apiVersion: null,
 });
 
 export async function POST(req: Request) {
   try {
-    const { priceId, userId } = await req.json();
+    const { priceId, successUrl, cancelUrl } = await req.json();
+
+    if (!priceId) {
+      return NextResponse.json(
+        { error: "Missing priceId" },
+        { status: 400 }
+      );
+    }
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
@@ -18,13 +25,16 @@ export async function POST(req: Request) {
           quantity: 1,
         },
       ],
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing/success`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing/cancel`,
-      metadata: { userId },
+      success_url: successUrl ?? `${process.env.NEXT_PUBLIC_APP_URL}/billing/success`,
+      cancel_url: cancelUrl ?? `${process.env.NEXT_PUBLIC_APP_URL}/billing/cancel`,
     });
 
     return NextResponse.json({ url: session.url });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error("Stripe Checkout Error:", err);
+    return NextResponse.json(
+      { error: err.message },
+      { status: 500 }
+    );
   }
 }
