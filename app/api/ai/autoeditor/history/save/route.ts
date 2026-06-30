@@ -12,7 +12,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const entry = await prisma.forecastHistory.create({
+    const entry = await prisma.autoEditorHistory.create({
       data: {
         userId,
         result
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ saved: true, entry });
   } catch (err: any) {
-    console.error("Forecast history save error:", err);
+    console.error("Auto-editor history save error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
