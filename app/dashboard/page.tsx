@@ -1,13 +1,34 @@
+import { QuickActions } from "@/components/dashboard/QuickActions";
+import { AIAssistantPanel } from "@/components/dashboard/AIAssistantPanel";
+import { PipelineOverview } from "@/components/dashboard/PipelineOverview";
+import { RecentActivity } from "@/components/dashboard/RecentActivity";
+import { KPISnapshot } from "@/components/dashboard/KPISnapshot";
+
 export default function DashboardPage() {
   return (
-    <div className="space-y-4">
-      <h1 className="text-xl font-semibold text-slate-100">
-        Dashboard
-      </h1>
-      <p className="text-sm text-slate-400">
-        Welcome to GrantScout Pro. The AI backend (Batches 1–100) is live.
-        Frontend buildout (Batches 101–120) has begun.
-      </p>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-2xl font-semibold text-slate-100">
+          Welcome back, Darryl
+        </h1>
+        <p className="text-sm text-slate-400">
+          Your AI grant intelligence dashboard is ready.
+        </p>
+      </div>
+
+      <QuickActions />
+
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="xl:col-span-2 space-y-6">
+          <PipelineOverview />
+          <RecentActivity />
+        </div>
+
+        <div className="space-y-6">
+          <AIAssistantPanel />
+          <KPISnapshot />
+        </div>
+      </div>
     </div>
   );
 }
