@@ -1,21 +1,24 @@
 import "./globals.css";
-import ToastProvider from "@/components/notifications/ToastProvider";
-import SystemMessageProvider from "@/components/notifications/SystemMessageProvider";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import { AppShell } from "@/components/layout/AppShell";
 
-export const metadata = {
+const inter = Inter({ subsets: ["latin"] });
+
+export const metadata: Metadata = {
   title: "GrantScout Pro",
-  description: "AI-powered grant automation platform",
+  description: "AI-powered grant discovery, writing, and management platform."
 };
 
-export default function RootLayout({ children }) {
+export default function RootLayout({
+  children
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
-      <body>
-        <SystemMessageProvider>
-          <ToastProvider>
-            {children}
-          </ToastProvider>
-        </SystemMessageProvider>
+      <body className={inter.className}>
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );
