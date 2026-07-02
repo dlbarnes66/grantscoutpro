@@ -1,33 +1,88 @@
 "use client";
 
+import { useState } from "react";
+
 export default function AddonCard({
   addon,
-  isActive,
-  onPurchase,
-  disabled
+  workspaceId
 }: {
-  addon: { key: string; name: string; description: string };
-  isActive: boolean;
-  onPurchase: () => void;
-  disabled: boolean;
+  addon: any;
+  workspaceId: string;
 }) {
-  return (
-    <div className="p-6 border rounded-md bg-white shadow-sm space-y-3">
-      <h3 className="text-lg font-bold">{addon.name}</h3>
-      <p className="text-gray-600">{addon.description}</p>
+  const [loading, setLoading] = useState(false);
 
-      {isActive ? (
-        <span className="inline-block px-3 py-1 bg-green-100 text-green-700 rounded-md text-sm">
-          Active
-        </span>
+  async function activateAddon() {
+    setLoading(true);
+
+    const res = await fetch("/api/addons/activate", {
+      method: "POST",
+      body: JSON.stringify({
+        workspaceId,
+        addonId: addon.id
+      })
+    });
+
+    const json = await res.json();
+    setLoading(false);
+
+    if (json.success) {
+      alert(`${addon.name} activated!`);
+      window.location.reload();
+    } else {
+      alert("Failed to activate add‑on.");
+    }
+  }
+
+  async function purchaseAddon() {
+    setLoading(true);
+
+    const res = await fetch("/api/addons/purchase", {
+      method: "POST",
+      body: JSON.stringify({
+        workspaceId,
+        addonId: addon.id
+      })
+    });
+
+    const json = await res.json();
+    setLoading(false);
+
+    if (json.url) {
+      window.location.href = json.url;
+    } else {
+      alert("Failed to start purchase.");
+    }
+  }
+
+  return (
+    <div className="border rounded-lg p-6 shadow-sm bg-white space-y-4">
+      <h2 className="text-xl font-bold">{addon.name}</h2>
+      <p className="text-gray-700">{addon.description}</p>
+
+      <p className="text-lg font-semibold text-blue-600">
+        ${addon.price}/month
+      </p>
+
+      {addon.active ? (
+        <p className="text-green-600 font-medium">Already Active</p>
       ) : (
-        <button
-          onClick={onPurchase}
-          disabled={disabled}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md"
-        >
-          Purchase Add‑On
-        </button>
+        <div className="space-y-3">
+          <button
+            onClick={activateAddon}
+            disabled={loading}
+            className="w-full p-3 bg-green-600 text-white rounded-md font-semibold hover:bg-green-700 transition disabled:opacity-50"
+          >
+            {loading ? "Processing..." : "Activate Add‑On"}
+          </button>
+
+          <button
+            onClick={purchaseAddon}
+            disabled={loading}
+            className="w-full p-3 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition disabled:opacity-50"
+          >
+            {loading ? "Redirecting..." : "Purchase Add‑On"}
+          </button>
+        </div>
       )}
     </div>
   );
