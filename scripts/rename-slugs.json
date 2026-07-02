@@ -1,0 +1,31 @@
+{
+  "app/narratives/[id]": "[narrativeId]",
+  "app/collaboration/[id]": "[collaborationId]",
+  "app/reporting/[id]": "[reportId]",
+  "app/renewal/[id]": "[renewalId]",
+  "app/closeout/[id]": "[closeoutId]",
+
+  "app/dashboard/apply/[id]": "[applicationId]",
+  "app/dashboard/federal-grants/[id]": "[grantId]",
+  "app/dashboard/grant-compare/[id]": "[grantId]",
+  "app/dashboard/grants/[id]": "[grantId]",
+  "app/dashboard/workspaces/[id]": "[workspaceId]",
+  "app/dashboard/team/[id]": "[memberId]",
+  "app/dashboard/compare/[id]": "[grantId]",
+  "app/dashboard/applications/[id]": "[applicationId]",
+  "app/dashboard/jobs/[id]": "[jobId]",
+  "app/dashboard/billing/invoice/[id]": "[invoiceId]",
+
+  "app/review/[id]": "[reviewId]",
+
+  "app/api/grant-comparisons/[id]": "[grantId]",
+  "app/api/saved-grants/[id]": "[grantId]",
+  "app/api/jobs/[id]": "[jobId]",
+  "app/api/saved-searches/[id]": "[searchId]",
+  "app/api/billing/invoices/[id]": "[invoiceId]",
+
+  "app/jobs/[id]": "[jobId]",
+  "app/monitoring/[id]": "[monitorId]",
+  "app/submission/[id]": "[submissionId]",
+  "app/budget/[id]": "[budgetId]"
+}
