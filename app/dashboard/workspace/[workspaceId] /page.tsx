@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import DashboardCard from "./DashboardCard";
+import TrialBanner from "./TrialBanner";
 
 export default function WorkspaceDashboard({
   params
@@ -31,6 +32,9 @@ export default function WorkspaceDashboard({
 
   return (
     <div className="space-y-8 p-6">
+      {/* ⭐ Trial Banner Added Here */}
+      <TrialBanner workspaceId={workspaceId} />
+
       <h1 className="text-3xl font-bold">{workspace.name} — Dashboard</h1>
 
       <p className="text-gray-700">{ai.summary}</p>
