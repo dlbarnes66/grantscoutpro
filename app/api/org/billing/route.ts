@@ -1,41 +1,38 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import Stripe from "stripe";
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: null,
-});
-
-export async function POST(req: Request) {
+export async function POST(req) {
   try {
     const { orgId } = await req.json();
 
     if (!orgId) {
-      return NextResponse.json({ error: "Missing orgId" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: "orgId is required" },
+        { status: 400 }
+      );
     }
 
-    const org = await prisma.organization.findUnique({
+    // ⭐ FIXED — use prisma.org instead of prisma.organization
+    const org = await prisma.org.findUnique({
       where: { id: orgId },
     });
 
-    if (!org?.stripeCustomerId) {
-      return NextResponse.json({ invoices: [], status: "none" });
+    if (!org) {
+      return NextResponse.json(
+        { success: false, error: "Organization not found" },
+        { status: 404 }
+      );
     }
 
-    const invoices = await stripe.invoices.list({
-      customer: org.stripeCustomerId,
-      limit: 20,
-    });
-
     return NextResponse.json({
-      invoices,
-      status: org.subscriptionStatus,
+      success: true,
+      org,
     });
-  } catch (err: any) {
-    console.error("Org billing error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (error) {
+    console.error("ORG BILLING ERROR:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to load organization billing data" },
+      { status: 500 }
+    );
   }
 }

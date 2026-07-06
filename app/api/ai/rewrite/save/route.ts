@@ -6,9 +6,9 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { userId, original, rewritten, tone } = await req.json();
+    const { userId, grantId, original, rewritten, tone } = await req.json();
 
-    if (!userId || !original || !rewritten || !tone) {
+    if (!userId || !grantId || !original || !rewritten || !tone) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -18,6 +18,7 @@ export async function POST(req: Request) {
     const entry = await prisma.rewriteHistory.create({
       data: {
         userId,
+        grantId,
         original,
         rewritten,
         tone,

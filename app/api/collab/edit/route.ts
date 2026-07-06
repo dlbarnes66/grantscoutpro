@@ -6,21 +6,21 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { applicationId, userId, field, value } = await req.json();
+    const { userId, grantId, status, notes } = await req.json();
 
-    if (!applicationId || !userId || !field) {
+    if (!userId || !grantId) {
       return NextResponse.json(
-        { error: "Missing applicationId, userId, or field" },
+        { error: "Missing userId or grantId" },
         { status: 400 }
       );
     }
 
-    const edit = await prisma.applicationEdit.create({
+    const edit = await prisma.applicationHistory.create({
       data: {
-        applicationId,
         userId,
-        field,
-        value,
+        grantId,
+        status,
+        notes,
       },
     });
 

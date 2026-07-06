@@ -7,51 +7,88 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-//
-// =========================
-// AUTH MODELS (NextAuth)
-// =========================
-//
-
 model User {
-  id            String          @id @default(cuid())
+  id            String    @id @default(cuid())
   name          String?
-  email         String?         @unique
+  email         String?   @unique
   password      String?
   emailVerified DateTime?
   image         String?
 
-  role          String          @default("user")
+  role String @default("user")
 
-  accounts      Account[]
-  sessions      Session[]
-  jobs          Job[]           @relation("UserJobs")
-  searchHistory SearchHistory[]
-  savedSearches SavedSearch[]
-  savedGrants   SavedGrant[]
-  comparisons   GrantComparison[]
-  comments      ComparisonComment[]
-  notifications Notification[]
+  accounts             Account[]
+  sessions             Session[]
+  jobs                 Job[]                @relation("UserJobs")
+  searchHistory        SearchHistory[]
+  savedSearches        SavedSearch[]
+  savedGrants          SavedGrant[]
+  comparisons          GrantComparison[]
+  comments             ComparisonComment[]
+  notifications        Notification[]
+  applicationHistories ApplicationHistory[]
+  applications         Application[]
 
-  profile       UserProfile?
+  profile UserProfile?
 
-  stripeCustomerId String?
+  // ⭐ REQUIRED FOR STRIPE WEBHOOKS
+  stripeCustomerId String? @unique
   planName         String?
   status           String?
   renewalDate      DateTime?
 
-  // Workspaces
   workspaceMembers WorkspaceMember[]
   workspaceInvites WorkspaceInvite[]
 
-  // Drafts
-  grantDrafts      GrantDraft[]
+  grantDrafts GrantDraft[]
 
-  // Batch 129 additions
-  narratives       Narrative[]
-  reports          Report[]
-  auditLogs        AuditLog[]
+  narratives Narrative[]
+  reports    Report[]
+  auditLogs  AuditLog[]
+
+  portfolioOptimizations PortfolioOptimization[]
+
+  postAwardHistory          PostAwardHistory[]
+  renewalHistory            RenewalHistory[]
+  reviewerHistory           ReviewerHistory[]
+  riskHistory               RiskHistory[]
+  submissionHistory         SubmissionHistory[]
+  writingCoachHistory       WritingCoachHistory[]
+  forecastHistory           ForecastHistory[]
+  matchingHistory           MatchingHistory[]
+  opportunityHistory        OpportunityHistory[]
+  rewriteHistory            RewriteHistory[]
+  panelHistory              PanelHistory[]
+  gapsHistory               GapsHistory[]
+  narrativeHistory          NarrativeHistory[]
+  agentHistory              AgentHistory[]
+  complianceHistory         ComplianceHistory[]
+  closeoutHistory           CloseoutHistory[]
+  eligibilityHistory        EligibilityHistory[]
+  autoeditorHistory         AutoeditorHistory[]
+  successProbabilityHistory SuccessProbabilityHistory[]
+  compareHistory            CompareHistory[]
+  portfolioHistory          PortfolioHistory[]
+  negotiationHistory        NegotiationHistory[]
+  monitoringHistory         MonitoringHistory[]
+  outreachHistory           OutreachHistory[]
+  budgetHistory             BudgetHistory[]
+
+  ApiKey           ApiKey[]
+  DocumentPatch    DocumentPatch[]
+  Document         Document[]
+  DocumentSnapshot DocumentSnapshot[]
+  DocumentVersion  DocumentVersion[]
+  File             File[]
+
+  // ⭐ Correct messaging relations
+  sentMessages     Message[]          @relation("SentMessages")
+  receivedMessages Message[]          @relation("ReceivedMessages")
+  DocumentMessage  DocumentMessage[]
+  DocumentComment  DocumentComment[]
+  DocumentPresence DocumentPresence[]
 }
+
 
 model Account {
   id                String  @id @default(cuid())
@@ -89,76 +126,103 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-//
-// =========================
-// USER PROFILE MODEL
-// =========================
-//
-
 model UserProfile {
-  id                String   @id @default(cuid())
-  userId            String   @unique
+  id     String @id @default(cuid())
+  userId String @unique
 
-  organizationName  String?
-  organizationType  String?
-  mission           String?
-  website           String?
+  organizationName String?
+  organizationType String?
+  mission          String?
+  website          String?
 
-  country           String?
-  state             String?
-  city              String?
+  country String?
+  state   String?
+  city    String?
 
-  nonprofitStatus   String?
-  ein               String?
+  nonprofitStatus String?
+  ein             String?
 
-  staffSize         Int?
-  annualBudget      Int?
-  grantExperience   String?
+  staffSize       Int?
+  annualBudget    Int?
+  grantExperience String?
 
   focusAreas        String[]
   populationsServed String[]
   geographicService String[]
 
-  pastGrants        String?
-  pastWins          Int?
-  pastLosses        Int?
+  pastGrants String?
+  pastWins   Int?
+  pastLosses Int?
 
-  strategicGoals    String?
-  priorityAreas     String?
+  strategicGoals String?
+  priorityAreas  String?
 
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id])
 }
 
-//
-// =========================
-// WORKSPACE MODELS
-// =========================
-//
+// prisma/schema.prisma
 
-model Workspace {
-  id        String            @id @default(cuid())
+  id        String   @id @default(cuid())model Workspace {
+
   name      String
-  createdAt DateTime          @default(now())
+  createdAt DateTime @default(now())
+
+  orgId String
+  org   Org    @relation(fields: [orgId], references: [id])
+
+  addons String[] @default([])
+
+  // ⭐ Trial system fields
+  trialStartAt DateTime?
+  trialEndAt   DateTime?
+  isLocked     Boolean @default(false)
 
   members     WorkspaceMember[]
   invites     WorkspaceInvite[]
   comparisons GrantComparison[]
 
-  // Batch 129 additions
-  grants      Grant[]
-  budgets     Budget[]
-  reports     Report[]
+  grants   Grant[]
+  budgets  Budget[]
+  reports  Report[]
+  Document Document[]
+  File     File[]
+}
+ 
+ model Workspace {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  orgId String
+  org   Org    @relation(fields: [orgId], references: [id])
+
+  addons String[] @default([])
+
+  // ⭐ Trial system fields
+  trialStartAt DateTime?
+  trialEndAt   DateTime?
+  isLocked     Boolean @default(false)
+
+  members     WorkspaceMember[]
+  invites     WorkspaceInvite[]
+  comparisons GrantComparison[]
+
+  grants   Grant[]
+  budgets  Budget[]
+  reports  Report[]
+  Document Document[]
+  File     File[]
 }
 
 model WorkspaceMember {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   workspaceId String
   userId      String
-  role        String    @default("member")
-  createdAt   DateTime  @default(now())
+  role        String   @default("member")
+  createdAt   DateTime @default(now())
 
   workspace Workspace @relation(fields: [workspaceId], references: [id])
   user      User      @relation(fields: [userId], references: [id])
@@ -166,23 +230,18 @@ model WorkspaceMember {
   @@unique([workspaceId, userId])
 }
 
+
 model WorkspaceInvite {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   workspaceId String
   email       String
   invitedById String
-  status      String    @default("pending")
-  createdAt   DateTime  @default(now())
+  status      String   @default("pending")
+  createdAt   DateTime @default(now())
 
   workspace Workspace @relation(fields: [workspaceId], references: [id])
   invitedBy User      @relation(fields: [invitedById], references: [id])
 }
-
-//
-// =========================
-// SEARCH HISTORY MODEL
-// =========================
-//
 
 model SearchHistory {
   id        String   @id @default(cuid())
@@ -192,12 +251,6 @@ model SearchHistory {
 
   user User @relation(fields: [userId], references: [id])
 }
-
-//
-// =========================
-// SAVED SEARCHES MODEL
-// =========================
-//
 
 model SavedSearch {
   id        String   @id @default(cuid())
@@ -209,25 +262,19 @@ model SavedSearch {
   user User @relation(fields: [userId], references: [id])
 }
 
-//
-// =========================
-// JOB SYSTEM MODELS
-// =========================
-//
-
 model Job {
-  id        String     @id @default(cuid())
+  id        String   @id @default(cuid())
   text      String
   input     Json?
-  status    String     @default("queued")
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  status    String   @default("queued")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  logs      JobLog[]
-  result    JobResult?
+  logs   JobLog[]
+  result JobResult?
 
-  userId    String?
-  user      User?      @relation("UserJobs", fields: [userId], references: [id])
+  userId String?
+  user   User?   @relation("UserJobs", fields: [userId], references: [id])
 }
 
 model JobLog {
@@ -248,12 +295,6 @@ model JobResult {
   job Job @relation(fields: [jobId], references: [id])
 }
 
-//
-// =========================
-// BILLING LOG MODEL
-// =========================
-//
-
 model BillingLog {
   id        String   @id @default(cuid())
   type      String
@@ -261,18 +302,12 @@ model BillingLog {
   createdAt DateTime @default(now())
 }
 
-//
-// =========================
-// GRANT + EMBEDDING MODELS
-// =========================
-//
-
 model GrantPage {
-  id        String      @id @default(cuid())
-  url       String      @unique
+  id        String   @id @default(cuid())
+  url       String   @unique
   title     String?
   content   String?
-  createdAt DateTime    @default(now())
+  createdAt DateTime @default(now())
 
   embeddings Embedding[]
 }
@@ -286,22 +321,16 @@ model Embedding {
   page GrantPage @relation(fields: [pageId], references: [id])
 }
 
-//
-// =========================
-// GRANT PREVIEW MODEL
-// =========================
-//
-
 model GrantPreview {
-  id        String   @id @default(cuid())
-  title     String
-  summary   String
-  amount    String?
-  deadline  String?
-  category  String?
-  agency    String?
-  url       String?
-  content   String?
+  id       String  @id @default(cuid())
+  title    String
+  summary  String
+  amount   String?
+  deadline String?
+  category String?
+  agency   String?
+  url      String?
+  content  String?
 
   eligibilityScore Float?
   fitScore         Float?
@@ -310,59 +339,63 @@ model GrantPreview {
   fundingStrength  Float?
   overallScore     Float?
 
-  fitExplanation   String?
-  risks            String?
-  nextSteps        String?
+  fitExplanation String?
+  risks          String?
+  nextSteps      String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  savedBy   SavedGrant[]
+  savedBy SavedGrant[]
 }
-
-//
-// =========================
-// SAVED GRANTS MODEL
-// =========================
-//
 
 model SavedGrant {
-  id        String        @id @default(cuid())
-  userId    String
-  grantId   String
+  id      String @id @default(cuid())
+  userId  String
+  grantId String
 
-  title     String
-  agency    String?
-  url       String?
+  title  String
+  agency String?
+  url    String?
 
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user      User          @relation(fields: [userId], references: [id])
-  grant     GrantPreview  @relation(fields: [grantId], references: [id])
+  user  User         @relation(fields: [userId], references: [id])
+  grant GrantPreview @relation(fields: [grantId], references: [id])
 }
-
-//
-// =========================
-// GRANT COMPARISON MODEL
-// =========================
-//
 
 model GrantComparison {
   id          String   @id @default(cuid())
-  userId      String
-  workspaceId String
-  grantIds    String[]
-  name        String?  @default("Untitled Comparison")
-  analysis    Json?
-  sharedWith  String[] @default([])
   createdAt   DateTime @default(now())
 
-  user      User      @relation(fields: [userId], references: [id])
-  workspace Workspace @relation(fields: [workspaceId], references: [id])
-  activities ComparisonActivity[]
-  comments   ComparisonComment[]
+  // ⭐ The user who created the comparison
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  // ⭐ The workspace where comparison lives
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+
+  // ⭐ The grants being compared (JSON array of grant IDs)
+  grants      Json
+
+  // ⭐ Optional name
+  name        String?  @default("Untitled Comparison")
+
+  // ⭐ AI analysis results (JSON)
+  analysis    Json?
+
+  // ⭐ Shared with user IDs
+  sharedWith  String[] @default([])
+
+  // ⭐ Activity log
+  activities  ComparisonActivity[]
+
+  // ⭐ Comments
+  comments    ComparisonComment[]
 }
+
 
 model ComparisonActivity {
   id           String   @id @default(cuid())
@@ -382,15 +415,9 @@ model ComparisonComment {
   text         String
   createdAt    DateTime @default(now())
 
-  comparison   GrantComparison @relation(fields: [comparisonId], references: [id])
-  user         User            @relation(fields: [userId], references: [id])
+  comparison GrantComparison @relation(fields: [comparisonId], references: [id])
+  user       User            @relation(fields: [userId], references: [id])
 }
-
-//
-// =========================
-// NOTIFICATIONS
-// =========================
-//
 
 model Notification {
   id        String   @id @default(cuid())
@@ -403,15 +430,9 @@ model Notification {
   user User @relation(fields: [userId], references: [id])
 }
 
-//
-// =========================
-// FEDERAL GRANT INGESTION MODEL
-// =========================
-//
-
 model FederalGrant {
-  id         String   @id @default(cuid())
-  externalId String   @unique
+  id         String    @id @default(cuid())
+  externalId String    @unique
   source     String
   title      String
   summary    String?
@@ -422,88 +443,19 @@ model FederalGrant {
   url        String?
   raw        Json
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
 }
-
-//
-// =========================
-// INGESTION LOG MODEL
-// =========================
-//
 
 model IngestionLog {
-  id          String   @id @default(cuid())
-  source      String
-  status      String
-  message     String?
-  itemCount   Int?
-  startedAt   DateTime @default(now())
-  finishedAt  DateTime @default(now())
-  createdAt   DateTime @default(now())
-}
-
-//
-// =========================
-// GRANT DRAFT MODEL
-// =========================
-//
-
-model GrantDraft {
-  id        String   @id @default(cuid())
-  userId    String
-  grantId   String
-  content   Json?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user      User @relation(fields: [userId], references: [id])
-}
-
-//
-// =========================
-// BATCH 129 — NEW MODELS
-// =========================
-//
-
-model Grant {
-  id          String   @id @default(cuid())
-  workspaceId String
-  title       String
-  agency      String?
-  summary     String?
-  amount      Float?
-  deadline    DateTime?
-  url         String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  workspace Workspace @relation(fields: [workspaceId], references: [id])
-  narratives Narrative[]
-}
-
-model Narrative {
-  id        String   @id @default(cuid())
-  grantId   String
-  userId    String
-  section   String
-  content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  grant Grant @relation(fields: [grantId], references: [id])
-  user  User  @relation(fields: [userId], references: [id])
-}
-
-model Budget {
-  id          String   @id @default(cuid())
-  workspaceId String
-  category    String
-  amount      Int
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  id         String   @id @default(cuid())
+  source     String
+  status     String
+  message    String?
+  itemCount  Int?
+  startedAt  DateTime @default(now())
+  finishedAt DateTime @default(now())
+  createdAt  DateTime @default(now())
 }
 
 model Report {
@@ -521,10 +473,663 @@ model Report {
 
 model AuditLog {
   id        String   @id @default(cuid())
-  userId    String
+  userId    String?
+  orgId     String?
   action    String
-  details   String?
+  details   Json?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+  org  Org?  @relation(fields: [orgId], references: [id])
+}
+
+model PortfolioOptimization {
+  id        String   @id @default(cuid())
+  userId    String
+  grantIds  String[]
+  result    Json?
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
+}
+
+model PostAwardHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  grantId   String
+  notes     String?
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  grant Grant @relation(fields: [grantId], references: [id])
+}
+
+model RenewalHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  grantId   String
+  status    String?
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  grant Grant @relation(fields: [grantId], references: [id])
+}
+
+model ReviewerHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  grantId   String
+  reviewer  String?
+  comments  String?
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  grant Grant @relation(fields: [grantId], references: [id])
+}
+
+model RiskHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  grantId   String
+  riskLevel String?
+  notes     String?
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  grant Grant @relation(fields: [grantId], references: [id])
+}
+
+model SubmissionHistory {
+  id          String    @id @default(cuid())
+  userId      String
+  grantId     String
+  status      String?
+  submittedAt DateTime?
+  notes       String?
+  createdAt   DateTime  @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  grant Grant @relation(fields: [grantId], references: [id])
+
+  submissionVersions SubmissionVersion[]
+}
+
+model WritingCoachHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  grantId   String
+  advice    String?
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  grant Grant @relation(fields: [grantId], references: [id])
+}
+
+model ForecastHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  grantId   String
+  forecast  String?
+  score     Float?
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  grant Grant @relation(fields: [grantId], references: [id])
+}
+
+model MatchingHistory {
+  id         String   @id @default(cuid())
+  userId     String
+  grantId    String
+  matchScore Float?
+  notes      String?
+  createdAt  DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  grant Grant @relation(fields: [grantId], references: [id])
+}
+
+model OpportunityHistory {
+  id          String   @id @default(cuid())
+  userId      String
+  grantId     String
+  opportunity String?
+  createdAt   DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  grant Grant @relation(fields: [grantId], references: [id])
+}
+
+model RewriteHistory {
+  id      String @id @default(cuid())
+  userId  String
+  grantId String
+
+  original  String?
+  rewritten String?
+  tone      String?
+
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  grant Grant @relation(fields: [grantId], references: [id])
+}
+
+model PanelHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  grantId   String
+  panel     String?
+  notes     String?
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  grant Grant @relation(fields: [grantId], references: [id])
+}
+
+model GapsHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  grantId   String
+  gaps      String?
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  grant Grant @relation(fields: [grantId], references: [id])
+}
+
+model NarrativeHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  grantId   String
+  section   String?
+  content   String?
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  grant Grant @relation(fields: [grantId], references: [id])
+}
+
+model AgentHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  grantId   String
+  agent     String?
+  notes     String?
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  grant Grant @relation(fields: [grantId], references: [id])
+}
+
+model ComplianceHistory {
+  id         String   @id @default(cuid())
+  userId     String
+  grantId    String
+  compliance String?
+  notes      String?
+  createdAt  DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  grant Grant @relation(fields: [grantId], references: [id])
+}
+
+model CloseoutHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  grantId   String
+  closeout  String?
+  notes     String?
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  grant Grant @relation(fields: [grantId], references: [id])
+}
+
+model EligibilityHistory {
+  id          String   @id @default(cuid())
+  userId      String
+  grantId     String
+  eligibility String?
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  grant Grant @relation(fields: [grantId], references: [id])
+}
+
+model AutoeditorHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  grantId   String
+  edits     String?
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  grant Grant @relation(fields: [grantId], references: [id])
+}
+
+model SuccessProbabilityHistory {
+  id          String   @id @default(cuid())
+  userId      String
+  grantId     String
+  probability Float?
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  grant Grant @relation(fields: [grantId], references: [id])
+}
+
+model CompareHistory {
+  id         String   @id @default(cuid())
+  userId     String
+  grantId    String
+  comparison Json?
+  createdAt  DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  grant Grant @relation(fields: [grantId], references: [id])
+}
+
+model PortfolioHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  grantId   String
+  portfolio Json?
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  grant Grant @relation(fields: [grantId], references: [id])
+}
+
+model NegotiationHistory {
+  id          String   @id @default(cuid())
+  userId      String
+  grantId     String
+  negotiation String?
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  grant Grant @relation(fields: [grantId], references: [id])
+}
+
+model MonitoringHistory {
+  id         String   @id @default(cuid())
+  userId     String
+  grantId    String
+  monitoring String?
+  notes      String?
+  createdAt  DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  grant Grant @relation(fields: [grantId], references: [id])
+}
+
+model OutreachHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  grantId   String
+  outreach  String?
+  notes     String?
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  grant Grant @relation(fields: [grantId], references: [id])
+}
+
+model BudgetHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  grantId   String
+  category  String?
+  amount    Float?
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  grant Grant @relation(fields: [grantId], references: [id])
+}
+
+model SubmissionVersion {
+  id            String   @id @default(cuid())
+  submissionId  String
+  versionNumber Int
+  content       String?
+  createdAt     DateTime @default(now())
+
+  submission SubmissionHistory @relation(fields: [submissionId], references: [id])
+}
+
+model ApplicationHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  grantId   String
+  status    String?
+  notes     String?
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  grant Grant @relation(fields: [grantId], references: [id])
+}
+
+model ApplicationVersion {
+  id            String   @id @default(cuid())
+  applicationId String
+  versionNumber Int
+  content       String?
+  createdAt     DateTime @default(now())
+
+  application Application @relation(fields: [applicationId], references: [id])
+}
+
+model Application {
+  id        String   @id @default(cuid())
+  userId    String
+  grantId   String
+  content   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User  @relation(fields: [userId], references: [id])
+  grant Grant @relation(fields: [grantId], references: [id])
+
+  versions ApplicationVersion[]
+}
+
+model CrmLead {
+  id        String   @id @default(cuid())
+  name      String
+  email     String?
+  phone     String?
+  notes     String?
+  createdAt DateTime @default(now())
+}
+
+model ApiKey {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  key       String   @unique
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model DocumentPatch {
+  id        String   @id @default(cuid())
+  docId     String
+  userId    String
+  patch     Json
+  createdAt DateTime @default(now())
+
+  document Document @relation(fields: [docId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
+}
+
+model DocumentVersion {
+  id        String   @id @default(cuid())
+  docId     String
+  userId    String
+  content   Json
+  createdAt DateTime @default(now())
+
+  document Document @relation(fields: [docId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
+}
+
+model DocumentSnapshot {
+  id        String   @id @default(cuid())
+  docId     String
+  userId    String
+  content   Json
+  createdAt DateTime @default(now())
+
+  document Document @relation(fields: [docId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
+}
+
+model Grant {
+  id           String    @id @default(cuid())
+  workspaceId  String
+  title        String
+  description  String?
+  category     String?
+  agency       String?
+  summary      String?
+  amount       Float?
+  deadline     DateTime?
+  openDate     DateTime?
+  url          String?
+  industry     String?
+  location     String?
+  fundingRange String?
+  status       String    @default("open")
+  embedding    Float[]   @default([])
+
+  // ⭐ REQUIRED FOR AI SCORING, AI SUMMARY, RAW JSON STORAGE
+  raw          Json?
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  applicationHistories ApplicationHistory[]
+  applications         Application[]
+
+  workspace  Workspace   @relation(fields: [workspaceId], references: [id])
+  narratives Narrative[]
+
+  postAwardHistory          PostAwardHistory[]
+  renewalHistory            RenewalHistory[]
+  reviewerHistory           ReviewerHistory[]
+  riskHistory               RiskHistory[]
+  submissionHistory         SubmissionHistory[]
+  writingCoachHistory       WritingCoachHistory[]
+  forecastHistory           ForecastHistory[]
+  matchingHistory           MatchingHistory[]
+  opportunityHistory        OpportunityHistory[]
+  rewriteHistory            RewriteHistory[]
+  panelHistory              PanelHistory[]
+  gapsHistory               GapsHistory[]
+  narrativeHistory          NarrativeHistory[]
+  agentHistory              AgentHistory[]
+  complianceHistory         ComplianceHistory[]
+  closeoutHistory           CloseoutHistory[]
+  eligibilityHistory        EligibilityHistory[]
+  autoeditorHistory         AutoeditorHistory[]
+  successProbabilityHistory SuccessProbabilityHistory[]
+  compareHistory            CompareHistory[]
+  portfolioHistory          PortfolioHistory[]
+  negotiationHistory        NegotiationHistory[]
+  monitoringHistory         MonitoringHistory[]
+  outreachHistory           OutreachHistory[]
+  budgetHistory             BudgetHistory[]
+
+  documents    GrantDocument[]
+  GrantDraft   GrantDraft[]
+  GrantSection GrantSection[]
+}
+
+model File {
+  id          String   @id @default(cuid())
+  workspaceId String
+  userId      String
+  name        String
+  url         String
+  type        String
+  size        Int
+  createdAt   DateTime @default(now())
+
+  user      User      @relation(fields: [userId], references: [id])
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+}
+
+model GrantDraft {
+  id        String   @id @default(cuid())
+  userId    String
+  grantId   String
+  title     String?
+  content   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt // ⭐ REQUIRED
+
+  user  User  @relation(fields: [userId], references: [id])
+  grant Grant @relation(fields: [grantId], references: [id])
+}
+
+model Narrative {
+  id        String   @id @default(cuid())
+  userId    String
+  grantId   String
+  content   String?
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  grant Grant @relation(fields: [grantId], references: [id])
+}
+
+model Document {
+  id          String   @id @default(cuid())
+  workspaceId String?
+  userId      String?
+  title       String?
+  content     Json?
+  createdAt   DateTime @default(now())
+
+  workspace Workspace? @relation(fields: [workspaceId], references: [id])
+  user      User?      @relation(fields: [userId], references: [id])
+
+  patches          DocumentPatch[]
+  versions         DocumentVersion[]
+  snapshots        DocumentSnapshot[]
+  DocumentMessage  DocumentMessage[]
+  DocumentComment  DocumentComment[]
+  DocumentPresence DocumentPresence[]
+}
+
+model Budget {
+  id          String   @id @default(cuid())
+  workspaceId String
+  name        String
+  amount      Float?
+  createdAt   DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+}
+
+model GrantDocument {
+  id        String   @id @default(cuid())
+  grantId   String
+  filename  String
+  url       String
+  createdAt DateTime @default(now())
+
+  grant Grant @relation(fields: [grantId], references: [id])
+}
+
+model GrantSection {
+  id      String  @id @default(cuid())
+  grantId String
+  title   String
+  content String?
+  order   Int
+
+  grant Grant @relation(fields: [grantId], references: [id])
+}
+
+model Message {
+  id          String   @id @default(cuid())
+  senderId    String
+  recipientId String
+  content     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  sender    User @relation("SentMessages", fields: [senderId], references: [id])
+  recipient User @relation("ReceivedMessages", fields: [recipientId], references: [id])
+}
+
+model JobQueue {
+  id        String   @id @default(cuid())
+  type      String
+  payload   Json
+  status    String   @default("pending")
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SharedResource {
+  id           String   @id @default(cuid())
+  resourceId   String
+  ownerOrgId   String
+  sharedWithId String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  ownerOrg   Org  @relation("OwnedResources", fields: [ownerOrgId], references: [id])
+  sharedWith Org? @relation("SharedResources", fields: [sharedWithId], references: [id])
+
+  // ⭐ REQUIRED opposite relation
+  accesses SharedAccess[]
+}
+
+model Org {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  auditLogs       AuditLog[]
+  ownedResources  SharedResource[] @relation("OwnedResources")
+  sharedResources SharedResource[] @relation("SharedResources")
+
+  // ⭐ REQUIRED opposite relation
+  sharedAccess SharedAccess[]
+  Workspace    Workspace[]
+}
+
+model SharedAccess {
+  id        String   @id @default(cuid())
+  orgId     String
+  sharedId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  org    Org            @relation(fields: [orgId], references: [id])
+  shared SharedResource @relation(fields: [sharedId], references: [id])
+}
+
+model DocumentMessage {
+  id         String   @id @default(cuid())
+  documentId String
+  userId     String
+  message    String
+  createdAt  DateTime @default(now())
+
+  document Document @relation(fields: [documentId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
+}
+
+model DocumentComment {
+  id         String   @id @default(cuid())
+  documentId String
+  userId     String
+  text       String
+  selection  String? // optional text selection / highlight
+  createdAt  DateTime @default(now())
+
+  document Document @relation(fields: [documentId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
+}
+
+model DocumentPresence {
+  id         String   @id @default(cuid())
+  documentId String
+  userId     String
+  lastSeen   DateTime @default(now())
+
+  document Document @relation(fields: [documentId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
+
+  @@unique([documentId, userId])
 }

@@ -1,64 +1,61 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { openai } from "@/lib/openai";
+import { client } from "@/lib/openai";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-export async function GET(
+export async function POST(
   req: Request,
   { params }: { params: { workspaceId: string } }
 ) {
   try {
-    const workspaceId = params.workspaceId;
+    const { workspaceId } = params;
+    const { events } = await req.json();
 
-    const workspace = await prisma.workspace.findUnique({
-      where: { id: workspaceId },
-      select: {
-        name: true,
-        mission: true
-      }
-    });
+    if (!workspaceId) {
+      return NextResponse.json(
+        { error: "workspaceId is required" },
+        { status: 400 }
+      );
+    }
 
-    const grants = await prisma.grant.findMany({
-      where: { workspaceId },
-      include: {
-        timeline: true,
-        sections: true
-      }
-    });
+    if (!events || !Array.isArray(events)) {
+      return NextResponse.json(
+        { error: "events array is required" },
+        { status: 400 }
+      );
+    }
 
-    const prompt =
-      "You are an expert grant program manager. Generate workspace notifications.\n\n" +
-      "Workspace: " +
-      workspace?.name +
-      "\nMission: " +
-      workspace?.mission +
-      "\n\n" +
-      "Grants:\n" +
-      JSON.stringify(grants, null, 2) +
-      "\n\n" +
-      "Provide a JSON object:\n" +
-      "{\n" +
-      '  "notifications": [\n' +
-      '    { "title": "...", "message": "...", "type": "deadline|risk|reminder" }\n' +
-      "  ]\n" +
-      "}\n\n" +
-      "Return ONLY valid JSON.";
+    const prompt = `
+You are an AI assistant generating notification summaries for a workspace.
 
-    const completion = await openai.chat.completions.create({
+Workspace ID:
+${workspaceId}
+
+Events:
+${events.map((e: any) => `- ${e.type}: ${e.message}`).join("\n")}
+
+Provide:
+1. A concise summary of recent activity
+2. Any urgent items to highlight
+3. Recommended next actions
+    `;
+
+    const response = await client.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.2
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
     });
 
-    const output = JSON.parse(completion.choices[0].message.content);
-
-    return NextResponse.json({ notifications: output.notifications });
-  } catch (error) {
-    console.error("Notifications Error:", error);
-    return NextResponse.json(
-      { error: "Failed to generate notifications" },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      result: response.choices[0].message,
+    });
+  } catch (err: any) {
+    console.error("Workspace notifications AI error:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

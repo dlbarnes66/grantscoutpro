@@ -1,8 +1,8 @@
-import { QuickActions } from "@/components/dashboard/QuickActions";
-import { AIAssistantPanel } from "@/components/dashboard/AIAssistantPanel";
-import { PipelineOverview } from "@/components/dashboard/PipelineOverview";
-import { RecentActivity } from "@/components/dashboard/RecentActivity";
-import { KPISnapshot } from "@/components/dashboard/KPISnapshot";
+import QuickActions from "@/components/dashboard/QuickActions";
+import AIAssistantPanel from "@/components/dashboard/AIAssistantPanel";
+import PipelineOverview from "@/components/dashboard/PipelineOverview";
+import RecentActivity from "@/components/dashboard/RecentActivity";
+import KPISnapshot from "@/components/dashboard/KPISnapshot";
 
 export default function DashboardPage() {
   return (

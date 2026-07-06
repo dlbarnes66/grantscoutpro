@@ -1,27 +1,40 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
-export async function POST(req: Request) {
+export async function POST(req) {
   try {
     const { userId, orgId } = await req.json();
 
     if (!userId || !orgId) {
       return NextResponse.json(
-        { error: "Missing userId or orgId" },
+        { success: false, error: "userId and orgId are required" },
         { status: 400 }
       );
     }
 
-    const member = await prisma.teamMember.findFirst({
+    // ⭐ FIXED — your schema uses WorkspaceMember, NOT TeamMember
+    const member = await prisma.workspaceMember.findFirst({
       where: { userId, orgId },
     });
 
-    return NextResponse.json({ allowed: !!member });
-  } catch (err: any) {
-    console.error("Strict isolation error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    if (!member) {
+      return NextResponse.json({
+        success: false,
+        allowed: false,
+        reason: "User is not a member of this organization",
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      allowed: true,
+      member,
+    });
+  } catch (error) {
+    console.error("STRICT CHECK ERROR:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to check strict permission" },
+      { status: 500 }
+    );
   }
 }

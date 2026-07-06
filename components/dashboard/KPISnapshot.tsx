@@ -1,6 +1,6 @@
 "use client";
 
-export function KPISnapshot() {
+export default function KPISnapshot() {
   const kpis = [
     { label: "Avg Match Score", value: "82%" },
     { label: "Submission Readiness", value: "74%" },

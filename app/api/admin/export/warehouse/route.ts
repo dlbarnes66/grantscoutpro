@@ -1,28 +1,54 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
 export async function GET() {
   try {
-    const users = await prisma.user.findMany({ include: { profile: true } });
-    const grants = await prisma.grant.findMany();
-    const applications = await prisma.application.findMany({
-      include: { user: true, grant: true },
+    const warehouse = await prisma.application.findMany({
+      select: {
+        id: true,
+        createdAt: true,
+        updatedAt: true,
+        userId: true,
+        grantId: true, // ⭐ REQUIRED — fixes TS error
+        content: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            password: true,
+            emailVerified: true,
+            image: true,
+            role: true,
+            stripeCustomerId: true,
+            planName: true,
+            status: true,
+            renewalDate: true
+          }
+        }
+      }
     });
-    const orgs = await prisma.organization.findMany();
-    const audit = await prisma.auditLog.findMany();
+
+    const formatted = warehouse.map((a) => ({
+      id: a.id,
+      userId: a.userId,
+      userEmail: a.user?.email ?? null,
+      grantId: a.grantId,
+      content: a.content,
+      createdAt: a.createdAt,
+      updatedAt: a.updatedAt
+    }));
 
     return NextResponse.json({
-      users,
-      grants,
-      applications,
-      organizations: orgs,
-      audit,
+      success: true,
+      count: formatted.length,
+      data: formatted
     });
-  } catch (err: any) {
-    console.error("Warehouse export error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (error) {
+    console.error("EXPORT WAREHOUSE ERROR:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to export warehouse data" },
+      { status: 500 }
+    );
   }
 }

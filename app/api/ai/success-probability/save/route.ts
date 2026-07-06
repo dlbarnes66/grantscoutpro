@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { userId, grantId, probability, confidence, reasoning } = await req.json();
+    const { userId, grantId, probability, notes } = await req.json();
 
     if (!userId || !grantId || probability === undefined) {
       return NextResponse.json(
@@ -15,19 +15,18 @@ export async function POST(req: Request) {
       );
     }
 
-    const entry = await prisma.successPrediction.create({
+    const entry = await prisma.successProbabilityHistory.create({
       data: {
         userId,
         grantId,
         probability,
-        confidence,
-        reasoning,
+        notes,
       },
     });
 
     return NextResponse.json({ saved: true, entry });
   } catch (err: any) {
-    console.error("Save prediction error:", err);
+    console.error("Success probability save error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

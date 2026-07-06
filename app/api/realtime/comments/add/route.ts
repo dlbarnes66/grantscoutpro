@@ -1,3 +1,4 @@
+// app/api/realtime/comments/add/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
@@ -6,6 +7,13 @@ export const runtime = "nodejs";
 export async function POST(req: Request) {
   try {
     const { documentId, userId, text, selection } = await req.json();
+
+    if (!documentId || !userId || !text) {
+      return NextResponse.json(
+        { success: false, error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
 
     const entry = await prisma.documentComment.create({
       data: {
@@ -17,17 +25,14 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({
-      broadcast: {
-        type: "comment",
-        documentId,
-        userId,
-        text,
-        selection,
-      },
+      success: true,
       entry,
     });
-  } catch (err: any) {
-    console.error("Comment add error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (error) {
+    console.error("REALTIME COMMENT ADD ERROR:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to add comment" },
+      { status: 500 }
+    );
   }
 }

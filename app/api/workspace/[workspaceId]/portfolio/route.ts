@@ -1,78 +1,69 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { openai } from "@/lib/openai";
+import { client } from "@/lib/openai";
 
-export async function GET(
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+export async function POST(
   req: Request,
   { params }: { params: { workspaceId: string } }
 ) {
   try {
-    const workspaceId = params.workspaceId;
+    const { workspaceId } = params;
+    const { grants } = await req.json();
 
-    const workspace = await prisma.workspace.findUnique({
-      where: { id: workspaceId },
-      select: {
-        name: true,
-        mission: true,
-        history: true
-      }
-    });
+    if (!workspaceId) {
+      return NextResponse.json(
+        { error: "workspaceId is required" },
+        { status: 400 }
+      );
+    }
 
-    const grants = await prisma.grant.findMany({
-      where: { workspaceId },
-      select: {
-        id: true,
-        title: true,
-        summary: true,
-        requirements: true,
-        scoringCriteria: true,
-        status: true,
-        priority: true
-      }
-    });
+    if (!grants || !Array.isArray(grants)) {
+      return NextResponse.json(
+        { error: "grants array is required" },
+        { status: 400 }
+      );
+    }
 
     const prompt = `
-You are an expert federal grant strategist. Analyze the entire grant portfolio for this workspace.
+You are an AI assistant analyzing a grant portfolio for a workspace.
 
-Workspace:
-- Name: ${workspace?.name}
-- Mission: ${workspace?.mission}
-- History: ${workspace?.history}
+Workspace ID:
+${workspaceId}
 
 Grants:
-${JSON.stringify(grants, null, 2)}
+${grants
+  .map(
+    (g: any) =>
+      `- ${g.title || "Untitled"}: status=${g.status || "unknown"}, amount=${
+        g.amount || "N/A"
+      }`
+  )
+  .join("\n")}
 
-Provide a JSON object:
+Provide:
+1. Portfolio summary
+2. Funding distribution insights
+3. Risk areas
+4. Strategic recommendations
+    `;
 
-{
-  "portfolioScore": 0-100,
-  "fundingProbability": 0-100,
-  "portfolioStrengths": ["...", "..."],
-  "portfolioRisks": ["...", "..."],
-  "grantContributions": [
-    { "grantId": "...", "score": 0-100, "impact": "..." }
-  ],
-  "recommendations": ["...", "..."],
-  "summary": "One paragraph portfolio analysis"
-}
-
-Return ONLY valid JSON.
-`;
-
-    const completion = await openai.chat.completions.create({
+    const response = await client.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.2,
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
     });
 
-    const output = completion.choices[0].message.content;
-
-    return NextResponse.json(JSON.parse(output));
-  } catch (error) {
-    console.error("Portfolio Intelligence Error:", error);
-    return NextResponse.json(
-      { error: "Failed to generate portfolio intelligence" },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      result: response.choices[0].message,
+    });
+  } catch (err: any) {
+    console.error("Workspace portfolio AI error:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

@@ -10,19 +10,19 @@ export async function POST(req: Request) {
 
     if (!applicationId) {
       return NextResponse.json(
-        { error: "Missing applicationId" },
+        { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    const versions = await prisma.applicationVersion.findMany({
-      where: { applicationId },
+    const versions = await prisma.submissionVersion.findMany({
+      where: { submissionId: applicationId },
       orderBy: { createdAt: "desc" },
     });
 
     return NextResponse.json({ versions });
   } catch (err: any) {
-    console.error("Version list error:", err);
+    console.error("Application version list error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

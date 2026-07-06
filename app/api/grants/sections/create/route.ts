@@ -1,58 +1,49 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { openai } from "@/lib/openai";
+import { client } from "@/lib/openai";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { grantId, title, purpose, useAI } = await req.json();
+    const { title, content } = await req.json();
 
-    let content = "";
-
-    if (useAI) {
-      const prompt = `
-You are an expert grant writer. Create a section template for:
-
-Section Title: ${title}
-Purpose: ${purpose}
-
-Return ONLY valid JSON:
-
-{
-  "content": "..."
-}
-`;
-
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.3,
-      });
-
-      const ai = JSON.parse(completion.choices[0].message.content);
-      content = ai.content;
+    if (!title || !content) {
+      return NextResponse.json(
+        { error: "title and content are required" },
+        { status: 400 }
+      );
     }
 
-    const sectionCount = await prisma.grantSection.count({
-      where: { grantId }
+    const prompt = `
+You are an expert grant writer. Create a polished, professional grant section
+based on the following information:
+
+Section Title:
+${title}
+
+Raw Content:
+${content}
+
+Rewrite this into a clear, structured, compelling grant section.
+Improve clarity, flow, and persuasiveness while preserving the original meaning.
+    `;
+
+    const response = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
     });
 
-    const section = await prisma.grantSection.create({
-      data: {
-        grantId,
-        title,
-        purpose,
-        content,
-        order: sectionCount + 1,
-        previousVersions: []
-      }
+    return NextResponse.json({
+      result: response.choices[0].message,
     });
-
-    return NextResponse.json({ success: true, section });
-  } catch (error) {
-    console.error("Section Creation Error:", error);
-    return NextResponse.json(
-      { error: "Failed to create section" },
-      { status: 500 }
-    );
+  } catch (err: any) {
+    console.error("Grant section creation error:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

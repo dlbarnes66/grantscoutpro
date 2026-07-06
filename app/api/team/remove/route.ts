@@ -1,27 +1,34 @@
+// app/api/team/remove/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { orgId, userId } = await req.json();
+    const { workspaceId, userId } = await req.json();
 
-    if (!orgId || !userId) {
+    if (!workspaceId || !userId) {
       return NextResponse.json(
-        { error: "Missing orgId or userId" },
+        { success: false, error: "Missing workspaceId or userId" },
         { status: 400 }
       );
     }
 
-    await prisma.teamMember.deleteMany({
-      where: { orgId, userId },
+    // Delete membership
+    await prisma.workspaceMember.deleteMany({
+      where: {
+        workspaceId,
+        userId,
+      },
     });
 
-    return NextResponse.json({ removed: true });
-  } catch (err: any) {
-    console.error("Team remove error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("TEAM REMOVE ERROR:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to remove team member" },
+      { status: 500 }
+    );
   }
 }

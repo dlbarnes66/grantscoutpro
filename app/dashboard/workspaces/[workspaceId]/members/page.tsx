@@ -1,113 +1,56 @@
-import { prisma } from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
+// app/dashboard/workspaces/[workspaceId]/members/page.tsx
 import { redirect } from "next/navigation";
+import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
 
 export default async function WorkspaceMembersPage({
   params,
 }: {
   params: { id: string };
 }) {
-  const { userId } = auth();
+  // ⭐ NextAuth v5 — MUST await auth()
+  const session = await auth();
+  const userId = session?.user?.id;
+
   if (!userId) redirect("/");
 
   const workspaceId = params.id;
 
-  // Load membership
-  const membership = await prisma.workspaceMember.findFirst({
-    where: { workspaceId, userId },
-    include: { workspace: true },
+  const workspace = await prisma.workspace.findUnique({
+    where: { id: workspaceId },
+    include: {
+      members: {
+        include: {
+          user: true,
+        },
+      },
+    },
   });
 
-  if (!membership) {
-    return (
-      <div className="p-6 text-red-600 font-semibold">
-        You do not have access to this workspace.
-      </div>
-    );
+  if (!workspace) {
+    redirect("/dashboard");
   }
-
-  const isOwner = membership.role === "owner";
-  const isAdmin = membership.role === "admin";
-
-  if (!isOwner && !isAdmin) {
-    return (
-      <div className="p-6 text-red-600 font-semibold">
-        Only workspace owners or admins can manage members.
-      </div>
-    );
-  }
-
-  const members = await prisma.workspaceMember.findMany({
-    where: { workspaceId },
-    include: { user: true },
-    orderBy: { createdAt: "asc" },
-  });
 
   return (
-    <div className="p-6 space-y-10">
-      <h1 className="text-2xl font-semibold">Workspace Members</h1>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">Workspace Members</h1>
 
-      <div className="space-y-3">
-        {members.map((m) => (
-          <div
-            key={m.id}
-            className="p-4 border rounded bg-white shadow-sm flex justify-between items-center"
-          >
-            <div>
-              <div className="font-semibold">{m.user.email}</div>
-              <div className="text-sm text-gray-600">Role: {m.role}</div>
-            </div>
-
-            {/* ACTIONS */}
-            <div className="flex gap-3">
-              {/* CHANGE ROLE */}
-              {isOwner && m.userId !== userId && (
-                <form
-                  action={async (formData) => {
-                    "use server";
-                    const newRole = formData.get("role") as string;
-
-                    await prisma.workspaceMember.update({
-                      where: { id: m.id },
-                      data: { role: newRole },
-                    });
-                  }}
-                  className="flex gap-2"
-                >
-                  <select
-                    name="role"
-                    defaultValue={m.role}
-                    className="border rounded px-2 py-1 text-sm"
-                  >
-                    <option value="member">Member</option>
-                    <option value="admin">Admin</option>
-                  </select>
-
-                  <button className="px-3 py-1 bg-blue-600 text-white rounded text-sm">
-                    Update
-                  </button>
-                </form>
-              )}
-
-              {/* REMOVE MEMBER */}
-              {isOwner && m.userId !== userId && (
-                <form
-                  action={async () => {
-                    "use server";
-                    await prisma.workspaceMember.delete({
-                      where: { id: m.id },
-                    });
-                  }}
-                >
-                  <button className="px-3 py-1 bg-red-600 text-white rounded text-sm">
-                    Remove
-                  </button>
-                </form>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
+      {workspace.members.length === 0 ? (
+        <p className="text-gray-600">No members yet.</p>
+      ) : (
+        <ul className="space-y-3">
+          {workspace.members.map((member) => (
+            <li
+              key={member.id}
+              className="p-4 border rounded bg-white shadow-sm"
+            >
+              <p><strong>Name:</strong> {member.user.name}</p>
+              <p><strong>Email:</strong> {member.user.email}</p>
+              <p><strong>Role:</strong> {member.role}</p>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

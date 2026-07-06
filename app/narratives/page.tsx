@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { NarrativeEditor } from "@/components/narrative/NarrativeEditor";
+import { NarrativeEditor } from "@/components/narratives/NarrativeEditor";
 
 export default function NarrativePage() {
   const [text, setText] = useState("");
@@ -15,7 +15,7 @@ export default function NarrativePage() {
       goals: "Expand STEM access for underserved youth",
       location: "Alabama",
       population: "students ages 10–17",
-      needs: "equipment, curriculum, instructor training"
+      needs: "equipment, curriculum, instructor training",
     };
 
     const res = await fetch("/api/ai/narrative", {
@@ -23,8 +23,8 @@ export default function NarrativePage() {
       body: JSON.stringify({
         section: "Project Overview",
         project,
-        tone: "formal"
-      })
+        tone: "formal",
+      }),
     });
 
     const data = await res.json();

@@ -6,26 +6,28 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { userId, grantId } = await req.json();
+    const { userId, grantId, status, notes } = await req.json();
 
     if (!userId || !grantId) {
       return NextResponse.json(
-        { error: "Missing userId or grantId" },
+        { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    const app = await prisma.application.create({
+    const app = await prisma.submissionHistory.create({
       data: {
         userId,
         grantId,
-        status: "in_progress",
+        status: status ?? "started",
+        notes,
+        submittedAt: null,
       },
     });
 
-    return NextResponse.json({ application: app });
+    return NextResponse.json({ started: true, app });
   } catch (err: any) {
-    console.error("Start application error:", err);
+    console.error("Application start error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

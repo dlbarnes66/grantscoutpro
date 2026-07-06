@@ -1,23 +1,46 @@
-import { auth } from "@clerk/nextjs/server";
+// app/dashboard/grant-compare/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
 
-// POST /api/grant-compare
+export const runtime = "nodejs";
+
 export async function POST(req: Request) {
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const session = await auth();
+    const userId = session?.user?.id;
 
-  const { grantIds } = await req.json();
-  if (!grantIds || !Array.isArray(grantIds) || grantIds.length < 2) {
-    return NextResponse.json({ error: "Need at least 2 grants" }, { status: 400 });
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: "Not authenticated" },
+        { status: 401 }
+      );
+    }
+
+    const { workspaceId, grantIds } = await req.json();
+
+    if (!workspaceId || !grantIds || !Array.isArray(grantIds)) {
+      return NextResponse.json(
+        { success: false, error: "Missing workspaceId or grantIds[]" },
+        { status: 400 }
+      );
+    }
+
+    const comparison = await prisma.grantComparison.create({
+      data: {
+        userId,
+        workspaceId,
+        grants: grantIds, // ⭐ JSON array (correct field)
+        name: "Untitled Comparison",
+      },
+    });
+
+    return NextResponse.json({ success: true, comparison });
+  } catch (error) {
+    console.error("GRANT COMPARE ERROR:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to create comparison" },
+      { status: 500 }
+    );
   }
-
-  const comparison = await prisma.grantComparison.create({
-    data: {
-      userId,
-      grantIds,
-    },
-  });
-
-  return NextResponse.json(comparison);
 }

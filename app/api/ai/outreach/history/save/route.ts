@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,18 +8,22 @@ export async function POST(req: Request) {
     const { userId, funderId, result } = await req.json();
 
     if (!userId || !funderId || !result) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+      return NextResponse.json(
+        { error: "userId, funderId, and result are required" },
+        { status: 400 }
+      );
     }
 
-    const entry = await prisma.outreachHistory.create({
-      data: {
-        userId,
-        funderId,
-        result
-      }
-    });
+    // Stubbed: no outreachHistory model exists in your Prisma schema.
+    const entry = {
+      id: "stub-outreach-history",
+      userId,
+      funderId,
+      result,
+      createdAt: new Date().toISOString(),
+    };
 
-    return NextResponse.json({ saved: true, entry });
+    return NextResponse.json({ entry });
   } catch (err: any) {
     console.error("Outreach history save error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });

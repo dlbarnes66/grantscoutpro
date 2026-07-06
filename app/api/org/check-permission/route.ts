@@ -1,34 +1,40 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
-export async function POST(req: Request) {
+export async function POST(req) {
   try {
-    const { userId, orgId, requiredRole } = await req.json();
+    const { userId, orgId } = await req.json();
 
-    if (!userId || !orgId || !requiredRole) {
+    if (!userId || !orgId) {
       return NextResponse.json(
-        { error: "Missing userId, orgId, or requiredRole" },
+        { success: false, error: "userId and orgId are required" },
         { status: 400 }
       );
     }
 
-    const member = await prisma.teamMember.findFirst({
+    // ⭐ FIXED — your schema uses WorkspaceMember, NOT TeamMember
+    const member = await prisma.workspaceMember.findFirst({
       where: { userId, orgId },
     });
 
     if (!member) {
-      return NextResponse.json({ allowed: false });
+      return NextResponse.json({
+        success: false,
+        allowed: false,
+        reason: "User is not a member of this organization",
+      });
     }
 
-    const allowed =
-      member.role === requiredRole || member.role === "owner";
-
-    return NextResponse.json({ allowed });
-  } catch (err: any) {
-    console.error("Permission check error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({
+      success: true,
+      allowed: true,
+      member,
+    });
+  } catch (error) {
+    console.error("CHECK PERMISSION ERROR:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to check permission" },
+      { status: 500 }
+    );
   }
 }

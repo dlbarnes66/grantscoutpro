@@ -1,61 +1,52 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { openai } from "@/lib/openai";
+import { createClient } from "@supabase/supabase-js";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function POST(req: Request) {
   try {
-    const { workspaceId, title, summary, useAI } = await req.json();
+    const { workspaceId, title, description, status } = await req.json();
 
-    let finalSummary = summary;
-    let requirements = "";
-    let scoringCriteria = "";
-
-    if (useAI) {
-      const prompt = `
-You are an expert grant analyst. Create a grant summary, requirements list, and scoring criteria based on this title:
-
-Grant Title: ${title}
-
-Return ONLY valid JSON:
-
-{
-  "summary": "...",
-  "requirements": "...",
-  "scoringCriteria": "..."
-}
-`;
-
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.3,
-      });
-
-      const ai = JSON.parse(completion.choices[0].message.content);
-
-      finalSummary = ai.summary;
-      requirements = ai.requirements;
-      scoringCriteria = ai.scoringCriteria;
+    if (!workspaceId || !title) {
+      return NextResponse.json(
+        { error: "workspaceId and title are required" },
+        { status: 400 }
+      );
     }
 
-    const grant = await prisma.grant.create({
-      data: {
-        workspaceId,
+    const { data, error } = await supabase
+      .from("grants")
+      .insert({
+        workspace_id: workspaceId,
         title,
-        summary: finalSummary,
-        requirements,
-        scoringCriteria,
-        status: "Not Started",
-        priority: "Medium",
-        statusHistory: [`${new Date().toISOString()} — Grant created`]
-      }
-    });
+        description: description || "",
+        status: status || "draft",
+      })
+      .select()
+      .single();
 
-    return NextResponse.json({ success: true, grant });
-  } catch (error) {
-    console.error("Grant Creation Error:", error);
+    if (error) {
+      console.error("Supabase grant create error:", error);
+      return NextResponse.json(
+        { error: "Failed to create grant" },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      grant: data,
+    });
+  } catch (err: any) {
+    console.error("Grant create route error:", err);
     return NextResponse.json(
-      { error: "Failed to create grant" },
+      { error: err.message || "Unexpected error" },
       { status: 500 }
     );
   }

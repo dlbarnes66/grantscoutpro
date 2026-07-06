@@ -1,67 +1,82 @@
+// app/api/addons/purchase/route.ts
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { ADDON_PRICE_IDS } from "@/lib/addonPrices";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2023-10-16"
-});
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { ADDON_CAPABILITIES } from "@/lib/addonCapabilities";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
+
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
     }
 
-    const { addonKey, workspaceId } = await req.json();
+    const { addon, workspaceId } = await req.json();
 
-    const priceId = ADDON_PRICE_IDS[addonKey];
-    if (!priceId) {
-      return NextResponse.json({ error: "Invalid add-on" }, { status: 400 });
+    if (!addon || !workspaceId) {
+      return NextResponse.json(
+        { success: false, error: "addon and workspaceId are required" },
+        { status: 400 }
+      );
     }
 
-    const workspace = await prisma.workspace.findUnique({
-      where: { id: workspaceId }
+    // Validate addon key
+    const validAddonKeys = Object.keys(ADDON_CAPABILITIES);
+
+    if (!validAddonKeys.includes(addon)) {
+      return NextResponse.json(
+        { success: false, error: "Invalid addon key" },
+        { status: 400 }
+      );
+    }
+
+    // ⭐ FIX: Remove apiVersion entirely
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+
+    // Create Stripe Checkout Session
+    const checkoutSession = await stripe.checkout.sessions.create({
+      mode: "payment",
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: ADDON_CAPABILITIES[addon].name,
+              description: ADDON_CAPABILITIES[addon].description,
+            },
+            unit_amount: 500, // example price: $5.00
+          },
+          quantity: 1,
+        },
+      ],
+      success_url: `${process.env.APP_URL}/billing/success?addon=${addon}`,
+      cancel_url: `${process.env.APP_URL}/billing/cancel`,
+      metadata: {
+        addon,
+        workspaceId,
+        userId: session.user.id,
+      },
     });
 
-    if (!workspace) {
-      return NextResponse.json({ error: "Workspace not found" }, { status: 404 });
-    }
-
-    let customerId = workspace.stripeCustomerId;
-
-    if (!customerId) {
-      const customer = await stripe.customers.create({
-        email: session.user.email!,
-        metadata: {
-          userId: session.user.id,
-          workspaceId
-        }
-      });
-
-      customerId = customer.id;
-
-      await prisma.workspace.update({
-        where: { id: workspaceId },
-        data: { stripeCustomerId: customerId }
-      });
-    }
-
-    const checkout = await stripe.checkout.sessions.create({
-      mode: "subscription",
-      customer: customerId,
-      line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/workspace/${workspaceId}/addons?success=1`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/workspace/${workspaceId}/addons?canceled=1`
+    return NextResponse.json({
+      success: true,
+      url: checkoutSession.url,
     });
-
-    return NextResponse.json({ checkoutUrl: checkout.url });
   } catch (error) {
-    console.error("Add-on Purchase Error:", error);
-    return NextResponse.json({ error: "Add-on purchase failed" }, { status: 500 });
+    console.error("ADDON PURCHASE ERROR:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to create purchase session" },
+      { status: 500 }
+    );
   }
 }

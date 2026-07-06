@@ -18,13 +18,13 @@ export async function POST(req: Request) {
 
     const apiKey = crypto.randomBytes(32).toString("hex");
 
-    await prisma.apiKey.upsert({
+    const keyRecord = await prisma.apiKey.upsert({
       where: { userId },
       update: { key: apiKey },
       create: { userId, key: apiKey },
     });
 
-    return NextResponse.json({ apiKey });
+    return NextResponse.json({ apiKey: keyRecord.key });
   } catch (err: any) {
     console.error("API key generation error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });

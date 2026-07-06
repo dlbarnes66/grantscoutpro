@@ -1,6 +1,6 @@
 "use client";
 
-export function RecentActivity() {
+export default function RecentActivity() {
   const items = [
     { text: "Generated narrative for Youth Empowerment Grant" },
     { text: "Updated budget for Community Health Initiative" },

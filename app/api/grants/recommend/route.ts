@@ -1,60 +1,65 @@
 import { NextResponse } from "next/server";
-import OpenAI from "openai";
 import { prisma } from "@/lib/prisma";
+import OpenAI from "openai";
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
-
-export async function POST(req: Request) {
+export async function POST(req) {
   try {
-    const { userId } = await req.json();
+    const { query } = await req.json();
 
-    if (!userId) {
-      return NextResponse.json({ error: "Missing userId" }, { status: 400 });
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: { profile: true },
-    });
-
-    if (!user?.profile) {
-      return NextResponse.json({ error: "Profile missing" }, { status: 404 });
-    }
-
+    // ⭐ FIXED — embedding list is never null, so use isEmpty: false
     const grants = await prisma.grant.findMany({
-      where: { embedding: { not: null } },
+      where: { embedding: { isEmpty: false } },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        category: true,
+        agency: true,
+        summary: true,
+        amount: true,
+        deadline: true,
+        industry: true,
+        location: true,
+        fundingRange: true,
+        status: true,
+        embedding: true
+      }
     });
+
+    if (grants.length === 0) {
+      return NextResponse.json({
+        success: false,
+        error: "No grants have embeddings yet."
+      });
+    }
 
     const response = await client.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
-          content:
-            "Recommend grants based on profile, metadata, and semantic relevance. Return JSON array.",
+          content: "You are a grant recommendation engine."
         },
         {
           role: "user",
-          content: `
-User Profile:
-${JSON.stringify(user.profile)}
-
-Grants:
-${JSON.stringify(grants)}
-          `,
-        },
-      ],
-      max_tokens: 1200,
+          content: `User query: ${query}\n\nAvailable grants: ${JSON.stringify(
+            grants
+          )}`
+        }
+      ]
     });
 
     return NextResponse.json({
-      recommendations: JSON.parse(response.choices[0].message.content || "[]"),
+      success: true,
+      recommendations: response.choices[0].message.content
     });
-  } catch (err: any) {
-    console.error("Recommendation error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (error) {
+    console.error("RECOMMENDATION ERROR:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to generate recommendations" },
+      { status: 500 }
+    );
   }
 }

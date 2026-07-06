@@ -1,70 +1,48 @@
-export type PlanName = "basic" | "pro" | "advanced" | "enterprise";
+// lib/planCapabilities.ts
 
 export type PlanCapabilities = {
-  maxUsers: number;
-  aiWriter: boolean;
-  grantMatching: boolean;
-  crm: boolean;
-  scoringEngine: boolean;
-  advancedReporting: boolean;
-  complianceAutomation: boolean;
-  budgetAutomation: boolean;
-  extraSeatsIncluded: boolean;
-  vaultExpansionIncluded: boolean;
-  packetExpansionIncluded: boolean;
+  aiAutomation: boolean;
+  aiSummary: boolean;
+  aiScores: boolean;
+  compare: boolean;
+  exportData: boolean;
+  workspaceLimit: number;
 };
 
-export const PLAN_CAPABILITIES: Record<PlanName, PlanCapabilities> = {
-  basic: {
-    maxUsers: 1,
-    aiWriter: false,
-    grantMatching: false,
-    crm: false,
-    scoringEngine: false,
-    advancedReporting: false,
-    complianceAutomation: false,
-    budgetAutomation: false,
-    extraSeatsIncluded: false,
-    vaultExpansionIncluded: false,
-    packetExpansionIncluded: false
+export const PLAN_CAPABILITIES: Record<string, PlanCapabilities> = {
+  free: {
+    aiAutomation: false,
+    aiSummary: false,
+    aiScores: false,
+    compare: false,
+    exportData: false,
+    workspaceLimit: 1,
   },
+
+  starter: {
+    aiAutomation: true,
+    aiSummary: true,
+    aiScores: true,
+    compare: true,
+    exportData: false,
+    workspaceLimit: 3,
+  },
+
   pro: {
-    maxUsers: 5,
-    aiWriter: false,
-    grantMatching: true,
-    crm: true,
-    scoringEngine: false,
-    advancedReporting: false,
-    complianceAutomation: false,
-    budgetAutomation: false,
-    extraSeatsIncluded: false,
-    vaultExpansionIncluded: false,
-    packetExpansionIncluded: false
+    aiAutomation: true,
+    aiSummary: true,
+    aiScores: true,
+    compare: true,
+    exportData: true,
+    workspaceLimit: 10,
   },
-  advanced: {
-    maxUsers: 10,
-    aiWriter: true,
-    grantMatching: true,
-    crm: true,
-    scoringEngine: true,
-    advancedReporting: true,
-    complianceAutomation: true,
-    budgetAutomation: true,
-    extraSeatsIncluded: false,
-    vaultExpansionIncluded: false,
-    packetExpansionIncluded: false
-  },
+
   enterprise: {
-    maxUsers: 9999,
-    aiWriter: true,
-    grantMatching: true,
-    crm: true,
-    scoringEngine: true,
-    advancedReporting: true,
-    complianceAutomation: true,
-    budgetAutomation: true,
-    extraSeatsIncluded: true,
-    vaultExpansionIncluded: true,
-    packetExpansionIncluded: true
-  }
+    aiAutomation: true,
+    aiSummary: true,
+    aiScores: true,
+    compare: true,
+    exportData: true,
+    workspaceLimit: 999,
+  },
 };

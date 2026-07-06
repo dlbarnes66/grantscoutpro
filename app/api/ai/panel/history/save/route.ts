@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,20 +8,24 @@ export async function POST(req: Request) {
     const { userId, grantId, result } = await req.json();
 
     if (!userId || !grantId || !result) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+      return NextResponse.json(
+        { error: "userId, grantId, and result are required" },
+        { status: 400 }
+      );
     }
 
-    const entry = await prisma.reviewerPanelHistory.create({
-      data: {
-        userId,
-        grantId,
-        result
-      }
-    });
+    // Stubbed: no reviewerPanelHistory model exists in your Prisma schema.
+    const entry = {
+      id: "stub-reviewer-panel-history",
+      userId,
+      grantId,
+      result,
+      createdAt: new Date().toISOString(),
+    };
 
-    return NextResponse.json({ saved: true, entry });
+    return NextResponse.json({ entry });
   } catch (err: any) {
-    console.error("Panel history save error:", err);
+    console.error("Reviewer panel history save error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

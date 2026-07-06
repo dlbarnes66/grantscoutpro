@@ -1,53 +1,65 @@
+// app/api/sync/application/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
     const { applications } = await req.json();
 
     if (!applications || !Array.isArray(applications)) {
-      return NextResponse.json({ error: "Missing applications array" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: "Invalid applications payload" },
+        { status: 400 }
+      );
     }
 
-    let created = 0;
-    let updated = 0;
+    const results: any[] = [];
 
     for (const app of applications) {
-      const existing = await prisma.application.findUnique({
-        where: { externalId: app.externalId },
+      // ⭐ Since externalId does NOT exist in your model,
+      // we must match on fields that DO exist.
+      const existing = await prisma.application.findFirst({
+        where: {
+          userId: app.userId,
+          grantId: app.grantId,
+        },
       });
 
       if (existing) {
-        await prisma.application.update({
+        const updated = await prisma.application.update({
           where: { id: existing.id },
           data: {
-            userId: app.userId,
-            grantId: app.grantId,
-            status: app.status,
-            content: app.content,
+            content: app.content ?? existing.content,
+            userId: app.userId ?? existing.userId,
+            grantId: app.grantId ?? existing.grantId,
           },
         });
-        updated++;
+
+        results.push(updated);
       } else {
-        await prisma.application.create({
+        const created = await prisma.application.create({
           data: {
-            externalId: app.externalId,
+            content: app.content ?? "",
             userId: app.userId,
             grantId: app.grantId,
-            status: app.status,
-            content: app.content,
           },
         });
-        created++;
+
+        results.push(created);
       }
     }
 
-    return NextResponse.json({ created, updated });
-  } catch (err: any) {
-    console.error("Application sync error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({
+      success: true,
+      applications: results,
+    });
+  } catch (error) {
+    console.error("SYNC APPLICATION ERROR:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to sync applications" },
+      { status: 500 }
+    );
   }
 }

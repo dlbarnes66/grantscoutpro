@@ -6,11 +6,11 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { docId, content } = await req.json();
+    const { docId, userId, content } = await req.json();
 
-    if (!docId || !content) {
+    if (!docId || !userId || !content) {
       return NextResponse.json(
-        { error: "Missing docId or content" },
+        { error: "Missing docId, userId, or content" },
         { status: 400 }
       );
     }
@@ -18,13 +18,14 @@ export async function POST(req: Request) {
     const snapshot = await prisma.documentSnapshot.create({
       data: {
         docId,
+        userId,
         content,
       },
     });
 
-    return NextResponse.json({ snapshot });
+    return NextResponse.json({ success: true, snapshot });
   } catch (err: any) {
-    console.error("Snapshot error:", err);
+    console.error("Document snapshot error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

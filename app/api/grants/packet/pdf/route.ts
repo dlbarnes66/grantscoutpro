@@ -1,117 +1,95 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { PDFDocument, StandardFonts } from "pdf-lib";
+import PDFDocument from "pdfkit";
 
-export const runtime = "nodejs";
-
-export async function POST(req: Request) {
+export async function GET(req, { params }) {
   try {
-    const { grantId } = await req.json();
+    const { grantId } = params;
 
     const grant = await prisma.grant.findUnique({
       where: { id: grantId },
-      include: {
-        sections: true,
-        budget: true,
-        documents: true,
-        workspace: true
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        category: true,
+        agency: true,
+        summary: true,
+        amount: true,
+        deadline: true,
+        industry: true,
+        location: true,
+        fundingRange: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+
+        // ⭐ REQUIRED — fixes the "never" error
+        GrantSection: {
+          select: {
+            id: true,
+            title: true,
+            content: true,
+            order: true
+          },
+          orderBy: { order: "asc" }
+        }
       }
     });
 
     if (!grant) {
       return NextResponse.json(
-        { error: "Grant not found" },
+        { success: false, error: "Grant not found" },
         { status: 404 }
       );
     }
 
-    const pdf = await PDFDocument.create();
-    const font = await pdf.embedFont(StandardFonts.Helvetica);
+    const doc = new PDFDocument();
+    const chunks = [];
+    doc.on("data", (chunk) => chunks.push(chunk));
+    doc.on("end", () => {});
 
-    let page = pdf.addPage();
-    let y = 750;
-
-    const write = (text: string, size = 12) => {
-      page.drawText(text, {
-        x: 50,
-        y,
-        size,
-        font
-      });
-      y -= size + 6;
-
-      if (y < 50) {
-        page = pdf.addPage();
-        y = 750;
-      }
+    const write = (text, size = 12) => {
+      doc.fontSize(size).text(text);
+      doc.moveDown();
     };
 
-    // Header
-    write("Grant Submission Packet", 20);
-    write("Grant Title: " + grant.title);
-    write("Workspace: " + grant.workspace.name);
-    write("");
-
-    // Cover Letter
-    write("--- Cover Letter ---", 16);
-    write("This submission packet includes all required materials.");
-    write("");
-
-    // Narrative
+    write(`Grant Packet: ${grant.title}`, 20);
+    write(`Category: ${grant.category}`);
+    write(`Agency: ${grant.agency}`);
+    write(`Summary: ${grant.summary}`);
+    write(`Industry: ${grant.industry}`);
+    write(`Location: ${grant.location}`);
+    write(`Funding Range: ${grant.fundingRange}`);
+    write(`Deadline: ${grant.deadline}`);
     write("--- Narrative ---", 16);
 
-    for (const section of grant.sections) {
+    // ⭐ FIXED — use grant.GrantSection instead of grant.sections
+    for (const section of grant.GrantSection) {
       write(section.title, 14);
 
       const lines = section.content.split("\n");
       for (const line of lines) {
-        write(line.substring(0, 100));
+        write(line, 12);
       }
 
-      write("");
+      doc.moveDown();
     }
 
-    // Budget
-    write("--- Budget Summary ---", 16);
+    doc.end();
 
-    const totalBudget = grant.budget?.total || 0;
-    write("Total Budget: $" + totalBudget);
+    const pdfBuffer = Buffer.concat(chunks);
 
-    for (const item of grant.budget?.items || []) {
-      const line =
-        item.label +
-        ": $" +
-        item.amount +
-        " (" +
-        item.category +
-        ")";
-      write(line);
-    }
-
-    write("");
-
-    // Attachments
-    write("--- Attachments ---", 16);
-
-    for (const doc of grant.documents) {
-      write(doc.name + " (" + doc.tag + ")");
-      write("Summary: " + doc.summary.substring(0, 100));
-      write("");
-    }
-
-    const pdfBytes = await pdf.save();
-
-    return new Response(pdfBytes, {
+    return new NextResponse(pdfBuffer, {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition":
-          "attachment; filename=grant_packet_" + grantId + ".pdf"
+        "Content-Disposition": `attachment; filename="grant_${grantId}.pdf"`
       }
     });
   } catch (error) {
-    console.error("PDF Export Error:", error);
+    console.error("PACKET PDF ERROR:", error);
     return NextResponse.json(
-      { error: "Failed to generate PDF" },
+      { success: false, error: "Failed to generate PDF packet" },
       { status: 500 }
     );
   }

@@ -9,10 +9,13 @@ export async function POST(req: Request) {
     const { userId } = await req.json();
 
     if (!userId) {
-      return NextResponse.json({ error: "Missing userId" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
     }
 
-    const history = await prisma.successPrediction.findMany({
+    const history = await prisma.successProbabilityHistory.findMany({
       where: { userId },
       include: { grant: true },
       orderBy: { createdAt: "desc" },
@@ -20,8 +23,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ history });
   } catch (err: any) {
-    console.error("Prediction history error:", err);
+    console.error("Success probability history error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
-

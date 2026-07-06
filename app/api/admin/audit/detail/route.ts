@@ -4,31 +4,39 @@ import { prisma } from "@/lib/prisma";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function POST(req: Request) {
+export async function GET(req: Request) {
   try {
-    const { id } = await req.json();
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
 
     if (!id) {
-      return NextResponse.json({ error: "Missing id" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing audit log ID" },
+        { status: 400 }
+      );
     }
 
-    const log = await prisma.auditLog.findUnique({ where: { id } });
+    const log = await prisma.auditLog.findUnique({
+      where: { id },
+      include: {
+        user: true,
+      },
+    });
 
     if (!log) {
-      return NextResponse.json({ error: "Log not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Audit log not found" },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json({
       id: log.id,
-      actorId: log.actorId,
-      entity: log.entity,
+      userId: log.userId,
+      userEmail: log.user?.email ?? null,
       action: log.action,
+      details: log.details,
       timestamp: log.createdAt,
-      before: JSON.parse(log.before),
-      after: JSON.parse(log.after),
-      changes: JSON.parse(log.changes),
-      ip: log.ip,
-      userAgent: log.userAgent,
     });
   } catch (err: any) {
     console.error("Audit detail error:", err);

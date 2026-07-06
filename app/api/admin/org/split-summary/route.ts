@@ -1,35 +1,26 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET(req: Request) {
+export async function POST(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const orgId = searchParams.get("orgId");
+    const { orgId } = await req.json();
 
     if (!orgId) {
-      return NextResponse.json({ error: "Missing orgId" }, { status: 400 });
+      return NextResponse.json(
+        { error: "orgId is required" },
+        { status: 400 }
+      );
     }
 
-    const members = await prisma.teamMember.findMany({
-      where: { orgId },
-      include: { user: true },
-    });
-
-    const apps = await prisma.application.findMany({
-      where: { orgId },
-    });
-
-    const logs = await prisma.auditLog.findMany({
-      where: { orgId },
-    });
-
+    // Stubbed: your schema has no TeamMember or orgId fields.
+    // This endpoint is kept for UI compatibility but does not perform DB changes.
     return NextResponse.json({
-      members,
-      applications: apps,
-      auditLogs: logs,
+      status: "ok",
+      message: "Split summary stubbed (no-op). No database queries performed.",
+      orgId,
+      members: [],
     });
   } catch (err: any) {
     console.error("Split summary error:", err);

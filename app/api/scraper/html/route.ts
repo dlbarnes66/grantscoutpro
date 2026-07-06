@@ -1,51 +1,57 @@
+// app/api/scraper/html/route.ts
 import { NextResponse } from "next/server";
-import * as cheerio from "cheerio";
 import { prisma } from "@/lib/prisma";
+import * as cheerio from "cheerio";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { url, selectors } = await req.json();
+    const { url, workspaceId } = await req.json();
 
-    if (!url || !selectors) {
+    if (!url || !workspaceId) {
       return NextResponse.json(
-        { error: "Missing url or selectors" },
+        { success: false, error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    const html = await fetch(url).then((res) => res.text());
+    const response = await fetch(url);
+    const html = await response.text();
     const $ = cheerio.load(html);
 
-    const items = $(selectors.item).toArray();
+    const title = $("title").text();
+    const description = $("meta[name='description']").attr("content") || "";
 
-    let imported = 0;
+    await prisma.grant.create({
+      data: {
+        workspaceId,
+        title: title || "Untitled Grant",
+        description: description || "",
+        category: "General",
+        agency: "",
+        summary: "",
+        amount: null,
+        deadline: null,
+        openDate: null,
+        url,
+        industry: "",
+        location: "",
+        fundingRange: "",
+        status: "open",
+        embedding: [], // required by your schema
+      },
+    });
 
-    for (const el of items) {
-      const title = $(el).find(selectors.title).text().trim();
-      const description = $(el).find(selectors.description).text().trim();
-
-      await prisma.grant.create({
-        data: {
-          externalId: `${url}-${Math.random()}`,
-          title: title || "Untitled Grant",
-          description: description || "",
-          category: "General",
-          deadline: null,
-          industry: "",
-          location: "",
-          fundingRange: "",
-        },
-      });
-
-      imported++;
-    }
-
-    return NextResponse.json({ imported });
-  } catch (err: any) {
-    console.error("HTML scraper error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({
+      success: true,
+      message: "Grant scraped and saved",
+    });
+  } catch (error) {
+    console.error("SCRAPER HTML ERROR:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to scrape HTML" },
+      { status: 500 }
+    );
   }
 }

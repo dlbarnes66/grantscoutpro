@@ -15,11 +15,11 @@ export async function POST(req: Request) {
       );
     }
 
-    await prisma.activityLog.create({
+    await prisma.auditLog.create({
       data: {
         userId,
         action,
-        metadata,
+        details: metadata ?? null,
       },
     });
 

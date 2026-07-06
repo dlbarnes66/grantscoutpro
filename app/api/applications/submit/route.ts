@@ -10,19 +10,22 @@ export async function POST(req: Request) {
 
     if (!applicationId) {
       return NextResponse.json(
-        { error: "Missing applicationId" },
+        { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    const app = await prisma.application.update({
+    const app = await prisma.submissionHistory.update({
       where: { id: applicationId },
-      data: { status: "submitted" },
+      data: {
+        status: "submitted",
+        submittedAt: new Date(),
+      },
     });
 
-    return NextResponse.json({ submitted: true, application: app });
+    return NextResponse.json({ submitted: true, app });
   } catch (err: any) {
-    console.error("Submit application error:", err);
+    console.error("Application submit error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

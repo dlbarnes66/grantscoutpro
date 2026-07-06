@@ -6,26 +6,26 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { actorId, event, details } = await req.json();
+    const { userId, event, details } = await req.json();
 
-    if (!actorId || !event) {
+    if (!userId || !event) {
       return NextResponse.json(
-        { error: "Missing actorId or event" },
+        { error: "Missing userId or event" },
         { status: 400 }
       );
     }
 
     await prisma.auditLog.create({
       data: {
-        actorId,
-        event,
+        userId,
+        action: event,
         details,
       },
     });
 
-    return NextResponse.json({ logged: true });
+    return NextResponse.json({ success: true });
   } catch (err: any) {
-    console.error("Audit log error:", err);
+    console.error("Audit write error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

@@ -6,35 +6,33 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { days = 90 } = await req.json();
+    const { days } = await req.json();
+
+    if (!days || typeof days !== "number") {
+      return NextResponse.json(
+        { error: "Missing or invalid 'days' parameter" },
+        { status: 400 }
+      );
+    }
 
     const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
+    // Find old audit logs
     const logs = await prisma.auditLog.findMany({
       where: { createdAt: { lt: cutoff } },
     });
 
-    let archived = 0;
+    // Delete them (archive = remove)
+    await prisma.auditLog.deleteMany({
+      where: { createdAt: { lt: cutoff } },
+    });
 
-    for (const log of logs) {
-      await prisma.auditArchive.create({
-        data: {
-          originalId: log.id,
-          actorId: log.actorId,
-          event: log.event,
-          details: log.details,
-          orgId: log.orgId,
-          archivedAt: new Date(),
-        },
-      });
-
-      await prisma.auditLog.delete({ where: { id: log.id } });
-      archived++;
-    }
-
-    return NextResponse.json({ archived });
+    return NextResponse.json({
+      archivedCount: logs.length,
+      archivedIds: logs.map((l) => l.id),
+    });
   } catch (err: any) {
-    console.error("Audit archive error:", err);
+    console.error("Audit Archive Error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

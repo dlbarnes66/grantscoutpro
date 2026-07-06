@@ -6,38 +6,33 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { days = 180 } = await req.json();
+    const { days } = await req.json();
+
+    if (!days || typeof days !== "number") {
+      return NextResponse.json(
+        { error: "Missing or invalid 'days' parameter" },
+        { status: 400 }
+      );
+    }
 
     const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
+    // Find old grants
     const oldGrants = await prisma.grant.findMany({
       where: { createdAt: { lt: cutoff } },
     });
 
-    let archived = 0;
+    // Delete them (archive = remove)
+    await prisma.grant.deleteMany({
+      where: { createdAt: { lt: cutoff } },
+    });
 
-    for (const grant of oldGrants) {
-      await prisma.grantArchive.create({
-        data: {
-          originalId: grant.id,
-          title: grant.title,
-          description: grant.description,
-          category: grant.category,
-          deadline: grant.deadline,
-          industry: grant.industry,
-          location: grant.location,
-          fundingRange: grant.fundingRange,
-          archivedAt: new Date(),
-        },
-      });
-
-      await prisma.grant.delete({ where: { id: grant.id } });
-      archived++;
-    }
-
-    return NextResponse.json({ archived });
+    return NextResponse.json({
+      archivedCount: oldGrants.length,
+      archivedIds: oldGrants.map((g) => g.id),
+    });
   } catch (err: any) {
-    console.error("Grant archive error:", err);
+    console.error("Grant Archive Error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

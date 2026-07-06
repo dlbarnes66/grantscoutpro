@@ -1,91 +1,50 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { openai } from "@/lib/openai";
+import { client } from "@/lib/openai";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { grantId, useAI, milestones } = await req.json();
+    const { grantText } = await req.json();
 
-    let finalMilestones = milestones;
-
-    if (useAI) {
-      const grant = await prisma.grant.findUnique({
-        where: { id: grantId },
-        select: {
-          title: true,
-          summary: true,
-          deadline: true,
-          requirements: true
-        }
-      });
-
-      const prompt = `
-You are an expert federal grant project manager. Create a milestone timeline for this grant:
-
-Title: ${grant?.title}
-Summary: ${grant?.summary}
-Requirements: ${grant?.requirements}
-Deadline: ${grant?.deadline}
-
-Provide a JSON object:
-
-{
-  "milestones": [
-    {
-      "title": "...",
-      "description": "...",
-      "dueDate": "YYYY-MM-DD",
-      "tasks": ["...", "..."]
-    }
-  ]
-}
-
-Return ONLY valid JSON.
-`;
-
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.2,
-      });
-
-      const output = JSON.parse(completion.choices[0].message.content);
-      finalMilestones = output.milestones;
+    if (!grantText) {
+      return NextResponse.json(
+        { error: "grantText is required" },
+        { status: 400 }
+      );
     }
 
-    const timeline = await prisma.grantTimeline.upsert({
-      where: { grantId },
-      update: { milestones: finalMilestones },
-      create: { grantId, milestones: finalMilestones }
+    const prompt = `
+You are an expert grant analyst. Extract a clear, structured timeline from the following grant text.
+
+Include:
+1. Application open date
+2. Application close date
+3. Review period
+4. Award announcement date
+5. Project start and end dates (if applicable)
+6. Any other important milestones
+
+Grant Text:
+${grantText}
+    `;
+
+    const response = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
     });
 
-    return NextResponse.json({ success: true, timeline });
-  } catch (error) {
-    console.error("Timeline Error:", error);
-    return NextResponse.json(
-      { error: "Failed to generate timeline" },
-      { status: 500 }
-    );
-  }
-}
-
-export async function GET(
-  req: Request,
-  { params }: { params: { grantId: string } }
-) {
-  try {
-    const grantId = params.grantId;
-
-    const timeline = await prisma.grantTimeline.findUnique({
-      where: { grantId }
+    return NextResponse.json({
+      result: response.choices[0].message,
     });
-
-    return NextResponse.json({ timeline });
-  } catch (error) {
-    console.error("Timeline Load Error:", error);
-    return NextResponse.json(
-      { error: "Failed to load timeline" },
-      { status: 500 }
-    );
+  } catch (err: any) {
+    console.error("Grant timeline extraction error:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

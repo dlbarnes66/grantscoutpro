@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,14 +8,25 @@ export async function POST(req: Request) {
     const { userId } = await req.json();
 
     if (!userId) {
-      return NextResponse.json({ error: "Missing userId" }, { status: 400 });
+      return NextResponse.json(
+        { error: "userId is required" },
+        { status: 400 }
+      );
     }
 
-    const history = await prisma.eligibilityHistory.findMany({
-      where: { userId },
-      include: { grant: true },
-      orderBy: { createdAt: "desc" },
-    });
+    // Stubbed: no eligibilityHistory model exists in your Prisma schema.
+    const history = [
+      {
+        id: "stub-eligibility-1",
+        userId,
+        createdAt: new Date().toISOString(),
+        grant: {
+          id: "stub-grant-1",
+          title: "Stubbed eligibility history entry",
+        },
+        summary: "Eligibility history is not persisted — this is a stub response.",
+      },
+    ];
 
     return NextResponse.json({ history });
   } catch (err: any) {

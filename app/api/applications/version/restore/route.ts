@@ -1,16 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
 export async function POST(req: Request) {
   try {
-    const { applicationId, versionId } = await req.json();
+    const { versionId, applicationId } = await req.json();
 
-    if (!applicationId || !versionId) {
+    if (!versionId || !applicationId) {
       return NextResponse.json(
-        { error: "Missing applicationId or versionId" },
+        { error: "versionId and applicationId are required" },
         { status: 400 }
       );
     }
@@ -31,9 +28,15 @@ export async function POST(req: Request) {
       data: { content: version.content },
     });
 
-    return NextResponse.json({ restored: true });
-  } catch (err: any) {
-    console.error("Version restore error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json(
+      { message: "Application restored successfully" },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error restoring application:", error);
+    return NextResponse.json(
+      { error: "Failed to restore application" },
+      { status: 500 }
+    );
   }
 }

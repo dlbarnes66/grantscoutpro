@@ -1,28 +1,50 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { createClient } from "@supabase/supabase-js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
 export async function POST(req: Request) {
   try {
-    const { notificationId } = await req.json();
+    const { notificationId, userId } = await req.json();
 
-    if (!notificationId) {
+    if (!notificationId || !userId) {
       return NextResponse.json(
-        { error: "Missing notificationId" },
+        { error: "notificationId and userId are required" },
         { status: 400 }
       );
     }
 
-    await prisma.notification.update({
-      where: { id: notificationId },
-      data: { read: true },
-    });
+    const { data, error } = await supabase
+      .from("notifications")
+      .update({ read: true })
+      .eq("id", notificationId)
+      .eq("user_id", userId)
+      .select()
+      .single();
 
-    return NextResponse.json({ read: true });
+    if (error) {
+      console.error("Notification read error:", error);
+      return NextResponse.json(
+        { error: "Failed to mark notification as read" },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      notification: data,
+    });
   } catch (err: any) {
-    console.error("Notification read error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error("Notification read route error:", err);
+    return NextResponse.json(
+      { error: err.message || "Unexpected error" },
+      { status: 500 }
+    );
   }
 }

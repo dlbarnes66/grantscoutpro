@@ -1,27 +1,33 @@
+// app/api/profile/get/route.ts
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
-export async function POST(req: Request) {
+export async function GET() {
   try {
-    const { userId } = await req.json();
+    const session = await getServerSession(authOptions);
 
-    if (!userId) {
+    if (!session?.user?.id) {
       return NextResponse.json(
-        { error: "Missing userId" },
-        { status: 400 }
+        { error: "Unauthorized" },
+        { status: 401 }
       );
     }
 
-    const profile = await prisma.profile.findUnique({
-      where: { userId },
+    const profile = await prisma.user.findUnique({
+      where: { id: session.user.id },
     });
 
-    return NextResponse.json({ profile });
-  } catch (err: any) {
-    console.error("Profile get error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({
+      success: true,
+      profile,
+    });
+  } catch (error) {
+    console.error("PROFILE GET ERROR:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to fetch profile" },
+      { status: 500 }
+    );
   }
 }

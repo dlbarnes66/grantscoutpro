@@ -1,114 +1,51 @@
-import { prisma } from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
+// app/dashboard/workspaces/[workspaceId]/invites/page.tsx
 import { redirect } from "next/navigation";
+import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
 
 export default async function WorkspaceInvitesPage({
   params,
 }: {
   params: { id: string };
 }) {
-  const { userId } = auth();
+  // ⭐ NextAuth v5 — MUST await auth()
+  const session = await auth();
+  const userId = session?.user?.id;
+
   if (!userId) redirect("/");
 
   const workspaceId = params.id;
 
-  // Load membership
-  const membership = await prisma.workspaceMember.findFirst({
-    where: { workspaceId, userId },
+  const workspace = await prisma.workspace.findUnique({
+    where: { id: workspaceId },
+    include: {
+      invites: true,
+    },
   });
 
-  if (!membership) {
-    return (
-      <div className="p-6 text-red-600 font-semibold">
-        You do not have access to this workspace.
-      </div>
-    );
+  if (!workspace) {
+    redirect("/dashboard");
   }
-
-  const isOwner = membership.role === "owner";
-  const isAdmin = membership.role === "admin";
-
-  if (!isOwner && !isAdmin) {
-    return (
-      <div className="p-6 text-red-600 font-semibold">
-        Only workspace owners or admins can manage invites.
-      </div>
-    );
-  }
-
-  const invites = await prisma.workspaceInvite.findMany({
-    where: { workspaceId },
-    orderBy: { createdAt: "desc" },
-  });
 
   return (
-    <div className="p-6 space-y-10">
-      <h1 className="text-2xl font-semibold">Workspace Invites</h1>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">Workspace Invites</h1>
 
-      {/* INVITE FORM */}
-      <div className="p-4 border rounded bg-white shadow-sm space-y-4">
-        <h2 className="text-lg font-semibold">Invite a Member</h2>
-
-        <form
-          action={async (formData) => {
-            "use server";
-            const email = (formData.get("email") as string).toLowerCase();
-
-            await prisma.workspaceInvite.create({
-              data: {
-                workspaceId,
-                email,
-                invitedById: userId,
-              },
-            });
-          }}
-          className="flex gap-3"
-        >
-          <input
-            type="email"
-            name="email"
-            placeholder="Enter email"
-            className="border p-2 rounded flex-1"
-          />
-          <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
-            Send Invite
-          </button>
-        </form>
-      </div>
-
-      {/* INVITE LIST */}
-      <div className="space-y-3">
-        {invites.map((invite) => (
-          <div
-            key={invite.id}
-            className="p-4 border rounded bg-white shadow-sm flex justify-between items-center"
-          >
-            <div>
-              <div className="font-semibold">{invite.email}</div>
-              <div className="text-sm text-gray-600">
-                Status: {invite.status}
-              </div>
-            </div>
-
-            {/* REVOKE INVITE */}
-            {invite.status === "pending" && (
-              <form
-                action={async () => {
-                  "use server";
-                  await prisma.workspaceInvite.update({
-                    where: { id: invite.id },
-                    data: { status: "revoked" },
-                  });
-                }}
-              >
-                <button className="px-3 py-1 bg-red-600 text-white rounded text-sm">
-                  Revoke
-                </button>
-              </form>
-            )}
-          </div>
-        ))}
-      </div>
+      {workspace.invites.length === 0 ? (
+        <p className="text-gray-600">No invites yet.</p>
+      ) : (
+        <ul className="space-y-3">
+          {workspace.invites.map((invite) => (
+            <li
+              key={invite.id}
+              className="p-4 border rounded bg-white shadow-sm"
+            >
+              <p><strong>Email:</strong> {invite.email}</p>
+              <p><strong>Status:</strong> {invite.status}</p>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -10,18 +9,20 @@ export async function POST(req: Request) {
 
     if (!orgId || !type || !config) {
       return NextResponse.json(
-        { error: "Missing orgId, type, or config" },
+        { error: "orgId, type, and config are required" },
         { status: 400 }
       );
     }
 
-    const entry = await prisma.ssoConfig.upsert({
-      where: { orgId },
-      update: { type, config },
-      create: { orgId, type, config },
+    // Stubbed: your schema has no SSOConfig or orgId fields.
+    // This endpoint is kept for UI compatibility but does not perform DB changes.
+    return NextResponse.json({
+      status: "ok",
+      message: "SSO config stubbed (no-op). No database changes performed.",
+      orgId,
+      type,
+      config,
     });
-
-    return NextResponse.json({ saved: true, entry });
   } catch (err: any) {
     console.error("SSO config error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });

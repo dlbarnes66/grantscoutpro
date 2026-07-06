@@ -6,17 +6,21 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { userId, result } = await req.json();
+    const { userId, grantId, advice } = await req.json();
 
-    if (!userId || !result) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    if (!userId || !grantId || !advice) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
     }
 
     const entry = await prisma.writingCoachHistory.create({
       data: {
         userId,
-        result
-      }
+        grantId,
+        advice,
+      },
     });
 
     return NextResponse.json({ saved: true, entry });

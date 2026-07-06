@@ -1,59 +1,49 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { openai } from "@/lib/openai";
+import { client } from "@/lib/openai";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { sectionId } = await req.json();
+    const { text } = await req.json();
 
-    const section = await prisma.grantSection.findUnique({
-      where: { id: sectionId },
-      select: {
-        title: true,
-        content: true,
-        purpose: true
-      }
-    });
+    if (!text) {
+      return NextResponse.json(
+        { error: "text is required" },
+        { status: 400 }
+      );
+    }
 
     const prompt = `
-You are an expert federal grant reviewer. Review the following grant section.
+You are an expert grant reviewer. Provide a structured, professional review of the following grant narrative.
 
-Section Title: ${section?.title}
-Purpose: ${section?.purpose}
+Include:
+1. Summary of the narrative
+2. Strengths
+3. Weaknesses or risks
+4. Alignment with typical grant criteria
+5. Recommendations for improvement
 
-Content:
-${section?.content}
+Grant Narrative:
+${text}
+    `;
 
-Provide a JSON object:
-
-{
-  "score": {
-    "clarity": 0-100,
-    "alignment": 0-100,
-    "completeness": 0-100
-  },
-  "redlines": ["...", "..."],
-  "recommendations": ["...", "..."],
-  "summary": "One paragraph reviewer summary"
-}
-
-Return ONLY valid JSON.
-`;
-
-    const completion = await openai.chat.completions.create({
+    const response = await client.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.2,
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
     });
 
-    const output = completion.choices[0].message.content;
-
-    return NextResponse.json(JSON.parse(output));
-  } catch (error) {
-    console.error("Grant Review Error:", error);
-    return NextResponse.json(
-      { error: "Failed to review section" },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      result: response.choices[0].message,
+    });
+  } catch (err: any) {
+    console.error("Grant review error:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

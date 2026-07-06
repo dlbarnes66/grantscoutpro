@@ -1,94 +1,48 @@
 import { NextResponse } from "next/server";
-import { openai } from "@/lib/openai";
+import { client } from "@/lib/openai";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { query, workspaceId } = await req.json();
+    const { query } = await req.json();
 
-    // Fetch workspace context
-    const workspace = await prisma.workspace.findUnique({
-      where: { id: workspaceId },
-      select: {
-        name: true,
-        mission: true,
-        history: true
-      }
-    });
-
-    // 1. Fetch Federal Grants (Grants.gov)
-    const federalRes = await fetch(
-      `https://www.grants.gov/grantsws/rest/opportunities/search?keyword=${encodeURIComponent(
-        query
-      )}&limit=50`
-    );
-    const federalData = await federalRes.json();
-
-    // 2. Fetch State Grants (Firecrawl ingestion)
-    const stateRes = await fetch(
-      `https://api.firecrawl.dev/v1/scrape`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${process.env.FIRECRAWL_API_KEY}`
-        },
-        body: JSON.stringify({
-          url: `https://www.usa.gov/state-government`,
-          formats: ["markdown"]
-        })
-      }
-    );
-    const stateData = await stateRes.json();
-
-    // Combine raw results
-    const rawGrants = [
-      ...(federalData?.opportunities || []),
-      ...(stateData?.markdown ? [{ title: "State Grants", summary: stateData.markdown }] : [])
-    ];
-
-    // AI relevance scoring
-    const prompt = `
-You are an expert grant analyst. Score each grant based on relevance to this workspace:
-
-Workspace:
-- Name: ${workspace?.name}
-- Mission: ${workspace?.mission}
-- History: ${workspace?.history}
-
-User Query: ${query}
-
-Return ONLY valid JSON in this format:
-
-{
-  "results": [
-    {
-      "title": "Grant Title",
-      "summary": "Grant Summary",
-      "agency": "Agency Name",
-      "deadline": "Deadline",
-      "score": 0-100
+    if (!query) {
+      return NextResponse.json(
+        { error: "query is required" },
+        { status: 400 }
+      );
     }
-  ]
-}
 
-Grants to score:
-${JSON.stringify(rawGrants, null, 2)}
-`;
+    const prompt = `
+You are an expert grant researcher. Based on the following search query,
+identify the types of grants that would likely match and provide:
 
-    const completion = await openai.chat.completions.create({
+1. Grant categories
+2. Typical eligibility criteria
+3. Common funding ranges
+4. Strategic recommendations for the applicant
+
+Search Query:
+${query}
+    `;
+
+    const response = await client.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.2,
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
     });
 
-    const output = completion.choices[0].message.content;
-
-    return NextResponse.json(JSON.parse(output));
-  } catch (error) {
-    console.error("Grant Search Error:", error);
-    return NextResponse.json(
-      { error: "Grant search failed" },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      result: response.choices[0].message,
+    });
+  } catch (err: any) {
+    console.error("Grant search error:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

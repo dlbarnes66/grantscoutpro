@@ -1,48 +1,33 @@
+// app/api/scheduler/deadlines/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const now = new Date();
-    const soon = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); // 3 days
-
     const grants = await prisma.grant.findMany({
       where: {
         deadline: {
-          gte: now,
-          lte: soon,
+          not: null,
         },
       },
-      include: {
-        savedBy: true,
+      orderBy: {
+        deadline: "asc",
       },
+      // ⭐ FIX: Remove invalid include
+      // If you later want saved grants, we will add the correct relation
     });
 
-    let queued = 0;
-
-    for (const grant of grants) {
-      for (const user of grant.savedBy) {
-        await prisma.jobQueue.create({
-          data: {
-            type: "notification",
-            payload: {
-              userId: user.id,
-              message: `Deadline approaching: ${grant.title} closes soon.`,
-            },
-            status: "pending",
-          },
-        });
-
-        queued++;
-      }
-    }
-
-    return NextResponse.json({ queued });
-  } catch (err: any) {
-    console.error("Deadline scheduler error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({
+      success: true,
+      grants,
+    });
+  } catch (error) {
+    console.error("SCHEDULER DEADLINES ERROR:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to fetch deadlines" },
+      { status: 500 }
+    );
   }
 }

@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -10,17 +9,19 @@ export async function POST(req: Request) {
 
     if (!userId || !newOrgId) {
       return NextResponse.json(
-        { error: "Missing userId or newOrgId" },
+        { error: "userId and newOrgId are required" },
         { status: 400 }
       );
     }
 
-    const apps = await prisma.application.updateMany({
-      where: { userId },
-      data: { orgId: newOrgId },
+    // Stubbed: your schema has no Application / orgId fields.
+    // This endpoint is kept for UI compatibility but does not perform DB changes.
+    return NextResponse.json({
+      status: "ok",
+      message: "Move applications stubbed (no-op). No database changes performed.",
+      userId,
+      newOrgId,
     });
-
-    return NextResponse.json({ moved: apps.count });
   } catch (err: any) {
     console.error("Move applications error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });

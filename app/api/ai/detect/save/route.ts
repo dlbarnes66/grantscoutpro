@@ -6,34 +6,43 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { grants } = await req.json();
+    const { grants, workspaceId } = await req.json();
 
-    if (!grants || !Array.isArray(grants)) {
-      return NextResponse.json({ error: "Missing grants array" }, { status: 400 });
+    if (!workspaceId) {
+      return NextResponse.json(
+        { error: "workspaceId is required" },
+        { status: 400 }
+      );
     }
 
-    let created = 0;
+    if (!Array.isArray(grants)) {
+      return NextResponse.json(
+        { error: "grants[] is required" },
+        { status: 400 }
+      );
+    }
+
+    const saved = [];
 
     for (const g of grants) {
-      await prisma.grant.create({
+      const entry = await prisma.grant.create({
         data: {
-          externalId: `${Math.random()}`,
-          title: g.title,
-          description: g.description,
-          category: g.category ?? "",
-          deadline: g.deadline ? new Date(g.deadline) : null,
-          fundingRange: g.fundingRange ?? "",
-          industry: "",
-          location: "",
+          title: g.title ?? "",
+          agency: g.agency ?? "",
+          deadline: g.deadline ?? null,
+          amount: g.amount ?? null,
+
+          // REQUIRED by your Prisma schema
+          workspaceId,
         },
       });
 
-      created++;
+      saved.push(entry);
     }
 
-    return NextResponse.json({ created });
+    return NextResponse.json({ saved });
   } catch (err: any) {
-    console.error("Save detected grants error:", err);
+    console.error("AI detect save error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

@@ -1,23 +1,29 @@
+// app/api/sync/all/route.ts
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+
+interface SyncResults {
+  grants?: any;
+  users?: any;
+  workspaces?: any;
+  orgs?: any;
+}
 
 export async function POST(req: Request) {
   try {
     const payload = await req.json();
 
-    const results = {};
-
-    async function call(path: string, data: any) {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}${path}`, {
+    const call = async (path: string, body: any) => {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}${path}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(body),
       });
+      return res.json();
+    };
 
-      return await res.json();
-    }
+    const results: SyncResults = {};
 
     if (payload.grants) {
       results.grants = await call("/api/sync/grants", { grants: payload.grants });
@@ -27,21 +33,23 @@ export async function POST(req: Request) {
       results.users = await call("/api/sync/users", { users: payload.users });
     }
 
-    if (payload.applications) {
-      results.applications = await call("/api/sync/applications", {
-        applications: payload.applications,
-      });
+    if (payload.workspaces) {
+      results.workspaces = await call("/api/sync/workspaces", { workspaces: payload.workspaces });
     }
 
-    if (payload.auditLogs) {
-      results.auditLogs = await call("/api/sync/audit", {
-        logs: payload.auditLogs,
-      });
+    if (payload.orgs) {
+      results.orgs = await call("/api/sync/orgs", { orgs: payload.orgs });
     }
 
-    return NextResponse.json({ results });
-  } catch (err: any) {
-    console.error("Master sync error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({
+      success: true,
+      results,
+    });
+  } catch (error) {
+    console.error("SYNC ALL ERROR:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to sync all data" },
+      { status: 500 }
+    );
   }
 }

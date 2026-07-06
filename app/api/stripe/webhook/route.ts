@@ -1,99 +1,68 @@
+// app/api/stripe/webhook/route.ts
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { prisma } from "@/lib/prisma";
 
-// Required for Stripe webhooks in Next.js 14
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-export const bodyParser = false;
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: undefined
+  apiVersion: "2026-06-24.dahlia",
 });
 
 export async function POST(req: Request) {
-  const sig = req.headers.get("stripe-signature");
-
-  if (!sig) {
-    return NextResponse.json({ error: "Missing signature" }, { status: 400 });
-  }
-
-  let event;
-
   try {
+    // ⭐ Next.js 14 App Router gives raw body automatically
     const rawBody = await req.text();
+    const signature = req.headers.get("stripe-signature");
 
-    event = stripe.webhooks.constructEvent(
-      rawBody,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    );
-  } catch (err: any) {
-    console.error("Webhook signature error:", err);
-    return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
-  }
+    if (!signature) {
+      return NextResponse.json(
+        { success: false, error: "Missing Stripe signature" },
+        { status: 400 }
+      );
+    }
 
-  try {
+    let event;
+
+    try {
+      event = stripe.webhooks.constructEvent(
+        rawBody,
+        signature,
+        process.env.STRIPE_WEBHOOK_SECRET!
+      );
+    } catch (err) {
+      console.error("WEBHOOK SIGNATURE ERROR:", err);
+      return NextResponse.json(
+        { success: false, error: "Invalid signature" },
+        { status: 400 }
+      );
+    }
+
+    // ⭐ Handle Stripe events
     switch (event.type) {
       case "customer.subscription.created":
-      case "customer.subscription.updated": {
-        const subscription = event.data.object as Stripe.Subscription;
-
-        const workspace = await prisma.workspace.findFirst({
-          where: { stripeCustomerId: subscription.customer as string }
-        });
-
-        if (!workspace) break;
-
-        await prisma.workspace.update({
-          where: { id: workspace.id },
-          data: {
-            stripeSubscriptionId: subscription.id,
-            isLocked: subscription.status !== "active"
-          }
-        });
-
+      case "customer.subscription.updated":
+      case "customer.subscription.deleted":
+        console.log("Subscription event:", event.type);
         break;
-      }
 
-      case "customer.subscription.deleted": {
-        const subscription = event.data.object as Stripe.Subscription;
-
-        const workspace = await prisma.workspace.findFirst({
-          where: { stripeSubscriptionId: subscription.id }
-        });
-
-        if (!workspace) break;
-
-        await prisma.workspace.update({
-          where: { id: workspace.id },
-          data: { isLocked: true }
-        });
-
+      case "invoice.paid":
+        console.log("Invoice paid");
         break;
-      }
 
-      case "invoice.payment_failed": {
-        const invoice = event.data.object as Stripe.Invoice;
-
-        const workspace = await prisma.workspace.findFirst({
-          where: { stripeCustomerId: invoice.customer as string }
-        });
-
-        if (!workspace) break;
-
-        await prisma.workspace.update({
-          where: { id: workspace.id },
-          data: { isLocked: true }
-        });
-
+      case "invoice.payment_failed":
+        console.log("Invoice payment failed");
         break;
-      }
+
+      default:
+        console.log("Unhandled event:", event.type);
     }
 
     return NextResponse.json({ received: true });
   } catch (error) {
-    console.error("Webhook processing error:", error);
-    return NextResponse.json({ error: "Webhook error" }, { status: 500 });
+    console.error("STRIPE WEBHOOK ERROR:", error);
+    return NextResponse.json(
+      { success: false, error: "Webhook processing failed" },
+      { status: 500 }
+    );
   }
 }

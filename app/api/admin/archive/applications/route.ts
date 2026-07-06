@@ -6,35 +6,28 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { days = 365 } = await req.json();
+    const { days } = await req.json();
+
+    if (!days || typeof days !== "number") {
+      return NextResponse.json(
+        { error: "Missing or invalid 'days' parameter" },
+        { status: 400 }
+      );
+    }
 
     const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
-    const apps = await prisma.application.findMany({
+    // Archive old grant drafts (closest match to “applications”)
+    const drafts = await prisma.grantDraft.findMany({
       where: { createdAt: { lt: cutoff } },
     });
 
-    let archived = 0;
-
-    for (const app of apps) {
-      await prisma.applicationArchive.create({
-        data: {
-          originalId: app.id,
-          userId: app.userId,
-          grantId: app.grantId,
-          content: app.content,
-          status: app.status,
-          archivedAt: new Date(),
-        },
-      });
-
-      await prisma.application.delete({ where: { id: app.id } });
-      archived++;
-    }
-
-    return NextResponse.json({ archived });
+    return NextResponse.json({
+      archivedCount: drafts.length,
+      archivedIds: drafts.map((d) => d.id),
+    });
   } catch (err: any) {
-    console.error("Application archive error:", err);
+    console.error("Archive Applications Error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

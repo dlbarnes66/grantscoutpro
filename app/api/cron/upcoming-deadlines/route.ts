@@ -7,29 +7,44 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     const now = new Date();
-    const soon = new Date(Date.now() + 1000 * 60 * 60 * 24 * 3); // 3 days
+    const upcoming = new Date();
+    upcoming.setDate(now.getDate() + 7);
 
     const grants = await prisma.grant.findMany({
       where: {
         deadline: {
           gte: now,
-          lte: soon,
+          lte: upcoming,
         },
       },
     });
 
     for (const grant of grants) {
-      await prisma.notification.create({
-        data: {
-          userId: grant.userId,
-          message: `Deadline approaching for ${grant.title}`,
-        },
+      const workspace = await prisma.workspace.findUnique({
+        where: { id: grant.workspaceId },
+        include: { members: true },
       });
+
+      if (!workspace || workspace.members.length === 0) continue;
+
+      for (const member of workspace.members) {
+        await prisma.notification.create({
+          data: {
+            userId: member.userId,
+            type: "deadline",
+            data: {
+              title: grant.title,
+              deadline: grant.deadline,
+              workspaceId: grant.workspaceId,
+            },
+          },
+        });
+      }
     }
 
-    return NextResponse.json({ processed: grants.length });
+    return NextResponse.json({ success: true });
   } catch (err: any) {
-    console.error("Cron error:", err);
+    console.error("Upcoming deadlines cron error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

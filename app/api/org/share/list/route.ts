@@ -1,20 +1,21 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
-export async function POST(req: Request) {
+export async function POST(req) {
   try {
     const { orgId } = await req.json();
 
     if (!orgId) {
-      return NextResponse.json({ error: "Missing orgId" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: "orgId is required" },
+        { status: 400 }
+      );
     }
 
+    // ⭐ FIXED — use "accesses" instead of "access"
     const owned = await prisma.sharedResource.findMany({
       where: { ownerOrgId: orgId },
-      include: { access: true },
+      include: { accesses: true },
     });
 
     const accessible = await prisma.sharedAccess.findMany({
@@ -23,11 +24,15 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({
+      success: true,
       owned,
       accessible,
     });
-  } catch (err: any) {
-    console.error("Shared list error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (error) {
+    console.error("ORG SHARE LIST ERROR:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to list shared resources" },
+      { status: 500 }
+    );
   }
 }

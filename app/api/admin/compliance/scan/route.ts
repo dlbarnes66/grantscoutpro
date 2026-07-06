@@ -6,35 +6,43 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
+    const now = new Date();
+
+    // Compliance signals based on fields that ACTUALLY exist in your schema
     const flaggedUsers = await prisma.user.findMany({
       where: {
         OR: [
-          { failedPayments: { gt: 2 } },
-          { loginAttempts: { gt: 15 } },
+          // Users with delinquent status
+          { status: "delinquent" },
+
+          // Users whose renewal date has passed
+          {
+            renewalDate: {
+              lt: now,
+            },
+          },
+
+          // Users missing Stripe customer ID (billing incomplete)
+          {
+            stripeCustomerId: null,
+          },
         ],
       },
-    });
-
-    const flaggedOrgs = await prisma.organization.findMany({
-      where: {
-        subscriptionStatus: "delinquent",
-      },
-    });
-
-    const flaggedApps = await prisma.application.findMany({
-      where: {
-        status: "submitted",
-        content: { contains: "plagiarism" },
+      select: {
+        id: true,
+        email: true,
+        status: true,
+        renewalDate: true,
+        stripeCustomerId: true,
       },
     });
 
     return NextResponse.json({
-      users: flaggedUsers,
-      organizations: flaggedOrgs,
-      applications: flaggedApps,
+      flaggedCount: flaggedUsers.length,
+      flaggedUsers,
     });
   } catch (err: any) {
-    console.error("Compliance scan error:", err);
+    console.error("Compliance Scan Error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

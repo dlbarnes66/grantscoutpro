@@ -6,20 +6,50 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const suspicious = await prisma.user.findMany({
+    const now = new Date();
+
+    // Fraud indicators based on REAL fields in your schema
+    const flaggedUsers = await prisma.user.findMany({
       where: {
         OR: [
-          { loginAttempts: { gt: 20 } },
-          { failedPayments: { gt: 3 } },
-          { activityScore: { lt: 10 } },
+          // Delinquent billing status
+          { status: "delinquent" },
+
+          // Renewal date has passed
+          {
+            renewalDate: {
+              lt: now,
+            },
+          },
+
+          // Missing Stripe customer ID (billing incomplete)
+          {
+            stripeCustomerId: null,
+          },
         ],
       },
-      orderBy: { createdAt: "desc" },
+      include: {
+        auditLogs: true,
+      },
     });
 
-    return NextResponse.json({ suspicious });
+    // Additional fraud signal: unusually high audit log activity
+    const enriched = flaggedUsers.map((u) => ({
+      id: u.id,
+      email: u.email,
+      status: u.status,
+      renewalDate: u.renewalDate,
+      stripeCustomerId: u.stripeCustomerId,
+      auditLogCount: u.auditLogs.length,
+      suspiciousActivity: u.auditLogs.length > 50, // threshold
+    }));
+
+    return NextResponse.json({
+      flaggedCount: enriched.length,
+      users: enriched,
+    });
   } catch (err: any) {
-    console.error("Fraud detection error:", err);
+    console.error("Fraud Scan Error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

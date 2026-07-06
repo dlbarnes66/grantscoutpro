@@ -23,9 +23,9 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json({ entry });
+    return NextResponse.json({ success: true, entry });
   } catch (err: any) {
-    console.error("Patch error:", err);
+    console.error("Document patch error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

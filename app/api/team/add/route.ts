@@ -1,40 +1,64 @@
+// app/api/team/add/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { orgId, email, role } = await req.json();
+    const { workspaceId, email, role } = await req.json();
 
-    if (!orgId || !email || !role) {
+    if (!workspaceId || !email) {
       return NextResponse.json(
-        { error: "Missing orgId, email, or role" },
+        { success: false, error: "Missing workspaceId or email" },
         { status: 400 }
       );
     }
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    // Find user by email
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
 
     if (!user) {
       return NextResponse.json(
-        { error: "User not found" },
+        { success: false, error: "User not found" },
         { status: 404 }
       );
     }
 
-    await prisma.teamMember.create({
-      data: {
-        orgId,
-        userId: user.id,
-        role,
+    // Check if already a member
+    const existing = await prisma.workspaceMember.findUnique({
+      where: {
+        workspaceId_userId: {
+          workspaceId,
+          userId: user.id,
+        },
       },
     });
 
-    return NextResponse.json({ added: true });
-  } catch (err: any) {
-    console.error("Team add error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    if (existing) {
+      return NextResponse.json(
+        { success: false, error: "User is already a workspace member" },
+        { status: 400 }
+      );
+    }
+
+    // Create workspace member
+    await prisma.workspaceMember.create({
+      data: {
+        workspaceId,
+        userId: user.id,
+        role: role ?? "member",
+      },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("TEAM ADD ERROR:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to add team member" },
+      { status: 500 }
+    );
   }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-export function PipelineOverview() {
+export default function PipelineOverview() {
   const stages = [
     { label: "Searching", count: 12 },
     { label: "Drafting", count: 4 },

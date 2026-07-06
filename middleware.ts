@@ -1,36 +1,51 @@
+// middleware.ts
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { addonEnforcement } from "@/lib/addonEnforcement";
 
-export async function middleware(req: any) {
-  const url = req.nextUrl.pathname;
+export async function middleware(req: NextRequest) {
+  const pathname = req.nextUrl.pathname;
 
   // -----------------------------
   // 1. Add‑On Enforcement (API)
   // -----------------------------
-  const addonCheck = await addonEnforcement(req);
-  if (addonCheck) return addonCheck;
+  const addonCheck = addonEnforcement(req);
+  if (addonCheck !== true) {
+    return addonCheck; // pass through Response
+  }
 
   // -----------------------------
   // 2. Subscription + Trial Enforcement (Dashboard)
   // -----------------------------
-  if (!url.startsWith("/dashboard/workspace")) {
+  if (!pathname.startsWith("/dashboard/workspace")) {
     return NextResponse.next();
   }
 
-  const workspaceId = url.split("/")[3];
+  const workspaceId = pathname.split("/")[3];
+  if (!workspaceId) {
+    return NextResponse.next();
+  }
 
   const workspace = await prisma.workspace.findUnique({
-    where: { id: workspaceId }
+    where: { id: workspaceId },
+    select: {
+      trialEndAt: true,
+      isLocked: true,
+    },
   });
 
-  if (!workspace) return NextResponse.next();
+  if (!workspace) {
+    return NextResponse.next();
+  }
 
+  // -----------------------------
   // Trial expired → lock workspace
-  if (workspace.trialEndsAt && workspace.trialEndsAt < new Date()) {
+  // -----------------------------
+  if (workspace.trialEndAt && workspace.trialEndAt < new Date()) {
     await prisma.workspace.update({
       where: { id: workspaceId },
-      data: { isLocked: true }
+      data: { isLocked: true },
     });
 
     return NextResponse.redirect(
@@ -38,7 +53,9 @@ export async function middleware(req: any) {
     );
   }
 
+  // -----------------------------
   // Locked → redirect to billing
+  // -----------------------------
   if (workspace.isLocked) {
     return NextResponse.redirect(
       new URL(`/dashboard/workspace/${workspaceId}/billing`, req.url)
@@ -47,3 +64,7 @@ export async function middleware(req: any) {
 
   return NextResponse.next();
 }
+
+export const config = {
+  matcher: ["/dashboard/workspace/:path*"],
+};

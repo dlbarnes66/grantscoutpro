@@ -4,23 +4,27 @@ import { prisma } from "@/lib/prisma";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function POST(req: Request) {
+export async function GET(req: Request) {
   try {
-    const { documentId } = await req.json();
+    const { searchParams } = new URL(req.url);
+    const docId = searchParams.get("docId");
 
-    if (!documentId) {
-      return NextResponse.json({ error: "Missing documentId" }, { status: 400 });
+    if (!docId) {
+      return NextResponse.json(
+        { error: "Missing docId" },
+        { status: 400 }
+      );
     }
 
     const history = await prisma.documentVersion.findMany({
-      where: { documentId },
+      where: { docId },
       orderBy: { createdAt: "desc" },
       include: { user: true },
     });
 
-    return NextResponse.json({ history });
+    return NextResponse.json({ success: true, history });
   } catch (err: any) {
-    console.error("Version history error:", err);
+    console.error("Document version history error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

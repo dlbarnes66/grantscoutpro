@@ -1,48 +1,66 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { createClient } from "@supabase/supabase-js";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2023-10-16"
-});
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { workspaceId } = await req.json();
 
     if (!workspaceId) {
-      return NextResponse.json({ error: "Missing workspaceId" }, { status: 400 });
+      return NextResponse.json(
+        { error: "workspaceId is required" },
+        { status: 400 }
+      );
     }
 
-    const workspace = await prisma.workspace.findUnique({
-      where: { id: workspaceId }
-    });
+    // Fetch workspace to get Stripe customer ID
+    const { data: workspace, error: workspaceError } = await supabase
+      .from("workspaces")
+      .select("stripe_customer_id")
+      .eq("id", workspaceId)
+      .single();
 
-    if (!workspace || !workspace.stripeCustomerId) {
+    if (workspaceError || !workspace) {
+      console.error("Workspace fetch error:", workspaceError);
       return NextResponse.json(
-        { error: "Workspace or Stripe customer not found" },
+        { error: "Workspace not found" },
         { status: 404 }
       );
     }
 
-    const portalSession = await stripe.billingPortal.sessions.create({
-      customer: workspace.stripeCustomerId,
-      return_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/workspace/${workspaceId}/billing`
+    if (!workspace.stripe_customer_id) {
+      return NextResponse.json(
+        {
+          error:
+            "Workspace does not have a Stripe customer. Call create-customer first.",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Create billing portal session
+    const session = await stripe.billingPortal.sessions.create({
+      customer: workspace.stripe_customer_id,
+      return_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing?workspaceId=${workspaceId}`,
     });
 
-    return NextResponse.json({ url: portalSession.url });
-  } catch (error) {
-    console.error("Billing Portal Error:", error);
+    return NextResponse.json({
+      success: true,
+      portalUrl: session.url,
+    });
+  } catch (err: any) {
+    console.error("Stripe billing portal error:", err);
     return NextResponse.json(
-      { error: "Failed to create billing portal session" },
+      { error: err.message || "Unexpected error" },
       { status: 500 }
     );
   }

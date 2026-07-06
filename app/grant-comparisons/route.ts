@@ -1,34 +1,35 @@
-import { auth } from "@clerk/nextjs/server";
+// app/grant-comparisons/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
 
 export async function POST(req: Request) {
-  const { userId } = await auth();
-  if (!userId)
+  const session = await auth();
+  const userId = session?.user?.id;
+  const orgId = session?.user?.orgId;
+
+  if (!userId || !orgId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const body = await req.json();
-  const { grantIds } = body;
+  const { workspaceId, grantIds } = body;
 
+  if (!workspaceId || !Array.isArray(grantIds)) {
+    return NextResponse.json(
+      { error: "workspaceId and grantIds[] are required" },
+      { status: 400 }
+    );
+  }
+
+  // ⭐ Create comparison using your actual Prisma model
   const comparison = await prisma.grantComparison.create({
     data: {
       userId,
-      grantIds,
+      workspaceId,
+      grants: grantIds, // JSON array of grant IDs
     },
   });
 
-  return NextResponse.json({ comparison });
-}
-
-export async function GET() {
-  const { userId } = await auth();
-  if (!userId)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const comparisons = await prisma.grantComparison.findMany({
-    where: { userId },
-    orderBy: { createdAt: "desc" },
-  });
-
-  return NextResponse.json({ comparisons });
+  return NextResponse.json(comparison);
 }

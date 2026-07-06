@@ -1,57 +1,61 @@
+// app/dashboard/workspaces/page.tsx
+import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
-import { createWorkspace } from "./actions";
+import Link from "next/link";
 
 export default async function WorkspacesPage() {
-  const { userId } = auth();
-  if (!userId) {
+  // ⭐ NextAuth v5 — MUST await auth()
+  const session = await auth();
+  const userId = session?.user?.id;
+  const orgId = session?.user?.orgId;
+
+  if (!userId || !orgId) {
     return <div className="p-6">Not authorized</div>;
   }
 
-  const memberships = await prisma.workspaceMember.findMany({
-    where: { userId },
-    include: { workspace: true },
+  // ⭐ Fetch all workspaces for the user's org
+  const workspaces = await prisma.workspace.findMany({
+    where: { orgId },
+    include: {
+      members: {
+        include: {
+          user: true,
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
   });
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-semibold">Workspaces</h1>
+      <h1 className="text-2xl font-bold">Your Workspaces</h1>
 
-      {/* Create workspace */}
-      <form
-        action={async (formData) => {
-          "use server";
-          const name = formData.get("name") as string;
-          await createWorkspace(name || "Untitled Workspace");
-        }}
-        className="flex gap-3"
-      >
-        <input
-          type="text"
-          name="name"
-          placeholder="New workspace name"
-          className="border p-2 rounded flex-1"
-        />
-        <button className="px-4 py-2 bg-brandBlue text-white rounded hover:bg-brandBlue/90 transition">
-          Create
-        </button>
-      </form>
+      {workspaces.length === 0 ? (
+        <p className="text-gray-600">You have no workspaces yet.</p>
+      ) : (
+        <ul className="space-y-4">
+          {workspaces.map((ws) => (
+            <li
+              key={ws.id}
+              className="p-4 border rounded bg-white shadow-sm flex justify-between items-center"
+            >
+              <div>
+                <p className="font-semibold">{ws.name}</p>
+                <p className="text-sm text-gray-600">
+                  {ws.members.length} member{ws.members.length !== 1 ? "s" : ""}
+                </p>
+              </div>
 
-      {/* List workspaces */}
-      <div className="space-y-3">
-        {memberships.map((m) => (
-          <a
-            key={m.workspace.id}
-            href={`/dashboard/compare?workspaceId=${m.workspace.id}`}
-            className="block p-4 border rounded bg-white hover:shadow transition"
-          >
-            <div className="text-lg font-semibold">{m.workspace.name}</div>
-            <div className="text-sm text-gray-500 mt-1">
-              Role: {m.role}
-            </div>
-          </a>
-        ))}
-      </div>
+              <Link
+                href={`/dashboard/workspaces/${ws.id}`}
+                className="text-blue-600 hover:underline"
+              >
+                Open
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

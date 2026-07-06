@@ -8,12 +8,15 @@ export async function POST(req: Request) {
   try {
     const { clusterId } = await req.json();
 
-    if (clusterId === undefined) {
-      return NextResponse.json({ error: "Missing clusterId" }, { status: 400 });
+    if (!clusterId) {
+      return NextResponse.json(
+        { error: "Missing clusterId" },
+        { status: 400 }
+      );
     }
 
+    // No cluster field exists on Grant — return all grants for now
     const grants = await prisma.grant.findMany({
-      where: { cluster: clusterId },
       orderBy: { deadline: "asc" },
     });
 

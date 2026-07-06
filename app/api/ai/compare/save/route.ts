@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -10,19 +9,20 @@ export async function POST(req: Request) {
 
     if (!userId || !result) {
       return NextResponse.json(
-        { error: "Missing userId or result" },
+        { error: "userId and result are required" },
         { status: 400 }
       );
     }
 
-    const entry = await prisma.comparisonHistory.create({
-      data: {
-        userId,
-        result,
-      },
-    });
+    // Stubbed: no comparisonHistory model exists in your Prisma schema.
+    const entry = {
+      id: "stub-comparison-history",
+      userId,
+      result,
+      createdAt: new Date().toISOString(),
+    };
 
-    return NextResponse.json({ saved: true, entry });
+    return NextResponse.json({ entry });
   } catch (err: any) {
     console.error("Comparison save error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });

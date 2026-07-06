@@ -1,35 +1,31 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { sourceOrgId, newOrgs } = await req.json();
+    const { newOrgs } = await req.json();
 
-    if (!sourceOrgId || !newOrgs || !Array.isArray(newOrgs)) {
+    if (!Array.isArray(newOrgs)) {
       return NextResponse.json(
-        { error: "Missing sourceOrgId or newOrgs array" },
+        { error: "newOrgs[] is required" },
         { status: 400 }
       );
     }
 
-    // Create new organizations
-    const createdOrgs = [];
-    for (const org of newOrgs) {
-      const newOrg = await prisma.organization.create({
-        data: {
-          name: org.name,
-          subscriptionStatus: "none",
-        },
-      });
-      createdOrgs.push(newOrg);
-    }
+    // Stubbed: your schema has no Organization model.
+    // This endpoint is kept for UI compatibility but does not perform DB changes.
+    const createdOrgs = newOrgs.map((org) => ({
+      id: `stub-${org.name}`,
+      name: org.name,
+      subscriptionStatus: "none",
+    }));
 
     return NextResponse.json({
+      status: "ok",
+      message: "Organization split stubbed (no-op). No database changes performed.",
       createdOrgs,
-      message: "Organizations created. Use /move-members, /move-applications, /move-audit to complete split."
     });
   } catch (err: any) {
     console.error("Org split error:", err);

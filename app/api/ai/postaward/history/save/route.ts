@@ -9,20 +9,26 @@ export async function POST(req: Request) {
     const { userId, grantId, result } = await req.json();
 
     if (!userId || !grantId || !result) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing userId, grantId, or result" },
+        { status: 400 }
+      );
     }
 
     const entry = await prisma.postAwardHistory.create({
       data: {
         userId,
         grantId,
-        result
-      }
+        data: result,   // ⭐ THIS is the fix
+      },
     });
 
     return NextResponse.json({ saved: true, entry });
   } catch (err: any) {
-    console.error("Post-award history save error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error("PostAwardHistory save error:", err);
+    return NextResponse.json(
+      { error: err.message || "Unknown error" },
+      { status: 500 }
+    );
   }
 }

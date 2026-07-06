@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     }
 
     const logs = await prisma.auditLog.findMany({
-      where: { actorId: userId },
+      where: { userId },
       orderBy: { createdAt: "asc" },
     });
 

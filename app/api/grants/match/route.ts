@@ -1,76 +1,51 @@
 import { NextResponse } from "next/server";
-import { openai } from "@/lib/openai";
-import { prisma } from "@/lib/prisma";
+import { client } from "@/lib/openai";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { workspaceId } = await req.json();
+    const { profile, grantText } = await req.json();
 
-    const workspace = await prisma.workspace.findUnique({
-      where: { id: workspaceId },
-      select: {
-        name: true,
-        mission: true,
-        history: true
-      }
-    });
-
-    // Fetch recent grants from your own grants table
-    const grants = await prisma.grant.findMany({
-      take: 50,
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        title: true,
-        summary: true,
-        requirements: true,
-        scoringCriteria: true
-      }
-    });
+    if (!profile || !grantText) {
+      return NextResponse.json(
+        { error: "profile and grantText are required" },
+        { status: 400 }
+      );
+    }
 
     const prompt = `
-You are an expert grant matching engine.
+You are an expert grant evaluator. Determine how well this applicant profile
+matches the grant opportunity. Provide:
 
-Workspace:
-- Name: ${workspace?.name}
-- Mission: ${workspace?.mission}
-- History: ${workspace?.history}
+1. Match score (0–100)
+2. Key strengths
+3. Potential disqualifiers
+4. Strategic recommendations
 
-Grants:
-${JSON.stringify(grants, null, 2)}
+Applicant Profile:
+${profile}
 
-For each grant, return JSON:
+Grant Opportunity:
+${grantText}
+    `;
 
-{
-  "matches": [
-    {
-      "id": "GRANT_ID",
-      "title": "Grant Title",
-      "summary": "Grant Summary",
-      "matchScore": 0-100,
-      "reasons": ["...", "..."]
-    }
-  ]
-}
-
-Only include grants with matchScore >= 60.
-Return ONLY valid JSON.
-`;
-
-    const completion = await openai.chat.completions.create({
+    const response = await client.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.2,
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
     });
 
-    const output = completion.choices[0].message.content;
-
-    return NextResponse.json(JSON.parse(output));
-  } catch (error) {
-    console.error("Grant Match Error:", error);
-    return NextResponse.json(
-      { error: "Grant matching failed" },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      result: response.choices[0].message,
+    });
+  } catch (err: any) {
+    console.error("Grant match error:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

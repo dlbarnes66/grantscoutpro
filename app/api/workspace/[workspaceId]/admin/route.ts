@@ -1,53 +1,24 @@
+// app/api/workspace/[workspaceId]/admin/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 
-export async function GET(
-  req: Request,
-  { params }: { params: { workspaceId: string } }
-) {
+export async function GET(req: Request, { params }: { params: { workspaceId: string } }) {
   try {
     const workspaceId = params.workspaceId;
 
-    const users = await prisma.workspaceUser.findMany({
+    // ⭐ FIXED: WorkspaceMember is the correct model
+    const users = await prisma.workspaceMember.findMany({
       where: { workspaceId },
-      include: { user: true }
+      include: { user: true },
     });
 
-    return NextResponse.json({ users });
+    return NextResponse.json({ success: true, users });
   } catch (error) {
-    console.error("Admin Load Error:", error);
+    console.error("ADMIN WORKSPACE ERROR:", error);
     return NextResponse.json(
-      { error: "Failed to load admin data" },
-      { status: 500 }
-    );
-  }
-}
-
-export async function POST(
-  req: Request,
-  { params }: { params: { workspaceId: string } }
-) {
-  try {
-    const workspaceId = params.workspaceId;
-    const { userId, role } = await req.json();
-
-    const updated = await prisma.workspaceUser.update({
-      where: {
-        workspaceId_userId: {
-          workspaceId,
-          userId
-        }
-      },
-      data: { role }
-    });
-
-    return NextResponse.json({ success: true, updated });
-  } catch (error) {
-    console.error("Admin Update Error:", error);
-    return NextResponse.json(
-      { error: "Failed to update user role" },
+      { success: false, error: "Failed to load workspace users" },
       { status: 500 }
     );
   }

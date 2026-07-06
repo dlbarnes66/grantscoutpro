@@ -10,19 +10,19 @@ export async function POST(req: Request) {
 
     if (!applicationId || !updates) {
       return NextResponse.json(
-        { error: "Missing applicationId or updates" },
+        { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    const app = await prisma.application.update({
+    const app = await prisma.submissionHistory.update({
       where: { id: applicationId },
       data: updates,
     });
 
-    return NextResponse.json({ application: app });
+    return NextResponse.json({ updated: true, app });
   } catch (err: any) {
-    console.error("Update application error:", err);
+    console.error("Application update error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

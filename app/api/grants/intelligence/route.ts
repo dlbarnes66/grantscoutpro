@@ -1,70 +1,47 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { openai } from "@/lib/openai";
+import { client } from "@/lib/openai";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { grantId } = await req.json();
+    const { text } = await req.json();
 
-    const grant = await prisma.grant.findUnique({
-      where: { id: grantId },
-      select: {
-        title: true,
-        summary: true,
-        requirements: true,
-        scoringCriteria: true,
-        workspace: {
-          select: {
-            name: true,
-            mission: true,
-            history: true
-          }
-        }
-      }
-    });
+    if (!text) {
+      return NextResponse.json(
+        { error: "text is required" },
+        { status: 400 }
+      );
+    }
 
     const prompt = `
-You are an expert federal grant strategist. Analyze the fit between the workspace and the grant.
+You are an expert grant analyst. Provide detailed intelligence on the following grant text:
+- Eligibility insights
+- Strategic fit
+- Risks or red flags
+- Funding competitiveness
+- Recommendations
 
-Grant:
-- Title: ${grant?.title}
-- Summary: ${grant?.summary}
-- Requirements: ${grant?.requirements}
-- Scoring Criteria: ${grant?.scoringCriteria}
+Grant Text:
+${text}
+    `;
 
-Workspace:
-- Name: ${grant?.workspace.name}
-- Mission: ${grant?.workspace.mission}
-- History: ${grant?.workspace.history}
-
-Provide a JSON object:
-
-{
-  "fitScore": 0-100,
-  "strengths": ["...", "..."],
-  "weaknesses": ["...", "..."],
-  "risks": ["...", "..."],
-  "recommendations": ["...", "..."],
-  "summary": "One paragraph fit analysis"
-}
-
-Return ONLY valid JSON.
-`;
-
-    const completion = await openai.chat.completions.create({
+    const response = await client.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.2,
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
     });
 
-    const output = completion.choices[0].message.content;
-
-    return NextResponse.json(JSON.parse(output));
-  } catch (error) {
-    console.error("Grant Intelligence Error:", error);
-    return NextResponse.json(
-      { error: "Failed to generate intelligence report" },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      result: response.choices[0].message,
+    });
+  } catch (err: any) {
+    console.error("Grant intelligence error:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

@@ -1,54 +1,61 @@
+// app/api/addons/activate/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { AddonKey } from "@/lib/addonCapabilities";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { ADDON_CAPABILITIES } from "@/lib/addonCapabilities";
 
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
+
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
     }
 
-    const { addonKey, workspaceId } = await req.json();
+    const { addon, workspaceId } = await req.json();
 
-    const validKeys: AddonKey[] = [
-      "aiWriter",
-      "grantMatching",
-      "crm",
-      "scoringEngine",
-      "advancedReporting",
-      "complianceAutomation",
-      "budgetAutomation",
-      "extraSeats",
-      "vaultExpansion",
-      "packetExpansion"
-    ];
-
-    if (!validKeys.includes(addonKey)) {
-      return NextResponse.json({ error: "Invalid add-on" }, { status: 400 });
+    if (!addon || !workspaceId) {
+      return NextResponse.json(
+        { success: false, error: "addon and workspaceId are required" },
+        { status: 400 }
+      );
     }
 
-    const workspace = await prisma.workspace.findUnique({
-      where: { id: workspaceId }
-    });
+    // ⭐ Correct validation — use ADDON_CAPABILITIES keys
+    const validAddonKeys = Object.keys(ADDON_CAPABILITIES);
 
-    if (!workspace) {
-      return NextResponse.json({ error: "Workspace not found" }, { status: 404 });
+    if (!validAddonKeys.includes(addon)) {
+      return NextResponse.json(
+        { success: false, error: "Invalid addon key" },
+        { status: 400 }
+      );
     }
 
-    const updatedAddons = Array.from(new Set([...(workspace.addons || []), addonKey]));
-
+    // Activate addon
     await prisma.workspace.update({
       where: { id: workspaceId },
-      data: { addons: updatedAddons }
+      data: {
+        addons: {
+          push: addon,
+        },
+      },
     });
 
-    return NextResponse.json({ success: true, addons: updatedAddons });
+    return NextResponse.json({
+      success: true,
+      activated: addon,
+    });
   } catch (error) {
-    console.error("Add-on Activation Error:", error);
-    return NextResponse.json({ error: "Activation failed" }, { status: 500 });
+    console.error("ADDON ACTIVATE ERROR:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to activate addon" },
+      { status: 500 }
+    );
   }
 }

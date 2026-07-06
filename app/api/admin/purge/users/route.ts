@@ -1,27 +1,27 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { days = 365 } = await req.json();
+    const { cutoff } = await req.json();
 
-    const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-
-    const users = await prisma.user.findMany({
-      where: { lastLogin: { lt: cutoff } },
-    });
-
-    let purged = 0;
-
-    for (const user of users) {
-      await prisma.user.delete({ where: { id: user.id } });
-      purged++;
+    if (!cutoff) {
+      return NextResponse.json(
+        { error: "cutoff date is required" },
+        { status: 400 }
+      );
     }
 
-    return NextResponse.json({ purged });
+    // Stubbed: your schema has no lastLogin field.
+    // This endpoint is kept for UI compatibility but does not perform DB changes.
+    return NextResponse.json({
+      status: "ok",
+      message: "User purge stubbed (no-op). No database changes performed.",
+      cutoff,
+      purged: 0,
+    });
   } catch (err: any) {
     console.error("User purge error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });

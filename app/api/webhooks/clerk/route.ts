@@ -1,54 +1,41 @@
+// app/api/webhooks/clerk/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const runtime = "nodejs";
+
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const payload = await req.json();
+    const { email, id: clerkUserId } = payload.data;
 
-    // Clerk event type
-    const eventType = body?.type;
-    const user = body?.data;
-
-    if (eventType !== "user.created") {
-      return NextResponse.json({ received: true });
-    }
-
-    const userId = user.id;
-    const email = user.email_addresses?.[0]?.email_address ?? null;
-
-    if (!userId || !email) {
-      return NextResponse.json({ error: "Missing user data" }, { status: 400 });
-    }
-
-    // Ensure user exists in Prisma
-    await prisma.user.upsert({
-      where: { id: userId },
-      update: {},
-      create: {
-        id: userId,
-        email,
+    // 1. Create Org for this user
+    const org = await prisma.org.create({
+      data: {
+        name: `${email}'s Org`,
       },
     });
 
-    // Create personal workspace
+    // 2. Create Workspace inside that Org
     const workspace = await prisma.workspace.create({
       data: {
         name: `${email}'s Workspace`,
+        orgId: org.id, // ⭐ REQUIRED
         members: {
           create: {
-            userId,
+            userId: clerkUserId,
             role: "owner",
           },
         },
       },
     });
 
-    return NextResponse.json({
-      success: true,
-      workspaceId: workspace.id,
-    });
+    return NextResponse.json({ success: true, workspace });
   } catch (error) {
-    console.error("Clerk webhook error:", error);
-    return NextResponse.json({ error: "Webhook error" }, { status: 500 });
+    console.error("CLERK WEBHOOK ERROR:", error);
+    return NextResponse.json(
+      { success: false, error: "Webhook failed" },
+      { status: 500 }
+    );
   }
 }

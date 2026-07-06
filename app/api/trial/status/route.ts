@@ -1,46 +1,57 @@
+// app/api/trial/status/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
 export async function GET(req: Request) {
   try {
-    const session = await getServerSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const session = await getServerSession(authOptions);
+
+    if (!session || !session.user?.id) {
+      return NextResponse.json(
+        { success: false, error: "Not authenticated" },
+        { status: 401 }
+      );
     }
 
-    const workspaceId = new URL(req.url).searchParams.get("workspaceId");
+    const workspaceId = req.headers.get("x-workspace-id");
     if (!workspaceId) {
-      return NextResponse.json({ error: "Missing workspaceId" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: "Missing workspaceId" },
+        { status: 400 }
+      );
     }
 
     const workspace = await prisma.workspace.findUnique({
-      where: { id: workspaceId }
+      where: { id: workspaceId },
+      select: {
+        trialStartAt: true,
+        trialEndAt: true,
+        isLocked: true,
+      },
     });
 
     if (!workspace) {
-      return NextResponse.json({ error: "Workspace not found" }, { status: 404 });
-    }
-
-    const now = new Date();
-    const trialEnds = workspace.trialEndsAt;
-
-    let daysLeft = null;
-
-    if (trialEnds) {
-      const diff = trialEnds.getTime() - now.getTime();
-      daysLeft = Math.ceil(diff / (1000 * 60 * 60 * 24));
+      return NextResponse.json(
+        { success: false, error: "Workspace not found" },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json({
-      trialEndsAt: trialEnds,
-      daysLeft,
-      isLocked: workspace.isLocked
+      success: true,
+      trialStartAt: workspace.trialStartAt,
+      trialEndAt: workspace.trialEndAt,
+      isLocked: workspace.isLocked,
     });
   } catch (error) {
-    console.error("Trial Status Error:", error);
-    return NextResponse.json({ error: "Failed to fetch trial status" }, { status: 500 });
+    console.error("TRIAL STATUS ERROR:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to fetch trial status" },
+      { status: 500 }
+    );
   }
 }

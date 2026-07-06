@@ -1,68 +1,54 @@
+// app/dashboard/federal-grants/[grantId]/page.tsx
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import SaveButton from "./SaveButton";
-import CompareButton from "./CompareButton";
-import { generateAISummary, generateGrantScores } from "./actions";
+import {
+  generateAISummary,
+  generateGrantScores,
+} from "./actions";
 
 export default async function GrantDetailPage({ params }) {
-  const grant = await prisma.federalGrant.findUnique({
-    where: { id: params.id },
+  const session = await auth();
+  const userId = session?.user?.id;
+
+  if (!userId) redirect("/");
+
+  const grant = await prisma.grant.findUnique({
+    where: { id: params.grantId },
   });
 
-  if (!grant) {
-    return <div className="p-6">Grant not found</div>;
+  if (!grant) redirect("/dashboard/federal-grants");
+
+  // ⭐ Server Action Wrapper — MUST return void
+  async function handleGenerateSummary() {
+    "use server";
+    await generateAISummary(grant.id, "AI summary placeholder");
   }
 
-  const profile = {
-    mission: "Nonprofit mission placeholder",
-    focusAreas: ["Education", "Community Development"],
-  };
+  async function handleGenerateScores() {
+    "use server";
+    await generateGrantScores(grant.id, { score: 92 });
+  }
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-3xl font-bold">{grant.title}</h1>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">{grant.title}</h1>
 
-      <div className="flex gap-4">
-        <SaveButton grantId={grant.id} />
-        <CompareButton grantId={grant.id} />
-      </div>
+      <pre className="p-4 bg-gray-100 rounded">
+        {JSON.stringify(grant.raw, null, 2)}
+      </pre>
 
-      <form action={async () => await generateAISummary(grant.id)}>
+      <form action={handleGenerateSummary}>
         <button className="mt-4 px-4 py-2 bg-green-600 text-white rounded">
           Generate AI Summary
         </button>
       </form>
 
-      <form action={async () => await generateGrantScores(grant.id, profile)}>
-        <button className="mt-4 px-4 py-2 bg-purple-600 text-white rounded">
+      <form action={handleGenerateScores}>
+        <button className="mt-4 px-4 py-2 bg-blue-600 text-white rounded">
           Generate AI Scores
         </button>
       </form>
-
-      <div className="space-y-2 text-sm">
-        <div><strong>Agency:</strong> {grant.agency}</div>
-        <div><strong>Category:</strong> {grant.category}</div>
-        <div><strong>Deadline:</strong> {grant.deadline?.toISOString().split("T")[0]}</div>
-        <div><strong>Amount:</strong> {grant.amount ? `$${grant.amount.toLocaleString()}` : "—"}</div>
-        <a
-          href={grant.url ?? "#"}
-          target="_blank"
-          className="text-brandBlue underline"
-        >
-          View on SAM.gov
-        </a>
-      </div>
-
-      <div className="p-4 border rounded bg-white">
-        <h2 className="text-xl font-semibold mb-2">Summary</h2>
-        <p className="whitespace-pre-line">{grant.summary}</p>
-      </div>
-
-      <div className="p-4 border rounded bg-white">
-        <h2 className="text-xl font-semibold mb-2">Raw Data</h2>
-        <pre className="text-xs bg-gray-100 p-3 rounded overflow-auto">
-          {JSON.stringify(grant.raw, null, 2)}
-        </pre>
-      </div>
     </div>
   );
 }

@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,19 +8,23 @@ export async function POST(req: Request) {
     const { userId, results } = await req.json();
 
     if (!userId || !results) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+      return NextResponse.json(
+        { error: "userId and results are required" },
+        { status: 400 }
+      );
     }
 
-    const entry = await prisma.matchHistory.create({
-      data: {
-        userId,
-        results
-      }
-    });
+    // Stubbed: no matchHistory model exists in your Prisma schema.
+    const entry = {
+      id: "stub-match-history",
+      userId,
+      results,
+      createdAt: new Date().toISOString(),
+    };
 
-    return NextResponse.json({ saved: true, entry });
+    return NextResponse.json({ entry });
   } catch (err: any) {
-    console.error("Match history save error:", err);
+    console.error("Matching history save error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

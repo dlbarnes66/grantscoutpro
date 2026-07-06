@@ -1,59 +1,74 @@
+// app/api/sync/grants/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
     const { grants } = await req.json();
 
     if (!grants || !Array.isArray(grants)) {
-      return NextResponse.json({ error: "Missing grants array" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: "Invalid grants payload" },
+        { status: 400 }
+      );
     }
 
-    let created = 0;
-    let updated = 0;
+    const results: any[] = [];
 
     for (const g of grants) {
-      const existing = await prisma.grant.findUnique({
-        where: { externalId: g.externalId },
-      });
+      let existing = null;
+
+      // ⭐ Only match by ID if provided
+      if (g.id) {
+        existing = await prisma.grant.findUnique({
+          where: { id: g.id },
+        });
+      }
 
       if (existing) {
-        await prisma.grant.update({
+        const updated = await prisma.grant.update({
           where: { id: existing.id },
           data: {
-            title: g.title,
-            description: g.description,
-            category: g.category,
-            deadline: g.deadline ? new Date(g.deadline) : null,
-            industry: g.industry,
-            location: g.location,
-            fundingRange: g.fundingRange,
+            title: g.title ?? existing.title,
+            summary: g.summary ?? existing.summary,
+            amount: g.amount ?? existing.amount,
+            deadline: g.deadline ?? existing.deadline,
+            workspaceId: g.workspaceId ?? existing.workspaceId,
           },
         });
-        updated++;
+
+        results.push(updated);
       } else {
-        await prisma.grant.create({
+        // ⭐ workspaceId is REQUIRED in your real Prisma model
+        if (!g.workspaceId) {
+          throw new Error("workspaceId is required to create a grant");
+        }
+
+        const created = await prisma.grant.create({
           data: {
-            externalId: g.externalId,
             title: g.title,
-            description: g.description,
-            category: g.category,
-            deadline: g.deadline ? new Date(g.deadline) : null,
-            industry: g.industry,
-            location: g.location,
-            fundingRange: g.fundingRange,
+            summary: g.summary ?? null,
+            amount: g.amount ?? null,
+            deadline: g.deadline ?? null,
+            workspaceId: g.workspaceId, // ⭐ REQUIRED
           },
         });
-        created++;
+
+        results.push(created);
       }
     }
 
-    return NextResponse.json({ created, updated });
-  } catch (err: any) {
-    console.error("Grant sync error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({
+      success: true,
+      grants: results,
+    });
+  } catch (error) {
+    console.error("SYNC GRANTS ERROR:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to sync grants" },
+      { status: 500 }
+    );
   }
 }

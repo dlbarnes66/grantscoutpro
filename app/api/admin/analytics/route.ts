@@ -1,24 +1,36 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { createClient } from "@supabase/supabase-js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+export async function POST() {
   try {
-    const users = await prisma.user.count();
-    const grants = await prisma.grant.count();
-    const subscriptions = await prisma.user.count({
-      where: { subscriptionStatus: "active" },
-    });
+    const [{ data: users }, { data: workspaces }, { data: grants }] =
+      await Promise.all([
+        supabase.from("users").select("id"),
+        supabase.from("workspaces").select("id"),
+        supabase.from("grants").select("id"),
+      ]);
 
     return NextResponse.json({
-      users,
-      grants,
-      subscriptions,
+      success: true,
+      metrics: {
+        totalUsers: users?.length || 0,
+        totalWorkspaces: workspaces?.length || 0,
+        totalGrants: grants?.length || 0,
+      },
     });
   } catch (err: any) {
-    console.error("Analytics error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error("Admin analytics route error:", err);
+    return NextResponse.json(
+      { error: err.message || "Unexpected error" },
+      { status: 500 }
+    );
   }
 }

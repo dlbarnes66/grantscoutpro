@@ -1,31 +1,55 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { createClient } from "@supabase/supabase-js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
 export async function POST(req: Request) {
   try {
-    const { userId, message, type } = await req.json();
+    const { workspaceId, userId, title, message, type } = await req.json();
 
-    if (!userId || !message) {
+    if (!workspaceId || !userId || !title || !message) {
       return NextResponse.json(
-        { error: "Missing userId or message" },
+        { error: "workspaceId, userId, title, and message are required" },
         { status: 400 }
       );
     }
 
-    const notification = await prisma.notification.create({
-      data: {
-        userId,
+    const { data, error } = await supabase
+      .from("notifications")
+      .insert({
+        workspace_id: workspaceId,
+        user_id: userId,
+        title,
         message,
-        type: type ?? "general",
-      },
-    });
+        type: type || "info",
+        read: false,
+      })
+      .select()
+      .single();
 
-    return NextResponse.json({ notification });
+    if (error) {
+      console.error("Notification create error:", error);
+      return NextResponse.json(
+        { error: "Failed to create notification" },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      notification: data,
+    });
   } catch (err: any) {
-    console.error("Notification create error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error("Notification create route error:", err);
+    return NextResponse.json(
+      { error: err.message || "Unexpected error" },
+      { status: 500 }
+    );
   }
 }

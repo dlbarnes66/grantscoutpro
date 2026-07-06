@@ -1,29 +1,39 @@
+// app/api/profile/update/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 
-export async function GET() {
+export const runtime = "nodejs";
+
+export async function POST(req: Request) {
   try {
-    // TEMP: Replace with real user ID from auth session later
-    const userId = "test-user-id";
+    const session = await getServerSession(authOptions);
 
-    const profile = await prisma.userProfile.findUnique({
-      where: { userId },
-    });
-
-    // If no profile exists yet, return defaults
-    if (!profile) {
-      return NextResponse.json({
-        name: "Your Organization",
-      });
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
     }
 
-    return NextResponse.json({
-      name: profile.organizationName || "Your Organization",
-      profile,
+    const userId = session.user.id;
+    const profile = await req.json();
+
+    // Update the User model directly
+    const updated = await prisma.user.update({
+      where: { id: userId },
+      data: profile,
     });
-  } catch (err: any) {
+
+    return NextResponse.json({
+      success: true,
+      profile: updated,
+    });
+  } catch (error) {
+    console.error("PROFILE UPDATE ERROR:", error);
     return NextResponse.json(
-      { error: err.message },
+      { success: false, error: "Failed to update profile" },
       { status: 500 }
     );
   }

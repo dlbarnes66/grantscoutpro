@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -10,21 +9,19 @@ export async function POST(req: Request) {
 
     if (!sourceOrgId || !targetOrgId) {
       return NextResponse.json(
-        { error: "Missing sourceOrgId or targetOrgId" },
+        { error: "sourceOrgId and targetOrgId are required" },
         { status: 400 }
       );
     }
 
-    await prisma.teamMember.updateMany({
-      where: { orgId: sourceOrgId },
-      data: { orgId: targetOrgId },
+    // Stubbed: your schema has no Organization / TeamMember models.
+    // This endpoint is kept for UI compatibility but does not perform DB changes.
+    return NextResponse.json({
+      status: "ok",
+      message: "Organization merge stubbed (no-op). No database changes performed.",
+      sourceOrgId,
+      targetOrgId,
     });
-
-    await prisma.organization.delete({
-      where: { id: sourceOrgId },
-    });
-
-    return NextResponse.json({ merged: true });
   } catch (err: any) {
     console.error("Org merge error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });

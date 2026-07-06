@@ -1,11 +1,26 @@
 import { NextResponse } from "next/server";
-import { openai } from "@/lib/openai";
+import OpenAI from "openai";
 import { prisma } from "@/lib/prisma";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY!,
+});
 
 export async function POST(req: Request) {
   try {
     const { grantId, workspaceId } = await req.json();
 
+    if (!grantId || !workspaceId) {
+      return NextResponse.json(
+        { error: "grantId and workspaceId are required" },
+        { status: 400 }
+      );
+    }
+
+    // Fetch grant
     const grant = await prisma.grant.findUnique({
       where: { id: grantId },
       select: {
@@ -13,10 +28,11 @@ export async function POST(req: Request) {
         summary: true,
         requirements: true,
         scoringCriteria: true,
-        fullText: true
-      }
+        fullText: true,
+      },
     });
 
+    // Fetch workspace
     const workspace = await prisma.workspace.findUnique({
       where: { id: workspaceId },
       select: {
@@ -25,8 +41,8 @@ export async function POST(req: Request) {
         history: true,
         writingStyle: true,
         tonePreference: true,
-        readingLevel: true
-      }
+        readingLevel: true,
+      },
     });
 
     const prompt = `
@@ -56,7 +72,7 @@ Provide a JSON report with:
 Return ONLY valid JSON.
 `;
 
-    const completion = await openai.chat.completions.create({
+    const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.2,
@@ -65,7 +81,7 @@ Return ONLY valid JSON.
     const output = completion.choices[0].message.content;
 
     return NextResponse.json(JSON.parse(output));
-  } catch (error) {
+  } catch (error: any) {
     console.error("Grant Intelligence Error:", error);
     return NextResponse.json(
       { error: "Grant intelligence analysis failed" },

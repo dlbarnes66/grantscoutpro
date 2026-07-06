@@ -1,69 +1,45 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { openai } from "@/lib/openai";
+import { client } from "@/lib/openai";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { sectionId } = await req.json();
+    const { text, tone } = await req.json();
 
-    const section = await prisma.grantSection.findUnique({
-      where: { id: sectionId },
-      select: {
-        id: true,
-        title: true,
-        content: true,
-        purpose: true,
-        previousVersions: true
-      }
-    });
+    if (!text) {
+      return NextResponse.json(
+        { error: "text is required" },
+        { status: 400 }
+      );
+    }
+
+    const selectedTone = tone || "professional";
 
     const prompt = `
-You are an expert federal grant writer. Rewrite the following section to improve clarity, alignment, completeness, and professional tone.
+Rewrite the following grant narrative in a ${selectedTone} tone.
+Improve clarity, structure, and persuasiveness while preserving the original meaning.
 
-Section Title: ${section?.title}
-Purpose: ${section?.purpose}
+Grant Narrative:
+${text}
+    `;
 
-Original Content:
-${section?.content}
-
-Provide a JSON object:
-
-{
-  "rewritten": "Improved rewritten section text",
-  "notes": ["Rewrite notes...", "More notes..."]
-}
-
-Return ONLY valid JSON.
-`;
-
-    const completion = await openai.chat.completions.create({
+    const response = await client.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.2,
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
     });
 
-    const output = JSON.parse(completion.choices[0].message.content);
-
-    // Save previous version
-    await prisma.grantSection.update({
-      where: { id: sectionId },
-      data: {
-        previousVersions: [
-          ...(section?.previousVersions || []),
-          {
-            date: new Date().toISOString(),
-            content: section?.content || ""
-          }
-        ]
-      }
+    return NextResponse.json({
+      result: response.choices[0].message,
     });
-
-    return NextResponse.json(output);
-  } catch (error) {
-    console.error("Grant Rewrite Error:", error);
-    return NextResponse.json(
-      { error: "Failed to rewrite section" },
-      { status: 500 }
-    );
+  } catch (err: any) {
+    console.error("Grant rewrite error:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

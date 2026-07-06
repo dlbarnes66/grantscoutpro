@@ -6,24 +6,30 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { userId, filename, base64 } = await req.json();
+    const { userId, workspaceId, filename, base64, mimeType, size } =
+      await req.json();
 
-    if (!userId || !filename || !base64) {
+    if (!userId || !workspaceId || !filename || !base64 || !mimeType || !size) {
       return NextResponse.json(
-        { error: "Missing userId, filename, or base64" },
+        { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
+    // In your system, files are stored externally (Supabase, S3, etc.)
+    // So the Prisma record stores metadata only.
     const file = await prisma.file.create({
       data: {
         userId,
-        filename,
-        content: base64,
+        workspaceId,
+        name: filename,     // FIXED
+        url: "",            // You will fill this with your upload URL later
+        type: mimeType,     // FIXED
+        size,               // FIXED
       },
     });
 
-    return NextResponse.json({ file });
+    return NextResponse.json({ success: true, file });
   } catch (err: any) {
     console.error("File upload error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });

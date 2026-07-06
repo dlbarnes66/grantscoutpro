@@ -1,23 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
-export async function POST(req: Request) {
+export async function POST(req) {
   try {
-    const { url } = await req.json();
+    const { data, workspaceId } = await req.json();
 
-    if (!url) {
-      return NextResponse.json({ error: "Missing API URL" }, { status: 400 });
-    }
-
-    const response = await fetch(url);
-    const data = await response.json();
-
-    if (!Array.isArray(data)) {
+    if (!workspaceId) {
       return NextResponse.json(
-        { error: "API response must be an array" },
+        { success: false, error: "workspaceId is required" },
         { status: 400 }
       );
     }
@@ -32,13 +22,17 @@ export async function POST(req: Request) {
           industry: grant.industry ?? "",
           location: grant.location ?? "",
           fundingRange: grant.fundingRange ?? "",
-        },
+          workspace: { connect: { id: workspaceId } } // ⭐ REQUIRED
+        }
       });
     }
 
-    return NextResponse.json({ imported: data.length });
-  } catch (err: any) {
-    console.error("API import error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("IMPORT GRANTS ERROR:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to import grants" },
+      { status: 500 }
+    );
   }
 }

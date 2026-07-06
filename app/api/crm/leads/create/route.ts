@@ -6,11 +6,11 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { name, email, source } = await req.json();
+    const { name, email, phone, notes } = await req.json();
 
-    if (!name || !email) {
+    if (!name) {
       return NextResponse.json(
-        { error: "Missing name or email" },
+        { error: "Missing name" },
         { status: 400 }
       );
     }
@@ -19,13 +19,14 @@ export async function POST(req: Request) {
       data: {
         name,
         email,
-        source: source ?? "unknown",
+        phone,
+        notes,
       },
     });
 
     return NextResponse.json({ lead });
   } catch (err: any) {
-    console.error("CRM lead error:", err);
+    console.error("CRM lead creation error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
