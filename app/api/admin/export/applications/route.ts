@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
@@ -7,7 +10,7 @@ export async function GET() {
       select: {
         id: true,
         createdAt: true,
-        updatedAt: true, // ⭐ REQUIRED — fixes TS error
+        updatedAt: true,
         userId: true,
         grantId: true,
         user: {
@@ -22,10 +25,10 @@ export async function GET() {
             stripeCustomerId: true,
             planName: true,
             status: true,
-            renewalDate: true
-          }
-        }
-      }
+            renewalDate: true,
+          },
+        },
+      },
     });
 
     const formatted = applications.map((d) => ({
@@ -34,13 +37,13 @@ export async function GET() {
       updatedAt: d.updatedAt,
       userId: d.userId,
       userEmail: d.user?.email ?? null,
-      grantId: d.grantId
+      grantId: d.grantId,
     }));
 
     return NextResponse.json({
       success: true,
       count: formatted.length,
-      data: formatted
+      data: formatted,
     });
   } catch (error) {
     console.error("EXPORT APPLICATIONS ERROR:", error);

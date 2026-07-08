@@ -1,22 +1,12 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function POST(req: Request) {
+export async function GET() {
   try {
-    const { applicationId } = await req.json();
-
-    if (!applicationId) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
-    }
-
-    const versions = await prisma.submissionVersion.findMany({
-      where: { submissionId: applicationId },
+    const versions = await prisma.applicationVersion.findMany({
       orderBy: { createdAt: "desc" },
     });
 

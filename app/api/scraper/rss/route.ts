@@ -1,6 +1,6 @@
 // app/api/scraper/rss/route.ts
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import Parser from "rss-parser";
 
 export const runtime = "nodejs";

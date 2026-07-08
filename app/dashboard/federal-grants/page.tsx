@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import Filters from "./components/Filters";
 
 export default async function FederalGrantsPage({ searchParams }) {

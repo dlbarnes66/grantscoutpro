@@ -1,6 +1,6 @@
 // app/grant-comparisons/route.ts
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { auth } from "@/auth";
 
 export async function POST(req: Request) {

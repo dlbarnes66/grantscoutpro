@@ -1,7 +1,7 @@
 // app/dashboard/federal-grants/[grantId]/actions.tsx
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
 // ⭐ Load grant with raw JSON

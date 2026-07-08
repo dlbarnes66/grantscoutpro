@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,18 +9,11 @@ export async function POST(req: Request) {
     const { userId, grantId, advice } = await req.json();
 
     if (!userId || !grantId || !advice) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
     const entry = await prisma.writingCoachHistory.create({
-      data: {
-        userId,
-        grantId,
-        advice,
-      },
+      data: { userId, grantId, advice },
     });
 
     return NextResponse.json({ saved: true, entry });

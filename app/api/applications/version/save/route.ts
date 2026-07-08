@@ -1,41 +1,38 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { applicationId, content } = await req.json();
+    const { applicationId, versionData } = await req.json();
 
-    if (!applicationId || !content) {
+    if (!applicationId) {
       return NextResponse.json(
-        { error: "applicationId and content are required" },
+        { error: "Missing applicationId" },
         { status: 400 }
       );
     }
 
-    // Get the latest version number
-    const lastVersion = await prisma.applicationVersion.findFirst({
+    // Get the next version number
+    const existingVersions = await prisma.applicationVersion.count({
       where: { applicationId },
-      orderBy: { versionNumber: "desc" },
     });
 
-    const nextVersionNumber = lastVersion ? lastVersion.versionNumber + 1 : 1;
+    const nextVersion = existingVersions + 1;
 
-    const version = await prisma.applicationVersion.create({
+    const entry = await prisma.applicationVersion.create({
       data: {
-        versionNumber: nextVersionNumber,
-        content,
-        application: {
-          connect: { id: applicationId },
-        },
+        applicationId,
+        versionNumber: nextVersion,
+        content: versionData,
       },
     });
 
-    return NextResponse.json({ version }, { status: 200 });
-  } catch (error) {
-    console.error("Error saving application version:", error);
-    return NextResponse.json(
-      { error: "Failed to save version" },
-      { status: 500 }
-    );
+    return NextResponse.json({ saved: true, entry });
+  } catch (err: any) {
+    console.error("Application version save error:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

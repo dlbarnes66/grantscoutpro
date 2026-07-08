@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
@@ -9,7 +12,7 @@ export async function GET() {
         createdAt: true,
         updatedAt: true,
         userId: true,
-        grantId: true, // ⭐ REQUIRED — fixes TS error
+        grantId: true,
         content: true,
         user: {
           select: {
@@ -23,10 +26,10 @@ export async function GET() {
             stripeCustomerId: true,
             planName: true,
             status: true,
-            renewalDate: true
-          }
-        }
-      }
+            renewalDate: true,
+          },
+        },
+      },
     });
 
     const formatted = warehouse.map((a) => ({
@@ -36,13 +39,13 @@ export async function GET() {
       grantId: a.grantId,
       content: a.content,
       createdAt: a.createdAt,
-      updatedAt: a.updatedAt
+      updatedAt: a.updatedAt,
     }));
 
     return NextResponse.json({
       success: true,
       count: formatted.length,
-      data: formatted
+      data: formatted,
     });
   } catch (error) {
     console.error("EXPORT WAREHOUSE ERROR:", error);

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,16 +19,13 @@ export async function POST(req: Request) {
       data: {
         userId,
         grantId,
-        data: result,   // ⭐ THIS is the fix
+        data: result,
       },
     });
 
     return NextResponse.json({ saved: true, entry });
   } catch (err: any) {
     console.error("PostAwardHistory save error:", err);
-    return NextResponse.json(
-      { error: err.message || "Unknown error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

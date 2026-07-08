@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 
 import Groq from "groq-sdk";
 import Anthropic from "@anthropic-ai/sdk";

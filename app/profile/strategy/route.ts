@@ -1,28 +1,29 @@
+// app/profile/strategy/route.ts
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import prisma from "@/lib/prisma";
+import { auth } from "@/auth";
 
 export async function PATCH(req: Request) {
-  const session = await getServerSession();
-  if (!session?.user?.email)
+  const session = await auth();
+  const userId = session?.user?.id;
+
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const body = await req.json();
+  const { strategy } = body;
 
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-  });
+  if (typeof strategy !== "object" || strategy === null) {
+    return NextResponse.json(
+      { error: "Strategy must be an object" },
+      { status: 400 }
+    );
+  }
 
-  const updated = await prisma.userProfile.upsert({
-    where: { userId: user!.id },
-    update: {
-      strategicGoals: body.strategicGoals,
-      priorityAreas: body.priorityAreas,
-    },
-    create: {
-      userId: user!.id,
-      ...body,
-    },
+  const updated = await prisma.user.update({
+    where: { id: userId },
+    data: { strategy },
   });
 
   return NextResponse.json(updated);

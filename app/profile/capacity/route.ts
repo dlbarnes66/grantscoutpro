@@ -1,29 +1,29 @@
+// app/profile/capacity/route.ts
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import prisma from "@/lib/prisma";
+import { auth } from "@/auth";
 
 export async function PATCH(req: Request) {
-  const session = await getServerSession();
-  if (!session?.user?.email)
+  const session = await auth();
+  const userId = session?.user?.id;
+
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const body = await req.json();
+  const { capacity } = body;
 
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-  });
+  if (typeof capacity !== "number") {
+    return NextResponse.json(
+      { error: "Capacity must be a number" },
+      { status: 400 }
+    );
+  }
 
-  const updated = await prisma.userProfile.upsert({
-    where: { userId: user!.id },
-    update: {
-      staffSize: body.staffSize,
-      annualBudget: body.annualBudget,
-      grantExperience: body.grantExperience,
-    },
-    create: {
-      userId: user!.id,
-      ...body,
-    },
+  const updated = await prisma.user.update({
+    where: { id: userId },
+    data: { capacity },
   });
 
   return NextResponse.json(updated);

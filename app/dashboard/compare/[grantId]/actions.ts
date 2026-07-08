@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import OpenAI from "openai";
 import { revalidatePath } from "next/cache";
 import { pusherServer } from "@/lib/pusher-server";

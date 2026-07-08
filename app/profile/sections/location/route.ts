@@ -1,30 +1,29 @@
+// app/profile/sections/location/route.ts
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import prisma from "@/lib/prisma";
+import { auth } from "@/auth";
 
 export async function PATCH(req: Request) {
-  const session = await getServerSession();
-  if (!session?.user?.email)
+  const session = await auth();
+  const userId = session?.user?.id;
+
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const body = await req.json();
+  const { location } = body;
 
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-  });
+  if (typeof location !== "object" || location === null) {
+    return NextResponse.json(
+      { error: "Location must be an object" },
+      { status: 400 }
+    );
+  }
 
-  const updated = await prisma.userProfile.upsert({
-    where: { userId: user!.id },
-    update: {
-      organizationName: body.organizationName,
-      organizationType: body.organizationType,
-      mission: body.mission,
-      website: body.website,
-    },
-    create: {
-      userId: user!.id,
-      ...body,
-    },
+  const updated = await prisma.user.update({
+    where: { id: userId },
+    data: { location },
   });
 
   return NextResponse.json(updated);

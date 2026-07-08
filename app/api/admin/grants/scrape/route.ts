@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,8 +26,6 @@ export async function POST(req: Request) {
         data: {
           title: grant.title,
           deadline: grant.deadline ? new Date(grant.deadline) : null,
-
-          // REQUIRED RELATION — your schema demands this
           workspace: {
             connect: { id: DEFAULT_WORKSPACE_ID },
           },

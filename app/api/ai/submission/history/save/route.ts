@@ -1,23 +1,26 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { userId, grantId, result } = await req.json();
+    const { userId, grantId, submittedAt } = await req.json();
 
-    if (!userId || !grantId || !result) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    if (!userId || !grantId) {
+      return NextResponse.json(
+        { error: "Missing userId or grantId" },
+        { status: 400 }
+      );
     }
 
     const entry = await prisma.submissionHistory.create({
       data: {
         userId,
         grantId,
-        result
-      }
+        submittedAt,
+      },
     });
 
     return NextResponse.json({ saved: true, entry });

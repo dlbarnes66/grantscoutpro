@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -8,7 +8,7 @@ export async function GET() {
   try {
     const users = await prisma.user.findMany({
       include: { profile: true },
-      orderBy: { email: "asc" }, // createdAt does NOT exist
+      orderBy: { email: "asc" },
     });
 
     return NextResponse.json({ users });

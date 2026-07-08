@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,19 +9,11 @@ export async function POST(req: Request) {
     const { userId, grantId, probability, notes } = await req.json();
 
     if (!userId || !grantId || probability === undefined) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
     const entry = await prisma.successProbabilityHistory.create({
-      data: {
-        userId,
-        grantId,
-        probability,
-        notes,
-      },
+      data: { userId, grantId, probability, notes },
     });
 
     return NextResponse.json({ saved: true, entry });

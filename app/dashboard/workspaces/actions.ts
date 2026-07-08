@@ -1,7 +1,7 @@
 // app/dashboard/workspaces/actions.ts
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 

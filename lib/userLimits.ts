@@ -1,20 +1,30 @@
+// lib/userLimits.ts
+
 import { PLAN_CAPABILITIES, PlanName } from "./planCapabilities";
 import { AddonKey } from "./addonCapabilities";
 
 export type WorkspaceLike = {
   subscriptionPlan: PlanName;
   addons: AddonKey[];
-  users: any[];
+  users: number;
 };
 
-export function canAddUser(workspace: WorkspaceLike): boolean {
+export function canAddMoreUsers(workspace: WorkspaceLike): boolean {
   const caps = PLAN_CAPABILITIES[workspace.subscriptionPlan];
+  const max = caps.maxUsers;
 
-  // Extra seats add‑on = unlimited users
   if (workspace.addons.includes("extraSeats")) {
     return true;
   }
 
-  const currentCount = workspace.users.length;
-  return currentCount < caps.maxUsers;
+  return workspace.users < max;
+}
+
+export function canAddUser(workspace: WorkspaceLike): boolean {
+  return canAddMoreUsers(workspace);
+}
+
+export function getWorkspaceLimit(workspace: WorkspaceLike): number {
+  const caps = PLAN_CAPABILITIES[workspace.subscriptionPlan];
+  return caps.workspaceLimit;
 }

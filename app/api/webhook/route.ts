@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 
 // Required for Stripe raw body parsing in Next.js App Router
 export const runtime = "nodejs";

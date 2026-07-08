@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { applicationId, updates } = await req.json();
+    const { applicationId, status, notes } = await req.json();
 
-    if (!applicationId || !updates) {
+    if (!applicationId) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -17,7 +17,10 @@ export async function POST(req: Request) {
 
     const app = await prisma.submissionHistory.update({
       where: { id: applicationId },
-      data: updates,
+      data: {
+        status: status ?? "updated",
+        notes,
+      },
     });
 
     return NextResponse.json({ updated: true, app });

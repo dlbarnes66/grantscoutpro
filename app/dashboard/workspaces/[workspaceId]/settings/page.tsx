@@ -1,7 +1,7 @@
 // app/dashboard/workspaces/[workspaceId]/settings/page.tsx
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 
 export default async function WorkspaceSettingsPage({
   params,

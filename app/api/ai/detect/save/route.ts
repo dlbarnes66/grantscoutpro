@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,8 +31,6 @@ export async function POST(req: Request) {
           agency: g.agency ?? "",
           deadline: g.deadline ?? null,
           amount: g.amount ?? null,
-
-          // REQUIRED by your Prisma schema
           workspaceId,
         },
       });

@@ -1,6 +1,6 @@
 // app/dashboard/workspaces/page.tsx
 import { auth } from "@/auth";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import Link from "next/link";
 
 export default async function WorkspacesPage() {

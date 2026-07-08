@@ -1,5 +1,5 @@
 import "dotenv/config";                     // ⭐ Load .env FIRST
-import { prisma } from "../lib/prisma.ts";  // ⭐ ESM requires .ts extension
+import { prisma } from "@/lib/prisma.ts";  // ⭐ ESM requires .ts extension
 import OpenAI from "openai";
 
 const client = new OpenAI({

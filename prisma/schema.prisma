@@ -32,7 +32,7 @@ model User {
   profile UserProfile?
 
   // ⭐ REQUIRED FOR STRIPE WEBHOOKS
-  stripeCustomerId String? @unique
+  stripeCustomerId String?   @unique
   planName         String?
   status           String?
   renewalDate      DateTime?
@@ -87,8 +87,8 @@ model User {
   DocumentMessage  DocumentMessage[]
   DocumentComment  DocumentComment[]
   DocumentPresence DocumentPresence[]
+  Embedding        Embedding[]
 }
-
 
 model Account {
   id                String  @id @default(cuid())
@@ -163,35 +163,7 @@ model UserProfile {
   user User @relation(fields: [userId], references: [id])
 }
 
-// prisma/schema.prisma
-
-  id        String   @id @default(cuid())model Workspace {
-
-  name      String
-  createdAt DateTime @default(now())
-
-  orgId String
-  org   Org    @relation(fields: [orgId], references: [id])
-
-  addons String[] @default([])
-
-  // ⭐ Trial system fields
-  trialStartAt DateTime?
-  trialEndAt   DateTime?
-  isLocked     Boolean @default(false)
-
-  members     WorkspaceMember[]
-  invites     WorkspaceInvite[]
-  comparisons GrantComparison[]
-
-  grants   Grant[]
-  budgets  Budget[]
-  reports  Report[]
-  Document Document[]
-  File     File[]
-}
- 
- model Workspace {
+model Workspace {
   id        String   @id @default(cuid())
   name      String
   createdAt DateTime @default(now())
@@ -204,17 +176,20 @@ model UserProfile {
   // ⭐ Trial system fields
   trialStartAt DateTime?
   trialEndAt   DateTime?
-  isLocked     Boolean @default(false)
+  isLocked     Boolean   @default(false)
 
   members     WorkspaceMember[]
   invites     WorkspaceInvite[]
   comparisons GrantComparison[]
 
-  grants   Grant[]
-  budgets  Budget[]
-  reports  Report[]
-  Document Document[]
-  File     File[]
+  grants            Grant[]
+  budgets           Budget[]
+  reports           Report[]
+  Document          Document[]
+  File              File[]
+  Embedding         Embedding[]
+  DocumentEmbedding DocumentEmbedding[]
+  FileEmbedding     FileEmbedding[]
 }
 
 model WorkspaceMember {
@@ -229,7 +204,6 @@ model WorkspaceMember {
 
   @@unique([workspaceId, userId])
 }
-
 
 model WorkspaceInvite {
   id          String   @id @default(cuid())
@@ -313,12 +287,26 @@ model GrantPage {
 }
 
 model Embedding {
-  id        String   @id @default(cuid())
-  pageId    String
-  vector    Float[]
-  createdAt DateTime @default(now())
+  id String @id @default(cuid())
 
-  page GrantPage @relation(fields: [pageId], references: [id])
+  // Multi-tenant boundary
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+
+  // Optional: embeddings tied to a specific document
+  documentId String?
+  document   Document? @relation(fields: [documentId], references: [id])
+
+  // Optional: embeddings tied to a specific user
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
+
+  // The actual embedding vector
+  vector Float[]
+
+  createdAt   DateTime   @default(now())
+  GrantPage   GrantPage? @relation(fields: [grantPageId], references: [id])
+  grantPageId String?
 }
 
 model GrantPreview {
@@ -366,36 +354,35 @@ model SavedGrant {
 }
 
 model GrantComparison {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
 
   // ⭐ The user who created the comparison
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
   // ⭐ The workspace where comparison lives
   workspaceId String
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
 
   // ⭐ The grants being compared (JSON array of grant IDs)
-  grants      Json
+  grants Json
 
   // ⭐ Optional name
-  name        String?  @default("Untitled Comparison")
+  name String? @default("Untitled Comparison")
 
   // ⭐ AI analysis results (JSON)
-  analysis    Json?
+  analysis Json?
 
   // ⭐ Shared with user IDs
-  sharedWith  String[] @default([])
+  sharedWith String[] @default([])
 
   // ⭐ Activity log
-  activities  ComparisonActivity[]
+  activities ComparisonActivity[]
 
   // ⭐ Comments
-  comments    ComparisonComment[]
+  comments ComparisonComment[]
 }
-
 
 model ComparisonActivity {
   id           String   @id @default(cuid())
@@ -907,10 +894,10 @@ model Grant {
   embedding    Float[]   @default([])
 
   // ⭐ REQUIRED FOR AI SCORING, AI SUMMARY, RAW JSON STORAGE
-  raw          Json?
+  raw Json?
 
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   applicationHistories ApplicationHistory[]
   applications         Application[]
@@ -944,23 +931,30 @@ model Grant {
   outreachHistory           OutreachHistory[]
   budgetHistory             BudgetHistory[]
 
-  documents    GrantDocument[]
-  GrantDraft   GrantDraft[]
-  GrantSection GrantSection[]
+  documents         GrantDocument[]
+  GrantDraft        GrantDraft[]
+  GrantSection      GrantSection[]
+  ClusterAssignment ClusterAssignment[]
 }
 
 model File {
-  id          String   @id @default(cuid())
-  workspaceId String
-  userId      String
-  name        String
-  url         String
-  type        String
-  size        Int
-  createdAt   DateTime @default(now())
+  id          String  @id @default(cuid())
+  workspaceId String?
+  userId      String?
+  documentId  String?
 
-  user      User      @relation(fields: [userId], references: [id])
-  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  filename String
+  mimeType String
+  size     Int
+  url      String // S3, GCS, or local storage path
+  storage  String // "s3", "gcs", "local", etc.
+
+  createdAt DateTime @default(now())
+
+  workspace     Workspace?     @relation(fields: [workspaceId], references: [id])
+  user          User?          @relation(fields: [userId], references: [id])
+  document      Document?      @relation(fields: [documentId], references: [id])
+  FileEmbedding FileEmbedding?
 }
 
 model GrantDraft {
@@ -998,12 +992,15 @@ model Document {
   workspace Workspace? @relation(fields: [workspaceId], references: [id])
   user      User?      @relation(fields: [userId], references: [id])
 
-  patches          DocumentPatch[]
-  versions         DocumentVersion[]
-  snapshots        DocumentSnapshot[]
-  DocumentMessage  DocumentMessage[]
-  DocumentComment  DocumentComment[]
-  DocumentPresence DocumentPresence[]
+  patches           DocumentPatch[]
+  versions          DocumentVersion[]
+  snapshots         DocumentSnapshot[]
+  DocumentMessage   DocumentMessage[]
+  DocumentComment   DocumentComment[]
+  DocumentPresence  DocumentPresence[]
+  Embedding         Embedding[]
+  File              File[]
+  DocumentEmbedding DocumentEmbedding?
 }
 
 model Budget {
@@ -1132,4 +1129,52 @@ model DocumentPresence {
   user     User     @relation(fields: [userId], references: [id])
 
   @@unique([documentId, userId])
+}
+
+model Cluster {
+  id        String   @id @default(cuid())
+  name      String?
+  createdAt DateTime @default(now())
+
+  assignments ClusterAssignment[]
+  history     ClusterHistory[]
+}
+
+model ClusterAssignment {
+  id        String   @id @default(cuid())
+  clusterId String
+  grantId   String
+  createdAt DateTime @default(now())
+
+  cluster Cluster @relation(fields: [clusterId], references: [id])
+  grant   Grant   @relation(fields: [grantId], references: [id])
+}
+
+model ClusterHistory {
+  id        String   @id @default(cuid())
+  clusterId String
+  action    String?
+  createdAt DateTime @default(now())
+
+  cluster Cluster @relation(fields: [clusterId], references: [id])
+}
+
+model DocumentEmbedding {
+  id          String    @id @default(cuid())
+  documentId  String    @unique
+  workspaceId String
+  text        String
+  vector      Float[]
+  document    Document  @relation(fields: [documentId], references: [id])
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+}
+
+model FileEmbedding {
+  id          String    @id @default(cuid())
+  fileId      String    @unique
+  workspaceId String
+  text        String
+  vector      Float[]
+  file        File      @relation(fields: [fileId], references: [id])
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
 }

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,12 +9,10 @@ export async function GET() {
     const users = await prisma.user.count();
     const grants = await prisma.grant.count();
 
-    // Your schema uses "status", not "subscriptionStatus"
     const activeSubs = await prisma.user.count({
       where: { status: "active" },
     });
 
-    // Your schema has NO "application" model — remove it
     const applications = 0;
 
     return NextResponse.json({

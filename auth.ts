@@ -1,10 +1,10 @@
 // auth.ts
 import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import { prisma } from "@/lib/prisma";
 import Credentials from "next-auth/providers/credentials";
+import { prisma } from "@/lib/prisma";
 
-export const { auth, signIn, signOut } = NextAuth({
+export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
 
   providers: [
@@ -22,37 +22,32 @@ export const { auth, signIn, signOut } = NextAuth({
         });
 
         if (!user) return null;
+
+        // TODO: Replace with proper password hashing
         if (user.password !== credentials.password) return null;
 
-        return {
-          id: user.id,
-          email: user.email,
-        };
+        return user;
       },
     }),
   ],
 
-  session: {
-    strategy: "jwt",
-  },
-
   callbacks: {
+    async session({ session, token }) {
+      if (token?.id) {
+        session.user.id = token.id;
+      }
+      if (token?.orgId) {
+        session.user.orgId = token.orgId;
+      }
+      return session;
+    },
+
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.email = user.email;
+        token.orgId = user.orgId;
       }
       return token;
-    },
-
-    async session({ session, token }) {
-      if (token) {
-        session.user = {
-          id: token.id as string,
-          email: token.email as string,
-        };
-      }
-      return session;
     },
   },
 });

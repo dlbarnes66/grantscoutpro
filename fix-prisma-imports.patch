@@ -1,0 +1,21 @@
+diff --git a/app/api b/app/api
+--- a/app/api
++++ b/app/api
+@@ -1,999 +1,999 @@
+ # This patch updates ALL Prisma imports in ALL API routes
+ # It replaces incorrect alias imports and incorrect relative paths
+ # with the correct universal import path:
+ #     import prisma from "../../../../lib/prisma";
+
+ find app/api -type f -name "route.ts" -print0 | while IFS= read -r -d '' file; do
+   echo "Patching $file"
+   sed -i '' \
+     -e 's|import prisma from "@/lib/prisma"|import prisma from "../../../../lib/prisma"|g' \
+     -e 's|import prisma from "../../../lib/prisma"|import prisma from "../../../../lib/prisma"|g' \
+     -e 's|import prisma from "../../../../lib/prisma"|import prisma from "../../../../lib/prisma"|g' \
+     -e 's|import prisma from "../../lib/prisma"|import prisma from "../../../../lib/prisma"|g' \
+     -e 's|import prisma from "../lib/prisma"|import prisma from "../../../../lib/prisma"|g' \
+     "$file"
+ done
+
+ echo "✔ All Prisma imports updated successfully."
