@@ -1,59 +1,56 @@
 import { NextResponse } from "next/server";
-import { client } from "@/lib/openai";
+import { prisma } from "@/lib/prisma";
+import { generateCompletion } from "@/lib/ai/llm";
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
-export async function POST(req: Request, { params }: { params: { workspaceId: string } }) {
+export async function GET(
+  req: Request,
+  { params }: { params: { workspaceId: string } }
+) {
   try {
-    const { workspaceId } = params;
-    const { summary } = await req.json();
+    const workspaceId = params.workspaceId;
 
-    if (!workspaceId) {
-      return NextResponse.json(
-        { error: "workspaceId is required" },
-        { status: 400 }
-      );
-    }
-
-    if (!summary) {
-      return NextResponse.json(
-        { error: "summary is required" },
-        { status: 400 }
-      );
-    }
-
-    const prompt = `
-You are an AI assistant generating insights for a workspace dashboard.
-Provide a concise, helpful summary of the workspace activity:
-
-Workspace ID:
-${workspaceId}
-
-Activity Summary:
-${summary}
-
-Return:
-- Key insights
-- Recommended next actions
-- Any risks or blockers
-    `;
-
-    const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
+    // Recent documents
+    const documents = await prisma.file.findMany({
+      where: { workspaceId },
+      select: {
+        id: true,
+        name: true,
+        mimeType: true,
+        size: true,
+      },
+      orderBy: { createdAt: "desc" },
+      take: 5,
     });
+
+    // Recent searches
+    const searches = await prisma.searchHistory.findMany({
+      where: { workspaceId },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    });
+
+    // AI summary
+    const summaryPrompt = `
+Summarize the recent activity in this workspace.
+
+Documents:
+${documents.map((d) => `- ${d.name}`).join("\n")}
+
+Searches:
+${searches.map((s) => `- ${s.query}`).join("\n")}
+
+Provide a short, helpful summary.
+`;
+
+    const summary = await generateCompletion(summaryPrompt);
 
     return NextResponse.json({
-      result: response.choices[0].message,
+      documents,
+      searches,
+      summary,
     });
-  } catch (err: any) {
-    console.error("Workspace dashboard AI error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (error: any) {
+    console.error("Dashboard error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

@@ -1,48 +1,20 @@
 import { NextResponse } from "next/server";
-import { client } from "@/lib/openai";
-
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+import { searchGrants } from "@/lib/grants/search/searchGrants";
 
 export async function POST(req: Request) {
   try {
-    const { query } = await req.json();
+    const body = await req.json();
 
-    if (!query) {
-      return NextResponse.json(
-        { error: "query is required" },
-        { status: 400 }
-      );
-    }
-
-    const prompt = `
-You are an expert grant researcher. Based on the following search query,
-identify the types of grants that would likely match and provide:
-
-1. Grant categories
-2. Typical eligibility criteria
-3. Common funding ranges
-4. Strategic recommendations for the applicant
-
-Search Query:
-${query}
-    `;
-
-    const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
+    const results = await searchGrants({
+      query: body.query || "",
+      filters: body.filters || {},
+      workspaceId: body.workspaceId,
+      tier: body.tier, // "FEDERAL_ONLY", "FEDERAL_STATE", "PRO", "ENTERPRISE"
     });
 
-    return NextResponse.json({
-      result: response.choices[0].message,
-    });
-  } catch (err: any) {
-    console.error("Grant search error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json(results);
+  } catch (error: any) {
+    console.error("Grant search error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { scoreGrant } from "@/lib/grants/score/scoreGrant";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { grantId } = await req.json();
+    const { grantId, tier, profile } = await req.json();
 
     if (!grantId) {
       return NextResponse.json(
@@ -15,20 +16,15 @@ export async function POST(req: Request) {
       );
     }
 
-    const grant = await prisma.grant.findUnique({
-      where: { id: grantId },
+    const scored = await scoreGrant({
+      grantId,
+      tier,
+      profile,
     });
 
-    if (!grant) {
-      return NextResponse.json(
-        { error: "Grant not found" },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({ grant });
+    return NextResponse.json(scored);
   } catch (err: any) {
-    console.error("Grant details error:", err);
+    console.error("GrantRadar scoring error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

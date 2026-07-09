@@ -1,0 +1,11 @@
+import { prisma } from "@/lib/prisma";
+
+export async function getDocumentContent(workspaceId: string, documentId: string) {
+  const doc = await prisma.document.findFirst({
+    where: { id: documentId, workspaceId },
+  });
+
+  if (!doc) throw new Error("Document not found");
+
+  return doc.content || "";
+}

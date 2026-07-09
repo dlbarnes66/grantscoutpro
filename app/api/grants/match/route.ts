@@ -1,51 +1,31 @@
 import { NextResponse } from "next/server";
-import { client } from "@/lib/openai";
+import prisma from "@/lib/prisma";
+import { matchGrants } from "@/lib/grants/match/matchGrants";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { profile, grantText } = await req.json();
+    const { workspaceId, tier, profile } = await req.json();
 
-    if (!profile || !grantText) {
+    if (!workspaceId) {
       return NextResponse.json(
-        { error: "profile and grantText are required" },
+        { error: "Missing workspaceId" },
         { status: 400 }
       );
     }
 
-    const prompt = `
-You are an expert grant evaluator. Determine how well this applicant profile
-matches the grant opportunity. Provide:
-
-1. Match score (0–100)
-2. Key strengths
-3. Potential disqualifiers
-4. Strategic recommendations
-
-Applicant Profile:
-${profile}
-
-Grant Opportunity:
-${grantText}
-    `;
-
-    const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
+    // ⭐ Run matching engine
+    const results = await matchGrants({
+      workspaceId,
+      tier,
+      profile, // mission, geography, org type, budget, etc.
     });
 
-    return NextResponse.json({
-      result: response.choices[0].message,
-    });
+    return NextResponse.json(results);
   } catch (err: any) {
-    console.error("Grant match error:", err);
+    console.error("Grant matching error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
