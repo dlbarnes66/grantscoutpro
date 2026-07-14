@@ -2,15 +2,14 @@
 
 import { useState } from "react";
 import { useRagChat } from "@/hooks/useRagChat";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/Input";
+import { Card } from "@/components/ui/Card";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { Textarea } from "@/components/ui/Textarea";
 
 export default function WorkspaceChatPage({ params }: { params: { workspaceId: string } }) {
   const [message, setMessage] = useState("");
-  const { history, isLoading, sendMessage } = useRagChat(params.workspaceId);
+  const { messages, loading, sendMessage } = useRagChat(params.workspaceId);
 
   const handleSend = () => {
     if (!message.trim()) return;
@@ -22,32 +21,37 @@ export default function WorkspaceChatPage({ params }: { params: { workspaceId: s
     <div className="p-6 max-w-3xl mx-auto space-y-6">
       <h1 className="text-2xl font-bold">AI Workspace Chat</h1>
 
-      <ScrollArea className="h-[400px] border rounded-md p-4">
-        <div className="space-y-4">
-          {history.map((msg, idx) => (
-            <Card key={idx} className="p-4">
-              <p className="font-semibold">{msg.role === "user" ? "You" : "AI"}</p>
-              <p className="text-gray-700">{msg.content}</p>
-            </Card>
-          ))}
+      <div className="h-[400px] border rounded-md p-4 overflow-y-auto space-y-4">
+        {messages.map((msg, idx) => (
+          <Card key={idx} className="p-4">
+            <p className="font-semibold">{msg.role === "user" ? "You" : "AI"}</p>
+            <p className="text-gray-700 whitespace-pre-wrap">{msg.content}</p>
+          </Card>
+        ))}
 
-          {isLoading && (
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-3/4" />
-            </div>
-          )}
-        </div>
-      </ScrollArea>
+        {loading && (
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/4" />
+          </div>
+        )}
+      </div>
 
-      <div className="flex gap-2">
-        <Input
+      <div className="space-y-2">
+        <Textarea
           placeholder="Ask about your workspace documents..."
           value={message}
           onChange={(e) => setMessage(e.target.value)}
         />
-        <Button onClick={handleSend}>Send</Button>
+
+        <div
+          onClick={handleSend}
+          className="cursor-pointer p-3 text-center bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 transition"
+        >
+          Send
+        </div>
       </div>
     </div>
   );
 }
+
