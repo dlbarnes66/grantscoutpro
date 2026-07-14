@@ -1,7 +1,14 @@
 import { prisma } from "@/lib/prisma";
 import { embedText } from "./document-embedder";
 
-export async function semanticSearch(query: string, workspaceId: string) {
+// This version matches rag-chat.ts perfectly
+export async function semanticSearch({
+  workspaceId,
+  query,
+}: {
+  workspaceId: string;
+  query: string;
+}) {
   // 1. Embed the query
   const queryEmbedding = await embedText(query);
 
@@ -13,6 +20,8 @@ export async function semanticSearch(query: string, workspaceId: string) {
       documentId: true,
       content: true,
       embedding: true,
+      documentTitle: true, // add this if your rag-chat expects it
+      snippet: true,       // add this if your rag-chat expects it
     },
   });
 
@@ -25,7 +34,10 @@ export async function semanticSearch(query: string, workspaceId: string) {
   // 4. Sort by score
   scored.sort((a, b) => b.score - a.score);
 
-  return scored.slice(0, 10); // top 10
+  // 5. Return in the shape rag-chat expects
+  return {
+    results: scored.slice(0, 10),
+  };
 }
 
 // Simple cosine similarity

@@ -29,7 +29,7 @@ export async function extractDocumentText(documentId: string): Promise<string> {
   const document = await prisma.document.findUnique({
     where: { id: documentId },
     include: {
-      File: true, // Workspace/User/Document files
+      File: true,
     },
   });
 
@@ -39,13 +39,11 @@ export async function extractDocumentText(documentId: string): Promise<string> {
 
   let textParts: string[] = [];
 
-  // 1. Extract from Document.content (JSON)
   if (document.content) {
     const contentText = extractContent(document.content);
     if (contentText) textParts.push(contentText);
   }
 
-  // 2. Extract from linked files
   if (document.File && document.File.length > 0) {
     for (const file of document.File) {
       try {
@@ -57,15 +55,11 @@ export async function extractDocumentText(documentId: string): Promise<string> {
     }
   }
 
-  // Combine all extracted text
   return textParts.join(" ").trim();
 }
 
 /**
  * Creates an embedding for a document:
- * - Extracts all text
- * - Generates embedding vector
- * - Returns both
  */
 export async function embedDocument(documentId: string): Promise<{
   text: string;
@@ -98,4 +92,12 @@ export async function embedFile(fileId: string): Promise<{
   const vector = await createEmbedding(text);
 
   return { text, vector };
+}
+
+/**
+ * Simple text embedding helper for semantic search + RAG.
+ */
+export async function embedText(text: string): Promise<number[]> {
+  const vector = await createEmbedding(text);
+  return vector;
 }

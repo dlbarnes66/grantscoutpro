@@ -1,31 +1,31 @@
 import { useState } from "react";
+import { ragChat } from "@/lib/ai/rag-chat";
 
 export function useRagChat(workspaceId: string) {
-  const [history, setHistory] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const sendMessage = async (message: string) => {
-    try {
-      setIsLoading(true);
+  async function sendMessage(content: string) {
+    setLoading(true);
 
-      const res = await fetch(`/api/workspaces/${workspaceId}/chat`, {
-        method: "POST",
-        body: JSON.stringify({ message, history }),
-      });
+    const userMessage = { role: "user", content };
+    const history = [...messages, userMessage];
 
-      const json = await res.json();
+    const response = await ragChat({
+      workspaceId,
+      message: content,
+      history,
+    });
 
-      if (!res.ok) throw new Error(json.error || "Chat failed");
+    const aiMessage = { role: "assistant", content: response };
 
-      setHistory((prev) => [
-        ...prev,
-        { role: "user", content: message },
-        { role: "assistant", content: json.response },
-      ]);
-    } finally {
-      setIsLoading(false);
-    }
+    setMessages([...history, aiMessage]);
+    setLoading(false);
+  }
+
+  return {
+    messages,
+    loading,
+    sendMessage,
   };
-
-  return { history, isLoading, sendMessage };
 }
