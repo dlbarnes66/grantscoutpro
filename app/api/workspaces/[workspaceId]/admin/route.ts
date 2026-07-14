@@ -8,8 +8,7 @@ export async function GET(
   { params }: { params: { workspaceId: string } }
 ) {
   try {
-    // ⭐ Admin-only access
-    await requireWorkspaceRole(params.workspaceId, ["admin"]);
+    await requireWorkspaceRole(params.workspaceId, ["ADMIN"]);
 
     const workspaceId = params.workspaceId;
 

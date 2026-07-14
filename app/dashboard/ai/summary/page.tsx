@@ -1,96 +1,30 @@
-"use client";
+import { Card } from "@/components/ui/Card";
+import { Textarea } from "@/components/ui/Textarea";
+import { Button } from "@/components/ui/Button";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 
-import { useState } from "react";
-import Link from "next/link";
-
-export default function AIGrantSummaryPage() {
-  const [grantText, setGrantText] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [summary, setSummary] = useState("");
-
-  const generateSummary = async () => {
-    if (!grantText) {
-      alert("Please paste the grant text.");
-      return;
-    }
-
-    setLoading(true);
-
-    const res = await fetch("/api/ai/summary", {
-      method: "POST",
-      body: JSON.stringify({ text: grantText }),
-    });
-
-    const data = await res.json();
-    setLoading(false);
-
-    if (data.error) {
-      alert(data.error);
-      return;
-    }
-
-    setSummary(data.summary);
-  };
-
+export default function AISummaryPage() {
   return (
-    <div className="space-y-10">
+    <div className="max-w-5xl mx-auto">
+      <Breadcrumbs items={[
+        { label: "Dashboard", href: "/dashboard" },
+        { label: "AI Tools", href: "/dashboard/ai" },
+        { label: "Summary" }
+      ]} />
 
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">AI Grant Summary</h1>
-        <p className="text-muted mt-2">
-          Paste any grant description and get a clean, structured summary.
-        </p>
-      </div>
+      <h1 className="text-3xl font-bold text-white mb-6">AI Summary Generator</h1>
 
-      {/* Input Card */}
-      <div className="card">
-        <h2 className="section-title">Grant Text</h2>
+      <Textarea
+        placeholder="Paste text to summarize..."
+        className="h-48 mb-6"
+      />
 
-        <textarea
-          className="textarea mt-4 w-full h-48"
-          placeholder="Paste the full grant description here…"
-          value={grantText}
-          onChange={(e) => setGrantText(e.target.value)}
-        />
+      <Button variant="primary">Generate Summary</Button>
 
-        <button
-          onClick={generateSummary}
-          disabled={loading}
-          className="btn btn-primary mt-6"
-        >
-          {loading ? "Summarizing…" : "Generate Summary"}
-        </button>
-      </div>
-
-      {/* Output Card */}
-      {summary && (
-        <div className="card">
-          <h2 className="section-title">Summary</h2>
-
-          <pre className="whitespace-pre-wrap mt-4 text-gray-800">
-            {summary}
-          </pre>
-
-          <button
-            className="btn btn-secondary mt-6"
-            onClick={() => navigator.clipboard.writeText(summary)}
-          >
-            Copy to Clipboard
-          </button>
-        </div>
-      )}
-
-      {/* Footer */}
-      <div className="mt-12 flex gap-4">
-        <Link href="/dashboard/ai" className="btn btn-secondary">
-          Back to AI Tools
-        </Link>
-
-        <Link href="/dashboard" className="btn btn-success">
-          Dashboard Home
-        </Link>
-      </div>
+      <Card className="mt-10">
+        <h3 className="text-lg font-semibold text-white mb-3">Summary</h3>
+        <p className="text-slate-400">AI-generated summary will appear here.</p>
+      </Card>
     </div>
   );
 }

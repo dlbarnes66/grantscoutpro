@@ -9,12 +9,10 @@ export async function POST(
   { params }: { params: { workspaceId: string } }
 ) {
   try {
-    // ⭐ Admin‑only enforcement
-    await requireWorkspaceRole(params.workspaceId, ["admin"]);
+    await requireWorkspaceRole(params.workspaceId, ["ADMIN"]);
 
     const { email } = await req.json();
 
-    // ⭐ Find or create user
     let user = await prisma.user.findUnique({ where: { email } });
 
     if (!user) {
@@ -23,24 +21,21 @@ export async function POST(
       });
     }
 
-    // ⭐ Create workspace member
     const member = await prisma.workspaceMember.create({
       data: {
         workspaceId: params.workspaceId,
         userId: user.id,
-        role: "member",
+        role: "MEMBER",
       },
       include: { user: true },
     });
 
-    // ⭐ Log activity
     await logActivity(params.workspaceId, "member_invited", {
       email,
       userId: user.id,
       memberId: member.id,
     });
 
-    // ⭐ Send notification
     await sendNotification(
       params.workspaceId,
       "member_invited",

@@ -2,54 +2,47 @@ import { NextResponse } from "next/server";
 import { ingestFile } from "@/lib/ai/ingest-file";
 import { sendNotification } from "@/lib/notifications/sendNotification";
 import { logActivity } from "@/lib/ai/activity-log";
+import { requireWorkspaceRole } from "@/lib/auth/workspace-permissions";
+import { checkUsage } from "@/lib/billing/check-usage";
+import { incrementUsage } from "@/lib/billing/increment-usage";
 
-export async function POST(
-  req: Request,
-  { params }: { params: { workspaceId: string } }
-) {
+export async function POST(req: Request, { params }) {
   try {
-    // ⭐ Parse multipart form data
+    await requireWorkspaceRole(params.workspaceId, ["ADMIN", "MEMBER"]);
+
     const formData = await req.formData();
     const file = formData.get("file") as File;
 
     if (!file) {
+      return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+    }
+
+    const usage = await checkUsage(params.workspaceId, "uploads");
+    if (!usage.allowed) {
       return NextResponse.json(
-        { error: "No file uploaded" },
-        { status: 400 }
+        {
+          error: "Upload limit reached",
+          upgrade: true,
+          plan: usage.plan,
+          limit: usage.limit,
+        },
+        { status: 402 }
       );
     }
 
-    // ⭐ Ingest file into your AI pipeline
     const result = await ingestFile(params.workspaceId, file);
 
-    // ⭐ Log activity
+    await incrementUsage(params.workspaceId, "uploads");
+
     await logActivity(params.workspaceId, "file_uploaded", {
       fileId: result.fileId,
       fileName: file.name,
       size: file.size,
     });
 
-    // ⭐ Send notification
-    await sendNotification(
-      params.workspaceId,
-      "file_uploaded",
-      `Uploaded file: ${file.name}`,
-      {
-        fileId: result.fileId,
-        fileName: file.name,
-        size: file.size,
-      }
-    );
-
-    return NextResponse.json({
-      success: true,
-      fileId: result.fileId,
-    });
+    return NextResponse.json({ success: true, fileId: result.fileId });
   } catch (error: any) {
     console.error("Upload error:", error);
-    return NextResponse.json(
-      { error: error.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

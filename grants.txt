@@ -1,0 +1,85 @@
+app/api/grants
+├── [grantId]
+│   ├── documents
+│   │   └── route.ts
+│   └── route.ts
+├── alerts
+│   └── route.ts
+├── analyze
+│   └── route.ts
+├── budget
+│   └── route.ts
+├── compare
+│   └── route.ts
+├── create
+│   └── route.ts
+├── delete
+│   └── route.ts
+├── detail
+│   └── route.ts
+├── documents
+│   └── upload
+│       └── route.ts
+├── export
+│   └── pdf
+│       └── route.ts
+├── facets
+│   └── route.ts
+├── federal
+│   └── ingest
+│       └── route.ts
+├── foundations
+│   └── ingest
+│       └── route.ts
+├── get
+│   └── route.ts
+├── import
+│   ├── api
+│   │   └── route.ts
+│   └── csv
+│       └── route
+├── intelligence
+│   └── route.ts
+├── lifecycle
+│   └── process
+│       └── route.ts
+├── match
+│   └── route.ts
+├── packet
+│   ├── pdf
+│   │   └── route.ts
+│   └── route.ts
+├── recommend
+│   └── route.ts
+├── region
+│   └── route.ts
+├── review
+│   └── route.ts
+├── rewrite
+│   └── route.ts
+├── route.ts
+├── save
+│   └── route.ts
+├── score
+│   └── route.ts
+├── search
+│   └── route.ts
+├── sections
+│   └── create
+│       └── route.ts
+├── state
+│   └── ingest
+│       └── route.ts
+├── status
+│   └── update
+│       └── route.ts
+├── timeline
+│   └── route.ts
+├── unsave
+│   └── route.ts
+├── update
+│   └── route.ts
+└── write
+    └── route.ts
+
+46 directories, 37 files

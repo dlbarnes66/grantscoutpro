@@ -1,40 +1,28 @@
 import { prisma } from "@/lib/prisma";
-import { fieldDiff } from "./fieldDiff";
 
-export async function auditLog({
+export async function auditEvent({
   actorId,
   orgId,
   action,
   entity,
-  before,
-  after,
-  ip,
-  userAgent,
+  entityId,
+  metadata,
 }: {
   actorId: string;
-  orgId?: string;
+  orgId?: string | null;
   action: string;
   entity: string;
-  before: any;
-  after: any;
-  ip?: string;
-  userAgent?: string;
+  entityId?: string | null;
+  metadata?: any;
 }) {
-  const changes = fieldDiff(before, after);
-
-  await prisma.auditLog.create({
+  return prisma.auditLog.create({
     data: {
       actorId,
       orgId,
       action,
       entity,
-      before: JSON.stringify(before),
-      after: JSON.stringify(after),
-      changes: JSON.stringify(changes),
-      ip,
-      userAgent,
+      entityId,
+      metadata,
     },
   });
-
-  return changes;
 }

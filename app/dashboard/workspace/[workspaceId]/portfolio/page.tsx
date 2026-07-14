@@ -1,18 +1,23 @@
-"use client";
+import { WorkspaceShell } from "@/components/workspace/WorkspaceShell";
+import { Card } from "@/components/ui/Card";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 
-import PortfolioIntelligence from "./PortfolioIntelligence";
-
-export default function PortfolioPage({
-  params
-}: {
-  params: { workspaceId: string };
-}) {
-  const { workspaceId } = params;
-
+export default function WorkspacePortfolioPage() {
   return (
-    <div className="space-y-6 p-6">
-      <h1 className="text-3xl font-bold">Grant Portfolio Intelligence</h1>
-      <PortfolioIntelligence workspaceId={workspaceId} />
-    </div>
+    <WorkspaceShell title="Portfolio Intelligence">
+      <Breadcrumbs
+        items={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Workspace", href: "../" },
+          { label: "Portfolio" },
+        ]}
+      />
+
+      <Card>
+        <p className="text-slate-300">
+          Portfolio intelligence will appear here.
+        </p>
+      </Card>
+    </WorkspaceShell>
   );
 }

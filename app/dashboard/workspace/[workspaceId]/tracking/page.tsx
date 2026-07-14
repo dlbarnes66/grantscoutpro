@@ -1,41 +1,23 @@
-"use client";
+import { WorkspaceShell } from "@/components/workspace/WorkspaceShell";
+import { Card } from "@/components/ui/Card";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 
-import { useEffect, useState } from "react";
-import GrantTrackingCard from "./GrantTrackingCard";
-
-export default function GrantTrackingPage({
-  params
-}: {
-  params: { workspaceId: string };
-}) {
-  const workspaceId = params.workspaceId;
-
-  const [grants, setGrants] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function loadGrants() {
-      const res = await fetch(`/api/workspace/${workspaceId}/grants`);
-      const data = await res.json();
-      setGrants(data.grants || []);
-      setLoading(false);
-    }
-    loadGrants();
-  }, [workspaceId]);
-
-  if (loading) {
-    return <p className="p-6 text-lg">Loading grants...</p>;
-  }
-
+export default function WorkspaceTrackingPage() {
   return (
-    <div className="space-y-6 p-6">
-      <h1 className="text-3xl font-bold">Grant Tracking Dashboard</h1>
+    <WorkspaceShell title="Grant Tracking">
+      <Breadcrumbs
+        items={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Workspace", href: "../" },
+          { label: "Tracking" },
+        ]}
+      />
 
-      <div className="space-y-4">
-        {grants.map((grant) => (
-          <GrantTrackingCard key={grant.id} grant={grant} />
-        ))}
-      </div>
-    </div>
+      <Card>
+        <p className="text-slate-300">
+          Grant tracking tools will appear here.
+        </p>
+      </Card>
+    </WorkspaceShell>
   );
 }

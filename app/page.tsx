@@ -1,78 +1,73 @@
-"use client";
+import {
+  SparklesIcon,
+  PencilSquareIcon,
+  Squares2X2Icon,
+  BookmarkSquareIcon,
+} from "@heroicons/react/24/outline";
 
-import Link from "next/link";
-
-export default function HomePage() {
+export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-gray-100 px-6 py-16">
-      <div className="max-w-4xl mx-auto text-center">
+    <main className="max-w-4xl mx-auto py-20 px-6">
+      <h1 className="text-4xl font-bold text-white mb-4">
+        Discover Grants. Write Faster. Win More.
+      </h1>
 
-        {/* Hero Section */}
-        <h1 className="text-4xl font-bold text-gray-900 leading-tight">
-          Discover Grants. Write Faster. Win More.
-        </h1>
+      <p className="text-slate-400 text-lg leading-relaxed mb-10">
+        GrantScout Pro helps you find the right grants, analyze eligibility,
+        compare opportunities, and generate polished proposals with AI.
+      </p>
 
-        <p className="text-lg text-muted mt-4 max-w-2xl mx-auto">
-          GrantScout Pro helps you find the right grants, analyze eligibility,
-          compare opportunities, and generate polished proposals with AI.
-        </p>
-
-        {/* CTA Buttons */}
-        <div className="mt-10 flex flex-wrap justify-center gap-4">
-          <Link href="/search" className="btn btn-primary">
-            Search Grants
-          </Link>
-
-          <Link href="/writer" className="btn btn-success">
-            Write with AI
-          </Link>
-
-          <Link href="/compare" className="btn btn-secondary">
-            Compare Grants
-          </Link>
-        </div>
-
-        {/* Feature Cards */}
-        <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div className="card hover-card">
-            <h2 className="text-xl font-semibold">AI Grant Matching</h2>
-            <p className="text-gray-700 mt-2">
-              Instantly find grants that match your mission, location, and
-              organizational profile.
-            </p>
-          </div>
-
-          <div className="card hover-card">
-            <h2 className="text-xl font-semibold">AI Proposal Writer</h2>
-            <p className="text-gray-700 mt-2">
-              Generate full grant proposals, narratives, and responses using
-              your organization’s data.
-            </p>
-          </div>
-
-          <div className="card hover-card">
-            <h2 className="text-xl font-semibold">Grant Comparison</h2>
-            <p className="text-gray-700 mt-2">
-              Compare multiple grants side‑by‑side to see which opportunities
-              offer the best fit.
-            </p>
-          </div>
-
-          <div className="card hover-card">
-            <h2 className="text-xl font-semibold">Save & Track Grants</h2>
-            <p className="text-gray-700 mt-2">
-              Save grants, track deadlines, and revisit opportunities anytime.
-            </p>
-          </div>
-        </div>
-
-        {/* Footer CTA */}
-        <div className="mt-16">
-          <Link href="/start" className="btn btn-primary">
-            Get Started
-          </Link>
-        </div>
+      <div className="flex gap-4 mb-12">
+        <button className="btn btn-primary">Search Grants</button>
+        <button className="btn btn-secondary">Write with AI</button>
+        <button className="btn btn-primary">Compare Grants</button>
       </div>
-    </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {[
+          {
+            title: "AI Grant Matching",
+            description:
+              "Instantly find grants that match your mission, location, and organizational profile.",
+            icon: SparklesIcon,
+          },
+          {
+            title: "AI Proposal Writer",
+            description:
+              "Generate full grant proposals, narratives, and responses using your organization’s data.",
+            icon: PencilSquareIcon,
+          },
+          {
+            title: "Grant Comparison",
+            description:
+              "Compare multiple grants side-by-side to see which opportunities offer the best fit.",
+            icon: Squares2X2Icon,
+          },
+          {
+            title: "Save & Track Grants",
+            description:
+              "Save grants, track deadlines, and revisit opportunities anytime.",
+            icon: BookmarkSquareIcon,
+          },
+        ].map((f) => (
+          <div
+            key={f.title}
+            className="p-6 bg-slate-900 rounded-xl border border-slate-800 shadow-md hover:shadow-lg transition"
+          >
+            <div className="p-4 bg-slate-800 rounded-xl inline-block mb-4 shadow-sm">
+              <f.icon className="h-10 w-10 text-blue-500 drop-shadow" />
+            </div>
+            <h3 className="text-xl font-semibold text-white">{f.title}</h3>
+            <p className="text-slate-400 text-sm leading-relaxed mt-2">
+              {f.description}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-12 text-center">
+        <button className="btn btn-primary px-8 py-4 text-lg">Get Started</button>
+      </div>
+    </main>
   );
 }

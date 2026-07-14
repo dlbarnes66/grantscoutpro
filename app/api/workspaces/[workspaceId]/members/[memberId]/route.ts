@@ -9,10 +9,8 @@ export async function DELETE(
   { params }: { params: { workspaceId: string; memberId: string } }
 ) {
   try {
-    // ⭐ Admin-only enforcement
-    await requireWorkspaceRole(params.workspaceId, ["admin"]);
+    await requireWorkspaceRole(params.workspaceId, ["ADMIN"]);
 
-    // ⭐ Fetch member before deletion (so we can log + notify)
     const member = await prisma.workspaceMember.findUnique({
       where: { id: params.memberId },
       include: { user: true },
@@ -25,19 +23,16 @@ export async function DELETE(
       );
     }
 
-    // ⭐ Delete the member
     await prisma.workspaceMember.delete({
       where: { id: params.memberId },
     });
 
-    // ⭐ Log activity
     await logActivity(params.workspaceId, "member_removed", {
       memberId: params.memberId,
       userId: member.userId,
       email: member.user?.email || null,
     });
 
-    // ⭐ Send notification
     await sendNotification(
       params.workspaceId,
       "member_removed",

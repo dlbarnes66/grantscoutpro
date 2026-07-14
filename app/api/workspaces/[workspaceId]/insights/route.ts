@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireWorkspaceAccess } from "@/lib/auth/workspace-permissions";
+import { requireWorkspaceRole } from "@/lib/auth/workspace-permissions";
 import { generateInsights } from "@/lib/ai/generateInsights";
 
 export async function GET(
@@ -8,7 +8,7 @@ export async function GET(
   { params }: { params: { workspaceId: string } }
 ) {
   try {
-    await requireWorkspaceAccess(params.workspaceId);
+    await requireWorkspaceRole(params.workspaceId, ["member", "admin"]);
 
     const insights = await prisma.workspaceInsight.findMany({
       where: { workspaceId: params.workspaceId },
@@ -28,7 +28,7 @@ export async function POST(
   { params }: { params: { workspaceId: string } }
 ) {
   try {
-    await requireWorkspaceAccess(params.workspaceId);
+    await requireWorkspaceRole(params.workspaceId, ["member", "admin"]);
 
     const ai = await generateInsights(params.workspaceId);
 

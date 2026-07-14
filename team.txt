@@ -1,0 +1,7 @@
+app/api/team
+├── add
+│   └── route.ts
+└── remove
+    └── route.ts
+
+3 directories, 2 files

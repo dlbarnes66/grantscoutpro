@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* ----------------------------------------
-   GLOBAL THEME — GrantScout Pro
+   GLOBAL THEME — GrantScout Pro (Dark Mode)
    Clean, modern, premium SaaS styling
 ----------------------------------------- */
 
@@ -13,14 +13,14 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Global background */
+/* AppShell controls the theme — DO NOT override */
 body {
-  @apply bg-gray-100 text-gray-900;
+  @apply bg-slate-950 text-slate-100;
 }
 
 /* Headings */
 h1, h2, h3, h4 {
-  @apply font-semibold text-gray-900;
+  @apply font-semibold;
 }
 
 /* Buttons — unified system */
@@ -33,7 +33,7 @@ h1, h2, h3, h4 {
 }
 
 .btn-secondary {
-  @apply bg-gray-200 text-gray-800 hover:bg-gray-300;
+  @apply bg-gray-700 text-gray-200 hover:bg-gray-600;
 }
 
 .btn-success {
@@ -50,32 +50,32 @@ h1, h2, h3, h4 {
 
 /* Cards */
 .card {
-  @apply bg-white border rounded-xl shadow-sm p-6;
+  @apply bg-slate-900 border border-slate-800 rounded-xl shadow-sm p-6;
 }
 
 /* Inputs */
 .input {
-  @apply p-3 border rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none;
+  @apply p-3 border border-slate-700 rounded-lg bg-slate-900 text-slate-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none;
 }
 
 /* Textareas */
 .textarea {
-  @apply p-4 border rounded-lg bg-white shadow-sm leading-relaxed focus:ring-2 focus:ring-blue-500 focus:outline-none;
+  @apply p-4 border border-slate-700 rounded-lg bg-slate-900 text-slate-100 shadow-sm leading-relaxed focus:ring-2 focus:ring-blue-500 focus:outline-none;
 }
 
 /* Section titles */
 .section-title {
-  @apply text-xl font-semibold text-gray-900 mt-10 mb-3;
+  @apply text-xl font-semibold text-slate-100 mt-10 mb-3;
 }
 
 /* Subtle text */
 .text-muted {
-  @apply text-gray-500;
+  @apply text-slate-400;
 }
 
 /* Hover card */
 .hover-card {
-  @apply transition hover:shadow-md hover:bg-gray-50;
+  @apply transition hover:shadow-md hover:bg-slate-800;
 }
 
 /* Smooth transitions everywhere */

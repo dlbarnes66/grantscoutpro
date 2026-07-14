@@ -1,92 +1,30 @@
-"use client";
+import { Card } from "@/components/ui/Card";
+import { Textarea } from "@/components/ui/Textarea";
+import { Button } from "@/components/ui/Button";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 
-import { useState } from "react";
-import Link from "next/link";
-
-export default function AIDraftEditorPage() {
-  const [draft, setDraft] = useState("");
-  const [instructions, setInstructions] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const improveDraft = async () => {
-    if (!draft.trim()) return;
-
-    setLoading(true);
-
-    const res = await fetch("/api/ai/editor", {
-      method: "POST",
-      body: JSON.stringify({
-        draft,
-        instructions,
-      }),
-    });
-
-    const data = await res.json();
-    setDraft(data.output || draft);
-    setLoading(false);
-  };
-
+export default function AIEditorPage() {
   return (
-    <div className="space-y-10">
+    <div className="max-w-5xl mx-auto">
+      <Breadcrumbs items={[
+        { label: "Dashboard", href: "/dashboard" },
+        { label: "AI Tools", href: "/dashboard/ai" },
+        { label: "Editor" }
+      ]} />
 
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">AI Draft Editor</h1>
-        <p className="text-muted mt-2">
-          Edit, refine, and improve proposal drafts using AI assistance.
-        </p>
-      </div>
+      <h1 className="text-3xl font-bold text-white mb-6">AI Editor</h1>
 
-      {/* Draft Editor */}
-      <div className="card">
-        <h2 className="section-title">Your Draft</h2>
-        <p className="text-muted mt-2">
-          Paste or write your draft here. The AI will help refine it.
-        </p>
+      <Textarea
+        placeholder="Paste text to edit..."
+        className="h-48 mb-6"
+      />
 
-        <textarea
-          className="textarea mt-4 w-full h-96"
-          placeholder="Paste your draft here…"
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-        />
-      </div>
+      <Button variant="primary">Edit Text</Button>
 
-      {/* Instructions */}
-      <div className="card">
-        <h2 className="section-title">Improvement Instructions</h2>
-        <p className="text-muted mt-2">
-          Optional: describe how you want the draft improved (tone, clarity, structure).
-        </p>
-
-        <input
-          type="text"
-          className="input mt-4 w-full"
-          placeholder="Example: Make it more persuasive and tighten the narrative"
-          value={instructions}
-          onChange={(e) => setInstructions(e.target.value)}
-        />
-      </div>
-
-      {/* Improve Button */}
-      <button
-        onClick={improveDraft}
-        disabled={loading}
-        className="btn btn-primary"
-      >
-        {loading ? "Improving…" : "Improve Draft"}
-      </button>
-
-      {/* Footer */}
-      <div className="mt-12 flex gap-4">
-        <Link href="/dashboard/ai" className="btn btn-secondary">
-          Back to AI Tools
-        </Link>
-
-        <Link href="/dashboard" className="btn btn-success">
-          Dashboard Home
-        </Link>
-      </div>
+      <Card className="mt-10">
+        <h3 className="text-lg font-semibold text-white mb-3">Edited Text</h3>
+        <p className="text-slate-400">AI-edited text will appear here.</p>
+      </Card>
     </div>
   );
 }

@@ -1,106 +1,30 @@
-"use client";
-
-import { useState } from "react";
-import Link from "next/link";
+import { Card } from "@/components/ui/Card";
+import { Textarea } from "@/components/ui/Textarea";
+import { Button } from "@/components/ui/Button";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 
 export default function AIRewritePage() {
-  const [inputText, setInputText] = useState("");
-  const [instructions, setInstructions] = useState("");
-  const [output, setOutput] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const runRewrite = async () => {
-    if (!inputText.trim()) return;
-
-    setLoading(true);
-
-    const res = await fetch("/api/ai/rewrite", {
-      method: "POST",
-      body: JSON.stringify({
-        text: inputText,
-        instructions,
-      }),
-    });
-
-    const data = await res.json();
-    setOutput(data.output || "");
-    setLoading(false);
-  };
-
   return (
-    <div className="space-y-10">
+    <div className="max-w-5xl mx-auto">
+      <Breadcrumbs items={[
+        { label: "Dashboard", href: "/dashboard" },
+        { label: "AI Tools", href: "/dashboard/ai" },
+        { label: "Rewrite" }
+      ]} />
 
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">AI Rewrite Tool</h1>
-        <p className="text-muted mt-2">
-          Improve clarity, tone, structure, or professionalism using AI.
-        </p>
-      </div>
+      <h1 className="text-3xl font-bold text-white mb-6">AI Rewrite Tool</h1>
 
-      {/* Input Card */}
-      <div className="card">
-        <h2 className="section-title">Original Text</h2>
-        <p className="text-muted mt-2">
-          Paste the text you want the AI to rewrite.
-        </p>
+      <Textarea
+        placeholder="Paste text to rewrite..."
+        className="h-48 mb-6"
+      />
 
-        <textarea
-          className="textarea mt-4 w-full h-64"
-          placeholder="Paste your text here…"
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-        />
-      </div>
+      <Button variant="primary">Rewrite Text</Button>
 
-      {/* Instructions */}
-      <div className="card">
-        <h2 className="section-title">Rewrite Instructions</h2>
-        <p className="text-muted mt-2">
-          Optional: describe how you want the text rewritten (tone, length, style).
-        </p>
-
-        <input
-          type="text"
-          className="input mt-4 w-full"
-          placeholder="Example: Make it more formal and concise"
-          value={instructions}
-          onChange={(e) => setInstructions(e.target.value)}
-        />
-      </div>
-
-      {/* Rewrite Button */}
-      <button
-        onClick={runRewrite}
-        disabled={loading}
-        className="btn btn-primary"
-      >
-        {loading ? "Rewriting…" : "Rewrite Text"}
-      </button>
-
-      {/* Output */}
-      {output && (
-        <div className="card">
-          <h2 className="section-title">Rewritten Text</h2>
-
-          <textarea
-            className="textarea mt-4 w-full h-96"
-            value={output}
-            readOnly
-          />
-        </div>
-      )}
-
-      {/* Footer */}
-      <div className="mt-12 flex gap-4">
-        <Link href="/dashboard/ai" className="btn btn-secondary">
-          Back to AI Tools
-        </Link>
-
-        <Link href="/dashboard" className="btn btn-success">
-          Dashboard Home
-        </Link>
-      </div>
+      <Card className="mt-10">
+        <h3 className="text-lg font-semibold text-white mb-3">Rewritten Text</h3>
+        <p className="text-slate-400">AI rewritten text will appear here.</p>
+      </Card>
     </div>
   );
 }

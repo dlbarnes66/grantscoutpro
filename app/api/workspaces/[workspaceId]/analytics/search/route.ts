@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireWorkspaceAccess } from "@/lib/auth/workspace-permissions";
+import { requireWorkspaceRole } from "@/lib/auth/workspace-permissions";
 
 export async function GET(
   req: Request,
   { params }: { params: { workspaceId: string } }
 ) {
   try {
-    await requireWorkspaceAccess(params.workspaceId);
+    await requireWorkspaceRole(params.workspaceId, ["ADMIN", "MEMBER"]);
 
     const analytics = await prisma.searchAnalytics.findMany({
       where: { workspaceId: params.workspaceId },

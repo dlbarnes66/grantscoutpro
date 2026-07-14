@@ -1,59 +1,42 @@
 "use client";
 
 import { useState } from "react";
-import { SearchBar } from "@/components/search/SearchBar";
-import { FiltersPanel } from "@/components/search/FiltersPanel";
-import { GrantResults } from "@/components/search/GrantResults";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 
 export default function SearchPage() {
   const [query, setQuery] = useState("");
-  const [filters, setFilters] = useState({});
-  const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  async function runSearch() {
-    setLoading(true);
-
-    // Placeholder — real API integration comes in Batch 4XX
-    await new Promise((r) => setTimeout(r, 800));
-
-    setResults([
-      {
-        id: "1",
-        title: "Youth Empowerment Grant",
-        funder: "Community Impact Foundation",
-        amount: 50000,
-        deadline: "2026-09-15",
-        matchScore: 87
-      },
-      {
-        id: "2",
-        title: "STEM Innovation Fund",
-        funder: "National Science Alliance",
-        amount: 120000,
-        deadline: "2026-10-01",
-        matchScore: 92
-      }
-    ]);
-
-    setLoading(false);
-  }
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-xl font-semibold text-slate-100">
-        Grant Search
-      </h1>
+    <div className="max-w-5xl mx-auto">
+      <Breadcrumbs items={[{ label: "Search Grants" }]} />
 
-      <SearchBar
-        query={query}
-        onChange={setQuery}
-        onSearch={runSearch}
-      />
+      <h1 className="text-3xl font-bold text-white mb-6">Search Grants</h1>
 
-      <FiltersPanel filters={filters} onChange={setFilters} />
+      <div className="flex items-center gap-3 mb-8">
+        <Input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search by keyword, category, location..."
+        />
+        <Button variant="primary">Search</Button>
+      </div>
 
-      <GrantResults results={results} loading={loading} />
+      <Card>
+        <h3 className="text-xl font-semibold text-white">
+          Example Grant Title
+        </h3>
+        <p className="text-slate-400 mt-2">
+          Short description of the grant opportunity goes here.
+        </p>
+
+        <div className="flex gap-4 mt-4">
+          <Button variant="secondary">View Details</Button>
+          <Button variant="primary">Save Grant</Button>
+        </div>
+      </Card>
     </div>
   );
 }

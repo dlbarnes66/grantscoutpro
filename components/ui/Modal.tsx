@@ -1,84 +1,35 @@
 "use client";
 
-import React, { useEffect } from "react";
-import { cn } from "@/lib/utils";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 
-interface ModalProps {
-  open: boolean;
-  onClose: () => void;
-  title?: string;
-  description?: string;
-  children?: React.ReactNode;
-  width?: "sm" | "md" | "lg";
-}
-
-export default function Modal({
-  open,
-  onClose,
-  title,
-  description,
-  children,
-  width = "md",
-}: ModalProps) {
-  // Close on ESC key
-  useEffect(() => {
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    if (open) document.addEventListener("keydown", handleKey);
-    return () => document.removeEventListener("keydown", handleKey);
-  }, [open, onClose]);
-
+export function Modal({ open, onClose, title, children }) {
   if (!open) return null;
 
-  const widths = {
-    sm: "max-w-sm",
-    md: "max-w-lg",
-    lg: "max-w-2xl",
-  };
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
-      aria-modal="true"
-      role="dialog"
-    >
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-fadeIn"
-        onClick={onClose}
-      />
-
-      {/* Modal Container */}
-      <div
-        className={cn(
-          "relative bg-white rounded-xl shadow-xl p-6 z-50 animate-scaleIn w-full",
-          widths[width]
-        )}
-      >
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-lg p-6 shadow-xl">
+        
         {/* Header */}
-        {(title || description) && (
-          <div className="mb-4">
-            {title && (
-              <h2 className="text-xl font-bold text-brandBlue">{title}</h2>
-            )}
-            {description && (
-              <p className="text-gray-600 mt-1">{description}</p>
-            )}
-          </div>
-        )}
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold text-white">{title}</h2>
+          <button onClick={onClose}>
+            <XMarkIcon className="h-6 w-6 text-slate-400 hover:text-white transition" />
+          </button>
+        </div>
 
-        {/* Content */}
-        <div>{children}</div>
+        {/* Body */}
+        <div className="text-slate-300">{children}</div>
 
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-brandBlue transition"
-          aria-label="Close modal"
-        >
-          <span className="material-icons text-2xl">close</span>
-        </button>
+        {/* Footer */}
+        <div className="flex justify-end gap-3 mt-6">
+          <button
+            onClick={onClose}
+            className="btn btn-secondary"
+          >
+            Close
+          </button>
+          <button className="btn btn-primary">Confirm</button>
+        </div>
       </div>
     </div>
   );

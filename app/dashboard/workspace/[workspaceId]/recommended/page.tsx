@@ -1,48 +1,23 @@
-"use client";
+import { WorkspaceShell } from "@/components/workspace/WorkspaceShell";
+import { Card } from "@/components/ui/Card";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 
-import { useState } from "react";
-import RecommendedGrantCard from "./RecommendedGrantCard";
-
-export default function RecommendedGrantsPage({
-  params
-}: {
-  params: { workspaceId: string };
-}) {
-  const workspaceId = params.workspaceId;
-
-  const [loading, setLoading] = useState(false);
-  const [matches, setMatches] = useState<any[]>([]);
-
-  async function loadMatches() {
-    setLoading(true);
-
-    const res = await fetch("/api/grants/match", {
-      method: "POST",
-      body: JSON.stringify({ workspaceId }),
-    });
-
-    const data = await res.json();
-    setMatches(data.matches || []);
-    setLoading(false);
-  }
-
+export default function WorkspaceRecommendedPage() {
   return (
-    <div className="space-y-6 p-6">
-      <h1 className="text-3xl font-bold">Recommended Grants</h1>
+    <WorkspaceShell title="Recommended Grants">
+      <Breadcrumbs
+        items={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Workspace", href: "../" },
+          { label: "Recommended" },
+        ]}
+      />
 
-      <button
-        onClick={loadMatches}
-        disabled={loading}
-        className="px-4 py-2 bg-blue-600 text-white rounded-md"
-      >
-        {loading ? "Loading..." : "Load Recommended Grants"}
-      </button>
-
-      <div className="space-y-4">
-        {matches.map((grant, i) => (
-          <RecommendedGrantCard key={i} grant={grant} />
-        ))}
-      </div>
-    </div>
+      <Card>
+        <p className="text-slate-300">
+          Recommended grants will appear here.
+        </p>
+      </Card>
+    </WorkspaceShell>
   );
 }

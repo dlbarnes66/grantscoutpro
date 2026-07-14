@@ -1,29 +1,40 @@
 "use client";
 
 import { BellIcon } from "@heroicons/react/24/outline";
+import Image from "next/image";
 
 export function Topbar() {
   return (
-    <header className="h-14 border-b border-slate-800 bg-slate-950/60 backdrop-blur flex items-center justify-between px-6">
-      <div className="text-sm font-medium text-slate-200">
-        GrantScout Pro • AI Grant Platform
+    <header className="w-full h-16 bg-slate-950 border-b border-slate-800 flex items-center justify-between px-6">
+      
+      {/* Left side — Page Title */}
+      <div className="text-lg font-semibold text-white tracking-tight">
+        GrantScout Pro
       </div>
 
-      <div className="flex items-center gap-4">
-        <button
-          className="relative rounded-full p-1 hover:bg-slate-800 transition-colors"
-          aria-label="Notifications"
-        >
-          <BellIcon className="h-5 w-5 text-slate-300" />
-          <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-blue-500" />
+      {/* Right side — Actions */}
+      <div className="flex items-center gap-6">
+
+        {/* Notifications */}
+        <button className="relative group">
+          <BellIcon className="h-6 w-6 text-slate-400 group-hover:text-white transition" />
+          <span className="absolute -top-1 -right-1 h-2 w-2 bg-blue-500 rounded-full"></span>
         </button>
 
-        <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500" />
-          <div className="text-xs">
-            <div className="font-semibold text-slate-100">Darryl Barnes</div>
-            <div className="text-slate-400">Founder • GrantDynamics</div>
+        {/* User Profile */}
+        <div className="flex items-center gap-3">
+          <div className="text-right leading-tight">
+            <div className="text-sm font-medium text-white">Darryl Barnes</div>
+            <div className="text-xs text-slate-400">Founder • GrantDynamics</div>
           </div>
+
+          <Image
+            src="/avatar.png"
+            alt="Profile"
+            width={40}
+            height={40}
+            className="rounded-full border border-slate-700"
+          />
         </div>
       </div>
     </header>

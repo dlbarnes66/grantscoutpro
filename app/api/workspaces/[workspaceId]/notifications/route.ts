@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireWorkspaceAccess } from "@/lib/auth/workspace-permissions";
+import { requireWorkspaceRole } from "@/lib/auth/workspace-permissions";
 
 export async function GET(
   req: Request,
   { params }: { params: { workspaceId: string } }
 ) {
   try {
-    // ⭐ Any workspace member can view notifications
-    await requireWorkspaceAccess(params.workspaceId);
+    await requireWorkspaceRole(params.workspaceId, ["ADMIN", "MEMBER"]);
 
     const notifications = await prisma.workspaceNotification.findMany({
       where: { workspaceId: params.workspaceId },
@@ -31,8 +30,7 @@ export async function PATCH(
   { params }: { params: { workspaceId: string } }
 ) {
   try {
-    // ⭐ Mark all notifications as read
-    await requireWorkspaceAccess(params.workspaceId);
+    await requireWorkspaceRole(params.workspaceId, ["ADMIN", "MEMBER"]);
 
     await prisma.workspaceNotification.updateMany({
       where: { workspaceId: params.workspaceId },

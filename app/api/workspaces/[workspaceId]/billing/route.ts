@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireWorkspaceAccess } from "@/lib/auth/workspace-permissions";
+import { requireWorkspaceRole } from "@/lib/auth/workspace-permissions";
 import { initBilling } from "@/lib/billing/initBilling";
 
 export async function GET(
@@ -8,7 +8,7 @@ export async function GET(
   { params }: { params: { workspaceId: string } }
 ) {
   try {
-    await requireWorkspaceAccess(params.workspaceId);
+    await requireWorkspaceRole(params.workspaceId, ["ADMIN"]);
 
     const billing = await initBilling(params.workspaceId);
 
@@ -24,7 +24,7 @@ export async function PATCH(
   { params }: { params: { workspaceId: string } }
 ) {
   try {
-    await requireWorkspaceAccess(params.workspaceId);
+    await requireWorkspaceRole(params.workspaceId, ["ADMIN"]);
 
     const data = await req.json();
 
