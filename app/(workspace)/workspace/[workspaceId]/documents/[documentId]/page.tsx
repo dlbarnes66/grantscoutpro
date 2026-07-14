@@ -81,7 +81,7 @@ import MessagesPanel from "./MessagesPanel";
 import VersionsPanel from "./VersionsPanel";
 
 /* Snapshots */
-import SnapshotsPanel from "./SnapshotsPanel";
+import SnapshotsPanel from "./snapShotsPanel";
 
 /* Patches */
 import PatchesPanel from "./PatchesPanel";
