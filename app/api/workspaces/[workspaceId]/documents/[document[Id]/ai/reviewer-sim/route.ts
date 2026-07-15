@@ -1,23 +1,27 @@
 import { NextResponse } from "next/server";
-import { runAI } from "@/lib/ai/engine";
-import { safeJson } from "@/lib/ai/safeJson";
-import { safeResponse } from "@/lib/ai/safeResponse";
 
-export async function POST(req, { params }) {
-  const { documentId, workspaceId } = params;
+export async function POST(req: Request, { params }) {
+  const { workspaceId, documentId } = params;
   const { userId, content } = await req.json();
 
-  const prompt = `
-    Simulate a panel of GRANT REVIEWERS.
-    Return JSON under key "simulation".
+  // Placeholder simulation until AI is wired in
+  const simulation = {
+    overallLikelihood: 72,
+    reviewers: [
+      {
+        type: "Strict Federal",
+        score: 68,
+        summary: "Strong alignment but missing evidence in key sections.",
+        concerns: ["Budget justification unclear", "Impact metrics vague"],
+        praise: ["Clear mission alignment", "Strong community partnerships"],
+        recommendations: ["Add measurable KPIs", "Clarify budget narrative"]
+      }
+    ],
+    globalRecommendations: [
+      "Strengthen evidence-based claims",
+      "Improve clarity in methodology section"
+    ]
+  };
 
-    Content:
-    ${JSON.stringify(content)}
-  `;
-
-  const raw = await runAI(prompt);
-  const parsed = safeJson(raw);
-  const safe = safeResponse(parsed, "simulation");
-
-  return NextResponse.json(safe);
+  return NextResponse.json({ simulation });
 }

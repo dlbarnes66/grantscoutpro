@@ -482,7 +482,6 @@ model Document {
   content     Json?
   createdAt   DateTime @default(now())
 
-  // Lock field required for emergency tools & editor presence
   lockedBy String?
 
   workspace Workspace? @relation(fields: [workspaceId], references: [id])
@@ -496,8 +495,11 @@ model Document {
   DocumentPresence  DocumentPresence[]
   Embedding         Embedding[]
   File              File[]
-  DocumentEmbedding DocumentEmbedding?
+
+  // FIXED — one-to-many
+  documentEmbeddings DocumentEmbedding[]
 }
+
 
 model Budget {
   id          String   @id @default(cuid())
@@ -509,16 +511,26 @@ model Budget {
   workspace Workspace @relation(fields: [workspaceId], references: [id])
 }
 
-model DocumentEmbedding {
-  id          String  @id @default(cuid())
-  documentId  String  @unique
-  workspaceId String
-  text        String
-  vector      Float[]
 
-  document  Document  @relation(fields: [documentId], references: [id])
-  workspace Workspace @relation(fields: [workspaceId], references: [id])
+model DocumentEmbedding {
+  id          String   @id @default(cuid())
+  documentId  String
+  workspaceId String
+  content     String
+
+  embedding   Bytes
+
+  createdAt   DateTime @default(now())
+
+  document    Document   @relation(fields: [documentId], references: [id])
+  workspace   Workspace  @relation(fields: [workspaceId], references: [id])
+
+  @@index([workspaceId])
+  @@index([documentId])
 }
+
+
+
 
 model FileEmbedding {
   id          String  @id @default(cuid())

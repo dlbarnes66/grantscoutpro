@@ -2,111 +2,121 @@
 
 import { useState } from "react";
 
-export default function GrantRewriterPanel({
-  workspaceId,
-  documentId,
-  userId,
-  content,
-  setContent
-}) {
+export default function GrantReviewerSimulationPanel() {
   const [loading, setLoading] = useState(false);
-  const [messages, setMessages] = useState([]);
+  const [simulation, setSimulation] = useState(null);
 
-  async function rewrite(type) {
+  async function runSimulation() {
     setLoading(true);
 
     try {
-      const res = await fetch(
-        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/rewrite`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userId,
-            type,
-            content: JSON.parse(content)
-          })
-        }
-      );
+      const res = await fetch("/api/ai/reviewer-sim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: "Grant content goes here" })
+      });
 
       const data = await res.json();
-
-      if (data.output) {
-        setContent(JSON.stringify(data.output, null, 2));
-      }
-
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", text: data.message || "Document rewritten." }
-      ]);
+      setSimulation(data.simulation || null);
     } catch (err) {
-      console.error("Grant rewrite failed:", err);
+      console.error("Reviewer simulation failed:", err);
     }
 
     setLoading(false);
   }
 
+  function getColor(score) {
+    if (score >= 85) return "bg-green-200";
+    if (score >= 65) return "bg-blue-200";
+    if (score >= 45) return "bg-yellow-200";
+    return "bg-red-300";
+  }
+
   return (
-    <div className="w-96 h-full border-l bg-white p-4 flex flex-col">
-      <h2 className="text-lg font-semibold mb-4">AI Grant Rewriter</h2>
+    <div className="w-full border rounded-lg bg-white p-4 flex flex-col">
+      <h2 className="text-lg font-semibold mb-4">Grant Reviewer Simulation</h2>
 
-      <div className="grid grid-cols-1 gap-2 mb-4">
-        <button
-          onClick={() => rewrite("professional")}
-          className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          Professional Rewrite
-        </button>
+      <button
+        onClick={runSimulation}
+        className="mb-4 px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-black"
+      >
+        {loading ? "Simulating…" : "Run Reviewer Simulation"}
+      </button>
 
-        <button
-          onClick={() => rewrite("funder")}
-          className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          Funder‑Aligned Rewrite
-        </button>
-
-        <button
-          onClick={() => rewrite("concise")}
-          className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          Concise Rewrite
-        </button>
-
-        <button
-          onClick={() => rewrite("expanded")}
-          className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          Expanded Rewrite
-        </button>
-
-        <button
-          onClick={() => rewrite("narrative")}
-          className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          Narrative Rewrite
-        </button>
-
-        <button
-          onClick={() => rewrite("technical")}
-          className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          Technical Rewrite
-        </button>
-      </div>
-
-      <div className="flex-1 overflow-y-auto space-y-3">
-        {messages.map((m, i) => (
-          <div
-            key={i}
-            className="p-3 bg-gray-100 border rounded-md text-sm"
-          >
-            {m.text}
-          </div>
-        ))}
-      </div>
+      {!simulation && !loading && (
+        <div className="text-gray-500">No reviewer simulation yet.</div>
+      )}
 
       {loading && (
-        <div className="text-xs text-gray-400 mt-2">AI rewriting…</div>
+        <div className="text-gray-500">AI simulating reviewer behavior…</div>
+      )}
+
+      {simulation && (
+        <div className="space-y-4 overflow-y-auto flex-1">
+          <div className="border rounded-md p-3 bg-gray-100">
+            <div className="text-sm font-medium">Overall Funding Likelihood</div>
+            <div className="text-3xl font-bold text-gray-800">
+              {simulation.overallLikelihood}%
+            </div>
+          </div>
+
+          {simulation.reviewers.map((rev, i) => (
+            <div
+              key={i}
+              className={`border rounded-md p-3 ${getColor(rev.score)} space-y-2`}
+            >
+              <div className="text-sm font-medium">{rev.type} Reviewer</div>
+              <div className="text-sm font-semibold">Score: {rev.score}%</div>
+              <div className="text-xs text-gray-700">{rev.summary}</div>
+
+              {rev.concerns && (
+                <div>
+                  <div className="text-xs font-medium text-red-700">Concerns</div>
+                  <ul className="text-xs text-red-700 list-disc ml-4">
+                    {rev.concerns.map((c, idx) => (
+                      <li key={idx}>{c}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {rev.praise && (
+                <div>
+                  <div className="text-xs font-medium text-green-700">Praise</div>
+                  <ul className="text-xs text-green-700 list-disc ml-4">
+                    {rev.praise.map((p, idx) => (
+                      <li key={idx}>{p}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {rev.recommendations && (
+                <div>
+                  <div className="text-xs font-medium text-blue-700">Recommendations</div>
+                  <ul className="text-xs text-blue-700 list-disc ml-4">
+                    {rev.recommendations.map((rec, idx) => (
+                      <li key={idx}>{rec}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          ))}
+
+          {simulation.globalRecommendations && (
+            <div className="border rounded-md p-3 bg-green-50 space-y-2">
+              <div className="text-sm font-medium text-green-700">
+                Global Reviewer Insights
+              </div>
+              <ul className="text-xs text-green-700 list-disc ml-4">
+                {simulation.globalRecommendations.map((r, idx) => (
+                  <li key={idx}>{r}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

@@ -2,13 +2,7 @@
 
 import { useState } from "react";
 
-export default function GrantReviewerSimulationPanel({
-  workspaceId,
-  documentId,
-  userId,
-  content,
-  setContent
-}) {
+export default function GrantReviewerSimulationPanel() {
   const [loading, setLoading] = useState(false);
   const [simulation, setSimulation] = useState(null);
 
@@ -16,24 +10,16 @@ export default function GrantReviewerSimulationPanel({
     setLoading(true);
 
     try {
-      const res = await fetch(
-        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/reviewer-sim`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userId,
-            content: JSON.parse(content)
-          })
-        }
-      );
+      const res = await fetch("/api/ai/reviewer-sim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: "Grant content goes here"
+        })
+      });
 
       const data = await res.json();
       setSimulation(data.simulation || null);
-
-      if (data.output) {
-        setContent(JSON.stringify(data.output, null, 2));
-      }
     } catch (err) {
       console.error("Reviewer simulation failed:", err);
     }
@@ -42,14 +28,14 @@ export default function GrantReviewerSimulationPanel({
   }
 
   function getColor(score) {
-    if (score >= 85) return "bg-green-200";     // strong approval
-    if (score >= 65) return "bg-blue-200";      // likely approval
-    if (score >= 45) return "bg-yellow-200";    // mixed
-    return "bg-red-300";                        // likely rejection
+    if (score >= 85) return "bg-green-200";
+    if (score >= 65) return "bg-blue-200";
+    if (score >= 45) return "bg-yellow-200";
+    return "bg-red-300";
   }
 
   return (
-    <div className="w-96 h-full border-l bg-white p-4 flex flex-col">
+    <div className="w-full border rounded-lg bg-white p-4 flex flex-col">
       <h2 className="text-lg font-semibold mb-4">Grant Reviewer Simulation Engine</h2>
 
       <button
@@ -81,23 +67,13 @@ export default function GrantReviewerSimulationPanel({
               key={i}
               className={`border rounded-md p-3 ${getColor(rev.score)} space-y-2`}
             >
-              <div className="text-sm font-medium">
-                {rev.type} Reviewer
-              </div>
-
-              <div className="text-sm font-semibold">
-                Score: {rev.score}%
-              </div>
-
-              <div className="text-xs text-gray-700">
-                {rev.summary}
-              </div>
+              <div className="text-sm font-medium">{rev.type} Reviewer</div>
+              <div className="text-sm font-semibold">Score: {rev.score}%</div>
+              <div className="text-xs text-gray-700">{rev.summary}</div>
 
               {rev.concerns && (
                 <div>
-                  <div className="text-xs font-medium text-red-700">
-                    Concerns
-                  </div>
+                  <div className="text-xs font-medium text-red-700">Concerns</div>
                   <ul className="text-xs text-red-700 list-disc ml-4">
                     {rev.concerns.map((c, idx) => (
                       <li key={idx}>{c}</li>
@@ -108,9 +84,7 @@ export default function GrantReviewerSimulationPanel({
 
               {rev.praise && (
                 <div>
-                  <div className="text-xs font-medium text-green-700">
-                    Praise
-                  </div>
+                  <div className="text-xs font-medium text-green-700">Praise</div>
                   <ul className="text-xs text-green-700 list-disc ml-4">
                     {rev.praise.map((p, idx) => (
                       <li key={idx}>{p}</li>
@@ -121,9 +95,7 @@ export default function GrantReviewerSimulationPanel({
 
               {rev.recommendations && (
                 <div>
-                  <div className="text-xs font-medium text-blue-700">
-                    Recommendations
-                  </div>
+                  <div className="text-xs font-medium text-blue-700">Recommendations</div>
                   <ul className="text-xs text-blue-700 list-disc ml-4">
                     {rev.recommendations.map((rec, idx) => (
                       <li key={idx}>{rec}</li>

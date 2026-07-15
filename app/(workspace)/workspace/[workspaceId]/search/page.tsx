@@ -2,66 +2,75 @@
 
 import { useState } from "react";
 import { useSemanticSearch } from "@/hooks/useSemanticSearch";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/Input";
+import { Card } from "@/components/ui/Card";
+import { Skeleton } from "@/components/ui/Skeleton";
 
-export default function WorkspaceSearchPage({ params }: { params: { workspaceId: string } }) {
+export default function WorkspaceSearchPage({
+  params,
+}: {
+  params: { workspaceId: string };
+}) {
+  const { workspaceId } = params;
   const [query, setQuery] = useState("");
-  const { data, isLoading, error, search } = useSemanticSearch(params.workspaceId);
 
-  const handleSearch = () => {
+  const { data, isLoading, error, search } = useSemanticSearch(workspaceId);
+  const results = (data as any[]) || [];
+
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
     if (!query.trim()) return;
     search(query);
-  };
+  }
 
   return (
-    <div className="p-6 max-w-3xl mx-auto space-y-6">
+    <div className="p-6 space-y-4">
       <h1 className="text-2xl font-bold">Semantic Search</h1>
 
-      <div className="flex gap-2">
+      <form onSubmit={handleSearch} className="flex gap-2">
         <Input
-          placeholder="Search documents, grants, notes..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search across documents..."
+          className="flex-1"
         />
-        <Button onClick={handleSearch}>Search</Button>
-      </div>
+
+        <div
+          onClick={handleSearch}
+          className="px-4 py-2 bg-blue-600 text-white rounded-md cursor-pointer hover:bg-blue-700 flex items-center justify-center"
+        >
+          Search
+        </div>
+      </form>
 
       {isLoading && (
-        <div className="space-y-4">
-          <Skeleton className="h-6 w-full" />
-          <Skeleton className="h-6 w-3/4" />
-          <Skeleton className="h-6 w-1/2" />
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-1/2" />
+          <Skeleton className="h-4 w-3/4" />
+          <Skeleton className="h-4 w-full" />
         </div>
       )}
 
       {error && (
-        <Card className="p-4 border-red-500">
-          <p className="text-red-600">Error: {error.message}</p>
+        <Card className="p-4 bg-red-50 border border-red-200">
+          <p className="text-red-700 font-semibold">Error</p>
+          <p className="text-red-600 text-sm mt-1">{String(error)}</p>
         </Card>
       )}
 
-      {!isLoading && data && data.results.length === 0 && (
-        <Card className="p-4">
-          <p className="text-gray-600">No results found.</p>
-        </Card>
+      {!isLoading && !error && results.length > 0 && (
+        <div className="space-y-3">
+          {results.map((r: any) => (
+            <Card key={r.id} className="p-4">
+              <p className="font-semibold">{r.title}</p>
+              <p className="text-sm text-gray-600 mt-1">{r.snippet}</p>
+            </Card>
+          ))}
+        </div>
       )}
 
-      {!isLoading && data && data.results.length > 0 && (
-        <ScrollArea className="h-[400px] border rounded-md p-4">
-          <div className="space-y-4">
-            {data.results.map((item: any, idx: number) => (
-              <Card key={idx} className="p-4">
-                <p className="font-semibold">{item.documentTitle}</p>
-                <p className="text-sm text-gray-600">{item.snippet}</p>
-                <p className="text-xs text-gray-500 mt-2">Score: {item.score.toFixed(4)}</p>
-              </Card>
-            ))}
-          </div>
-        </ScrollArea>
+      {!isLoading && !error && results.length === 0 && query && (
+        <p className="text-sm text-gray-500">No results found.</p>
       )}
     </div>
   );

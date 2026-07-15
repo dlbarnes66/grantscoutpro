@@ -2,38 +2,22 @@
 
 import { useState } from "react";
 
-export default function GrantScalabilityPredictorPanel({
-  workspaceId,
-  documentId,
-  userId,
-  content,
-  setContent
-}) {
+export default function GrantScalabilityPredictorPanel() {
   const [loading, setLoading] = useState(false);
   const [scalability, setScalability] = useState(null);
 
-  async function analyzeScalability() {
+  async function runPrediction() {
     setLoading(true);
 
     try {
-      const res = await fetch(
-        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/scalability`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userId,
-            content: JSON.parse(content)
-          })
-        }
-      );
+      const res = await fetch("/api/ai/scalability-predictor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: "Grant content goes here" })
+      });
 
       const data = await res.json();
       setScalability(data.scalability || null);
-
-      if (data.output) {
-        setContent(JSON.stringify(data.output, null, 2));
-      }
     } catch (err) {
       console.error("Scalability prediction failed:", err);
     }
@@ -42,25 +26,25 @@ export default function GrantScalabilityPredictorPanel({
   }
 
   function getColor(score) {
-    if (score >= 85) return "bg-green-200";     // highly scalable
-    if (score >= 65) return "bg-blue-200";      // scalable
-    if (score >= 45) return "bg-yellow-200";    // limited scalability
-    return "bg-red-300";                        // not scalable
+    if (score >= 85) return "bg-green-200";
+    if (score >= 65) return "bg-blue-200";
+    if (score >= 45) return "bg-yellow-200";
+    return "bg-red-300";
   }
 
   return (
-    <div className="w-96 h-full border-l bg-white p-4 flex flex-col">
+    <div className="w-full border rounded-lg bg-white p-4 flex flex-col">
       <h2 className="text-lg font-semibold mb-4">Grant Scalability Predictor</h2>
 
       <button
-        onClick={analyzeScalability}
+        onClick={runPrediction}
         className="mb-4 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
       >
-        {loading ? "Predicting…" : "Analyze Scalability"}
+        {loading ? "Predicting…" : "Run Scalability Prediction"}
       </button>
 
       {!scalability && !loading && (
-        <div className="text-gray-500">No scalability report yet.</div>
+        <div className="text-gray-500">No scalability analysis yet.</div>
       )}
 
       {loading && (
@@ -69,76 +53,38 @@ export default function GrantScalabilityPredictorPanel({
 
       {scalability && (
         <div className="space-y-4 overflow-y-auto flex-1">
-          <div className="border rounded-md p-3 bg-indigo-50">
+          <div className="border rounded-md p-3 bg-gray-100">
             <div className="text-sm font-medium">Overall Scalability Score</div>
-            <div className="text-3xl font-bold text-indigo-700">
+            <div className="text-3xl font-bold text-gray-800">
               {scalability.overallScore}%
             </div>
           </div>
 
-          {scalability.sections.map((section, i) => (
+          {scalability.dimensions.map((dim, i) => (
             <div
               key={i}
-              className={`border rounded-md p-3 ${getColor(section.score)} space-y-2`}
+              className={`border rounded-md p-3 ${getColor(dim.score)} space-y-2`}
             >
-              <div className="text-sm font-medium">
-                {section.label}
-              </div>
+              <div className="text-sm font-medium">{dim.name}</div>
+              <div className="text-sm font-semibold">Score: {dim.score}%</div>
+              <div className="text-xs text-gray-700">{dim.summary}</div>
 
-              <div className="text-sm font-semibold">
-                Scalability Score: {section.score}%
-              </div>
-
-              <div className="text-xs text-gray-700">
-                {section.text}
-              </div>
-
-              {section.strengths && (
+              {dim.bottlenecks?.length > 0 && (
                 <div>
-                  <div className="text-xs font-medium text-green-700">
-                    Scalability Strengths
-                  </div>
-                  <ul className="text-xs text-green-700 list-disc ml-4">
-                    {section.strengths.map((s, idx) => (
-                      <li key={idx}>{s}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {section.weaknesses && (
-                <div>
-                  <div className="text-xs font-medium text-red-700">
-                    Scalability Weaknesses
-                  </div>
+                  <div className="text-xs font-medium text-red-700">Bottlenecks</div>
                   <ul className="text-xs text-red-700 list-disc ml-4">
-                    {section.weaknesses.map((w, idx) => (
-                      <li key={idx}>{w}</li>
+                    {dim.bottlenecks.map((b, idx) => (
+                      <li key={idx}>{b}</li>
                     ))}
                   </ul>
                 </div>
               )}
 
-              {section.risks && (
+              {dim.recommendations?.length > 0 && (
                 <div>
-                  <div className="text-xs font-medium text-orange-700">
-                    Scalability Risks
-                  </div>
-                  <ul className="text-xs text-orange-700 list-disc ml-4">
-                    {section.risks.map((r, idx) => (
-                      <li key={idx}>{r}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {section.recommendations && (
-                <div>
-                  <div className="text-xs font-medium text-blue-700">
-                    Recommendations
-                  </div>
+                  <div className="text-xs font-medium text-blue-700">Recommendations</div>
                   <ul className="text-xs text-blue-700 list-disc ml-4">
-                    {section.recommendations.map((rec, idx) => (
+                    {dim.recommendations.map((rec, idx) => (
                       <li key={idx}>{rec}</li>
                     ))}
                   </ul>
@@ -147,14 +93,14 @@ export default function GrantScalabilityPredictorPanel({
             </div>
           ))}
 
-          {scalability.globalRecommendations && (
-            <div className="border rounded-md p-3 bg-green-50 space-y-2">
-              <div className="text-sm font-medium text-green-700">
-                Global Scalability Improvements
+          {scalability.globalInsights && (
+            <div className="border rounded-md p-3 bg-indigo-50 space-y-2">
+              <div className="text-sm font-medium text-indigo-700">
+                Global Scalability Insights
               </div>
-              <ul className="text-xs text-green-700 list-disc ml-4">
-                {scalability.globalRecommendations.map((r, idx) => (
-                  <li key={idx}>{r}</li>
+              <ul className="text-xs text-indigo-700 list-disc ml-4">
+                {scalability.globalInsights.map((ins, idx) => (
+                  <li key={idx}>{ins}</li>
                 ))}
               </ul>
             </div>
