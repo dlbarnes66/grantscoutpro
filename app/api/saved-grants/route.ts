@@ -1,55 +1,41 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
-    const userId = req.headers.get("x-user-id");
-    if (!userId) {
+    const session = await auth();
+
+    if (!session?.user?.workspaceId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const grants = await prisma.savedGrant.findMany({
+    const userId = session.user.id;
+
+    const saved = await prisma.savedGrant.findMany({
       where: { userId },
-      orderBy: { updatedAt: "desc" },
-      include: {
-        grant: true, // GrantPreview
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        grantId: true,
+        createdAt: true,
+        grant: {
+          select: {
+            id: true,
+            title: true,
+            amount: true,
+            deadline: true,
+            source: true, // valid field
+          },
+        },
       },
     });
 
-    return NextResponse.json(grants);
-  } catch (error) {
-    console.error("Error fetching saved grants:", error);
+    return NextResponse.json({ ok: true, saved });
+  } catch (err) {
+    console.error("Saved grants error:", err);
     return NextResponse.json(
-      { error: "Failed to fetch saved grants" },
-      { status: 500 }
-    );
-  }
-}
-
-export async function POST(req: Request) {
-  try {
-    const userId = req.headers.get("x-user-id");
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const data = await req.json();
-
-    const grant = await prisma.savedGrant.create({
-      data: {
-        userId,
-        grantId: data.grantId,
-        title: data.title,
-        agency: data.agency,
-        url: data.url,
-      },
-    });
-
-    return NextResponse.json(grant);
-  } catch (error) {
-    console.error("Error saving grant:", error);
-    return NextResponse.json(
-      { error: "Failed to save grant" },
+      { error: "Failed to load saved grants" },
       { status: 500 }
     );
   }

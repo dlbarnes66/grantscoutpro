@@ -12,13 +12,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       name: "Credentials",
       credentials: {
         email: { label: "Email", type: "text" },
-        password: { label: "Password", type: "password" },
+        password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
+          where: { email: credentials.email }
         });
 
         if (!user) return null;
@@ -27,11 +27,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (user.password !== credentials.password) return null;
 
         return user;
-      },
-    }),
+      }
+    })
   ],
 
+  session: {
+    strategy: "jwt"
+  },
+
   callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.orgId = user.orgId;
+      }
+      return token;
+    },
+
     async session({ session, token }) {
       if (token?.id) {
         session.user.id = token.id;
@@ -40,14 +52,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.orgId = token.orgId;
       }
       return session;
-    },
-
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.orgId = user.orgId;
-      }
-      return token;
-    },
-  },
+    }
+  }
 });

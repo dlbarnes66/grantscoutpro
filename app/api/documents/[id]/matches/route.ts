@@ -1,49 +1,74 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
+import { matchDocument } from "@/lib/search";
 import { prisma } from "@/lib/prisma";
-import OpenAI from "openai";
-import { embeddingToBytes } from "@/lib/embeddings";
+import { cacheGet, cacheSet } from "@/lib/cache";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-export async function POST(req: Request, { params }) {
+export async function POST(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
   try {
-    const { query } = await req.json();
-    const documentId = params.id;
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    if (!query) {
+    const documentId = params.id;
+    const { workspaceId } = await req.json();
+
+    if (!workspaceId) {
       return NextResponse.json(
-        { error: "query is required" },
+        { error: "workspaceId is required" },
         { status: 400 }
       );
     }
 
-    // Embed the query
-    const response = await openai.embeddings.create({
-      model: "text-embedding-3-small",
-      input: query,
+    const doc = await prisma.document.findUnique({
+      where: { id: documentId },
+      select: { workspaceId: true }
     });
 
-    const queryEmbedding = response.data[0].embedding;
-    const queryBytes = embeddingToBytes(queryEmbedding);
+    if (!doc) {
+      return NextResponse.json(
+        { error: "Document not found" },
+        { status: 404 }
+      );
+    }
 
-    // Fetch all chunks for this document
-    const results = await prisma.$queryRawUnsafe(`
-      SELECT 
-        id,
-        content,
-        (embedding <-> $1::bytea) AS distance
-      FROM "DocumentEmbedding"
-      WHERE "documentId" = $2
-      ORDER BY embedding <-> $1::bytea
-    `, queryBytes, documentId);
+    if (doc.workspaceId !== workspaceId) {
+      return NextResponse.json(
+        { error: "Document does not belong to this workspace" },
+        { status: 403 }
+      );
+    }
 
-    return NextResponse.json({ results });
-  } catch (error) {
-    console.error("Match fetch error:", error);
+    const cacheKey = `doc:${documentId}:matches`;
+    const cached = await cacheGet<any[]>(cacheKey);
+
+    if (cached) {
+      return NextResponse.json({
+        ok: true,
+        count: cached.length,
+        matches: cached,
+        cached: true
+      });
+    }
+
+    const results = await matchDocument(documentId, workspaceId);
+
+    await cacheSet(cacheKey, results);
+
+    return NextResponse.json({
+      ok: true,
+      count: results.length,
+      matches: results,
+      cached: false
+    });
+  } catch (err) {
+    console.error("Document match error:", err);
     return NextResponse.json(
-      { error: "Failed to fetch matches" },
+      { error: "Failed to match document" },
       { status: 500 }
     );
   }

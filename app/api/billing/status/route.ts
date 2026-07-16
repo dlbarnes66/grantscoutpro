@@ -1,95 +1,37 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-export async function POST(req: Request) {
+export async function GET() {
   try {
-    const { workspaceId } = await req.json();
+    const session = await auth();
 
-    if (!workspaceId) {
-      return NextResponse.json(
-        { error: "workspaceId is required" },
-        { status: 400 }
-      );
+    if (!session?.user?.workspaceId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Fetch workspace billing info
-    const { data: workspace, error } = await supabase
-      .from("workspaces")
-      .select(
-        `
-        id,
-        plan,
-        status,
-        trial_ends_at,
-        stripe_customer_id,
-        stripe_subscription_id,
-        stripe_subscription_status
-      `
-      )
-      .eq("id", workspaceId)
-      .single();
+    const workspaceId = session.user.workspaceId;
 
-    if (error || !workspace) {
-      console.error("Billing status fetch error:", error);
-      return NextResponse.json(
-        { error: "Workspace not found" },
-        { status: 404 }
-      );
-    }
-
-    // Determine trial state
-    let trialActive = false;
-    let trialDaysLeft = null;
-
-    if (workspace.plan === "trial" && workspace.trial_ends_at) {
-      const now = new Date();
-      const trialEnd = new Date(workspace.trial_ends_at);
-      const msLeft = trialEnd.getTime() - now.getTime();
-
-      if (msLeft > 0) {
-        trialActive = true;
-        trialDaysLeft = Math.ceil(msLeft / (1000 * 60 * 60 * 24));
-      }
-    }
-
-    // Determine billing health
-    const unhealthyStatuses = [
-      "past_due",
-      "unpaid",
-      "canceled",
-      "incomplete",
-      "incomplete_expired",
-    ];
-
-    const billingHealthy =
-      workspace.stripe_subscription_status &&
-      !unhealthyStatuses.includes(workspace.stripe_subscription_status);
+    const workspace = await prisma.workspace.findUnique({
+      where: { id: workspaceId },
+      include: {
+        billing: true,
+      },
+    });
 
     return NextResponse.json({
-      success: true,
-      workspaceId,
-      plan: workspace.plan,
-      status: workspace.status,
-      trialActive,
-      trialEndsAt: workspace.trial_ends_at,
-      trialDaysLeft,
-      stripeCustomerId: workspace.stripe_customer_id,
-      stripeSubscriptionId: workspace.stripe_subscription_id,
-      stripeSubscriptionStatus: workspace.stripe_subscription_status,
-      billingHealthy,
+      ok: true,
+      billing: {
+        customerId: workspace?.billing?.stripeCustomerId || null,
+        subscriptionId: workspace?.billing?.stripeSubscriptionId || null,
+        trialEnd: workspace?.trialEnd || null,
+        isPaid: Boolean(workspace?.billing?.stripeSubscriptionId),
+      },
     });
-  } catch (err: any) {
-    console.error("Billing status route error:", err);
+  } catch (err) {
+    console.error("Billing status error:", err);
     return NextResponse.json(
-      { error: err.message || "Unexpected error" },
+      { error: "Failed to load billing status" },
       { status: 500 }
     );
   }

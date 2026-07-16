@@ -1,49 +1,59 @@
-import OpenAI from "openai";
 import { prisma } from "@/lib/prisma";
-import { embeddingToBytes } from "@/lib/embeddings";
+import { generateEmbedding } from "@/lib/embeddings";
 
-// -----------------------------
-// OpenAI Client
-// -----------------------------
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-// -----------------------------
-// Generate embedding for the search query
-// -----------------------------
-async function generateQueryEmbedding(query: string): Promise<number[]> {
-  const response = await openai.embeddings.create({
-    model: "text-embedding-3-small",
-    input: query,
-  });
-
-  return response.data[0].embedding;
+/**
+ * Compute cosine similarity between two embedding vectors.
+ */
+function cosineSimilarity(a: number[], b: number[]): number {
+  const dot = a.reduce((sum, val, i) => sum + val * b[i], 0);
+  const magA = Math.sqrt(a.reduce((sum, val) => sum + val * val, 0));
+  const magB = Math.sqrt(b.reduce((sum, val) => sum + val * val, 0));
+  return dot / (magA * magB);
 }
 
-// -----------------------------
-// Semantic Search
-// -----------------------------
-export async function semanticSearch(workspaceId: string, query: string) {
-  // 1. Embed the user's search query
-  const queryEmbedding = await generateQueryEmbedding(query);
-  const queryBytes = embeddingToBytes(queryEmbedding);
+/**
+ * Workspace-wide semantic search.
+ * Returns ranked documents with match scores.
+ */
+export async function searchWorkspace(workspaceId: string, query: string) {
+  // Generate embedding for the user's query
+  const queryEmbedding = await generateEmbedding(query);
 
-  // 2. Run pgvector similarity search using raw SQL
-  const results = await prisma.$queryRawUnsafe(`
-    SELECT 
-      id,
-      documentId,
+  if (!queryEmbedding || queryEmbedding.length === 0) {
+    return [];
+  }
+
+  // Load all documents with embeddings in this workspace
+  const documents = await prisma.document.findMany({
+    where: {
       workspaceId,
-      content,
-      embedding,
-      createdAt,
-      (embedding <-> $1::bytea) AS distance
-    FROM "DocumentEmbedding"
-    WHERE "workspaceId" = $2
-    ORDER BY embedding <-> $1::bytea
-    LIMIT 10;
-  `, queryBytes, workspaceId);
+      embedding: {
+        isEmpty: false, // Correct Prisma filter for Float[] fields
+      },
+    },
+    select: {
+      id: true,
+      title: true,
+      summary: true,
+      embedding: true,
+      content: true,
+    },
+  });
 
-  return results;
+  // Compute similarity scores
+  const ranked = documents
+    .map((doc) => {
+      const score = cosineSimilarity(
+        queryEmbedding,
+        doc.embedding as number[]
+      );
+
+      return {
+        ...doc,
+        matchScore: score,
+      };
+    })
+    .sort((a, b) => b.matchScore - a.matchScore);
+
+  return ranked;
 }

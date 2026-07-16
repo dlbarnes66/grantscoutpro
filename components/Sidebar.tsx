@@ -3,116 +3,93 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  HomeIcon,
-  MagnifyingGlassIcon,
-  ClockIcon,
-  BookmarkIcon,
-  StarIcon,
-  Squares2X2Icon,
-  BriefcaseIcon,
-  ShieldCheckIcon,
-} from "@heroicons/react/24/outline";
+  Home,
+  Search,
+  History,
+  Bookmark,
+  Save,
+  Briefcase,
+  Sparkles,
+  GitCompare,
+  Settings,
+  LogOut,
+} from "lucide-react";
+import { useState } from "react";
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const [open, setOpen] = useState(true);
 
-  const userLinks = [
-    {
-      label: "Home",
-      href: "/dashboard",
-      icon: HomeIcon,
-    },
-    {
-      label: "Search Grants",
-      href: "/dashboard/search",
-      icon: MagnifyingGlassIcon,
-    },
-    {
-      label: "Search History",
-      href: "/dashboard/search-history",
-      icon: ClockIcon,
-    },
-    {
-      label: "Saved Searches",
-      href: "/dashboard/saved-searches",
-      icon: BookmarkIcon,
-    },
-    {
-      label: "Saved Grants",
-      href: "/dashboard/saved-grants",
-      icon: StarIcon,
-    },
-    {
-      label: "Compare Grants",
-      href: "/dashboard/compare",
-      icon: Squares2X2Icon,
-    },
-    {
-      label: "Jobs",
-      href: "/dashboard/jobs",
-      icon: BriefcaseIcon,
-    },
-  ];
-
-  const adminLinks = [
-    {
-      label: "Ingestion Health",
-      href: "/admin/ingestion",
-      icon: ShieldCheckIcon,
-    },
+  const navItems = [
+    { name: "Home", href: "/", icon: Home },
+    { name: "Search Grants", href: "/search", icon: Search },
+    { name: "Search History", href: "/history", icon: History },
+    { name: "Saved Grants", href: "/saved-grants", icon: Bookmark },
+    { name: "Saved Searches", href: "/saved-searches", icon: Save },
+    { name: "Jobs", href: "/jobs", icon: Briefcase },
+    { name: "Recommendations", href: "/recommendations", icon: Sparkles },
+    { name: "Compare", href: "/compare", icon: GitCompare },
+    { name: "Settings", href: "/settings", icon: Settings },
   ];
 
   return (
-    <aside className="w-64 bg-white border-r p-6 space-y-8 shadow-sm hidden md:block">
-      <h2 className="text-2xl font-bold text-brandBlue">Dashboard</h2>
+    <aside
+      className={`h-screen bg-white border-r shadow-sm transition-all duration-300 ${
+        open ? "w-64" : "w-20"
+      }`}
+    >
+      {/* Header */}
+      <div className="flex items-center gap-3 px-4 py-5 border-b">
+        <Sparkles className="w-6 h-6 text-blue-600" />
+        {open && (
+          <span className="text-lg font-semibold text-gray-900">
+            GrantScout Pro
+          </span>
+        )}
+      </div>
 
-      {/* USER SECTION */}
-      <nav className="space-y-2">
-        {userLinks.map(({ label, href, icon: Icon }) => {
-          const active = pathname.startsWith(href);
+      {/* Navigation */}
+      <nav className="mt-4 px-2 space-y-1">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const active = pathname === item.href;
 
           return (
             <Link
-              key={href}
-              href={href}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition ${
+              key={item.href}
+              href={item.href}
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                 active
-                  ? "bg-brandBlue text-white"
-                  : "text-gray-700 hover:bg-gray-100 hover:text-brandBlue"
+                  ? "bg-blue-50 text-blue-700"
+                  : "text-gray-700 hover:bg-gray-100"
               }`}
             >
               <Icon className="w-5 h-5" />
-              {label}
+              {open && (
+                <span className="text-sm font-medium">{item.name}</span>
+              )}
             </Link>
           );
         })}
       </nav>
 
-      {/* ADMIN SECTION */}
-      <div className="pt-6 border-t">
-        <h3 className="text-sm font-semibold text-gray-500 mb-2">Admin</h3>
-
-        <nav className="space-y-2">
-          {adminLinks.map(({ label, href, icon: Icon }) => {
-            const active = pathname.startsWith(href);
-
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition ${
-                  active
-                    ? "bg-brandBlue text-white"
-                    : "text-gray-700 hover:bg-gray-100 hover:text-brandBlue"
-                }`}
-              >
-                <Icon className="w-5 h-5" />
-                {label}
-              </Link>
-            );
-          })}
-        </nav>
+      {/* Footer */}
+      <div className="absolute bottom-0 w-full px-2 py-4 border-t">
+        <button
+          className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 w-full"
+        >
+          <LogOut className="w-5 h-5" />
+          {open && <span className="text-sm font-medium">Logout</span>}
+        </button>
       </div>
+
+      {/* Collapse Button */}
+      <button
+        onClick={() => setOpen(!open)}
+        className="absolute -right-3 top-6 bg-white border rounded-full w-6 h-6 flex items-center justify-center shadow-sm hover:bg-gray-50"
+      >
+        {open ? "<" : ">"}
+      </button>
     </aside>
   );
 }

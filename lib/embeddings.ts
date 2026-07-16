@@ -1,58 +1,57 @@
-import { prisma } from "@/lib/prisma";
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY!,
 });
 
-// Convert numeric embedding vector → Buffer (required by Prisma Bytes)
-export function embeddingToBytes(vector: number[]): Buffer {
-  const floatArray = new Float32Array(vector);
-  return Buffer.from(floatArray.buffer);
-}
+/**
+ * Generate an embedding vector for any text input.
+ * This powers semantic search, summaries, related grants, etc.
+ */
+export async function generateEmbedding(text: string): Promise<number[]> {
+  if (!text || text.trim().length === 0) {
+    return [];
+  }
 
-// Generate embeddings and store them for a document
-export async function embedDocument(
-  workspaceId: string,
-  documentId: string,
-  content: string
-) {
-  const chunks = chunkText(content, 1000);
-
-  for (const chunk of chunks) {
-    const embeddingResponse = await openai.embeddings.create({
-      model: "text-embedding-3-small",
-      input: chunk,
+  try {
+    const response = await client.embeddings.create({
+      model: "text-embedding-3-large",
+      input: text,
     });
 
-    const vector = embeddingResponse.data[0]?.embedding || [];
-    const bytes = embeddingToBytes(vector);
-
-    await prisma.documentEmbedding.create({
-      data: {
-        workspaceId,
-        documentId,
-        content: chunk,
-        embedding: bytes,
-      },
-    });
+    return response.data[0].embedding;
+  } catch (error) {
+    console.error("❌ Error generating embedding:", error);
+    throw new Error("Failed to generate embedding");
   }
 }
 
-// Helper: chunk text into ~maxLength characters
-function chunkText(text: string, maxLength: number): string[] {
-  const result: string[] = [];
-  let current = "";
-
-  for (const sentence of text.split(/(?<=[.!?])\s+/)) {
-    if ((current + sentence).length > maxLength) {
-      if (current) result.push(current);
-      current = sentence;
-    } else {
-      current = current ? `${current} ${sentence}` : sentence;
-    }
+/**
+ * Generate embeddings for multiple documents at once.
+ * Useful for batch processing or re-indexing.
+ */
+export async function generateEmbeddingsBatch(texts: string[]): Promise<number[][]> {
+  if (!texts || texts.length === 0) {
+    return [];
   }
 
-  if (current) result.push(current);
-  return result;
+  try {
+    const response = await client.embeddings.create({
+      model: "text-embedding-3-large",
+      input: texts,
+    });
+
+    return response.data.map((item) => item.embedding);
+  } catch (error) {
+    console.error("❌ Error generating batch embeddings:", error);
+    throw new Error("Failed to generate batch embeddings");
+  }
+}
+
+/**
+ * Alias for document embedding — routes expect this name.
+ * This keeps your API stable without changing route code.
+ */
+export async function embedDocument(content: string): Promise<number[]> {
+  return generateEmbedding(content);
 }

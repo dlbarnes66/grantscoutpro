@@ -1,16 +1,21 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
+import { searchDocument } from "@/lib/search";
 import { prisma } from "@/lib/prisma";
-import OpenAI from "openai";
-import { embeddingToBytes } from "@/lib/embeddings";
+import { cacheGet, cacheSet } from "@/lib/cache";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-export async function POST(req: Request, { params }) {
+export async function POST(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
   try {
-    const { query } = await req.json();
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const documentId = params.id;
+    const { query } = await req.json();
 
     if (!query) {
       return NextResponse.json(
@@ -19,31 +24,44 @@ export async function POST(req: Request, { params }) {
       );
     }
 
-    // Embed the query
-    const response = await openai.embeddings.create({
-      model: "text-embedding-3-small",
-      input: query,
+    const doc = await prisma.document.findUnique({
+      where: { id: documentId },
+      select: { id: true }
     });
 
-    const queryEmbedding = response.data[0].embedding;
-    const queryBytes = embeddingToBytes(queryEmbedding);
+    if (!doc) {
+      return NextResponse.json(
+        { error: "Document not found" },
+        { status: 404 }
+      );
+    }
 
-    // Fetch all chunks for this document ranked by similarity
-    const results = await prisma.$queryRawUnsafe(`
-      SELECT 
-        id,
-        content,
-        (embedding <-> $1::bytea) AS distance
-      FROM "DocumentEmbedding"
-      WHERE "documentId" = $2
-      ORDER BY embedding <-> $1::bytea
-    `, queryBytes, documentId);
+    const cacheKey = `doc:${documentId}:search:${query}`;
+    const cached = await cacheGet<any[]>(cacheKey);
 
-    return NextResponse.json({ results });
-  } catch (error) {
-    console.error("Local document search error:", error);
+    if (cached) {
+      return NextResponse.json({
+        ok: true,
+        count: cached.length,
+        results: cached,
+        cached: true
+      });
+    }
+
+    const results = await searchDocument(documentId, query);
+
+    await cacheSet(cacheKey, results);
+
+    return NextResponse.json({
+      ok: true,
+      count: results.length,
+      results,
+      cached: false
+    });
+  } catch (err) {
+    console.error("Document semantic search error:", err);
     return NextResponse.json(
-      { error: "Failed to search document" },
+      { error: "Failed to perform document search" },
       { status: 500 }
     );
   }
