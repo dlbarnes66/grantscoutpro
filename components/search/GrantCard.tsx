@@ -1,8 +1,13 @@
 "use client";
 
 import { BookmarkIcon } from "@heroicons/react/24/outline";
+import { GrantSearchItem } from "./types";
 
-export function GrantCard({ grant }: { grant: any }) {
+export default function GrantCard({
+  grant
+}: {
+  grant: GrantSearchItem;
+}) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 space-y-3 hover:bg-slate-800 transition">
       <div className="flex justify-between items-start">

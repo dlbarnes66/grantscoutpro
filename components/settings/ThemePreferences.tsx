@@ -1,10 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { ThemePreferencesData } from "./types";
 
-export function ThemePreferences() {
-  const [theme, setTheme] = useState("dark");
-  const [accent, setAccent] = useState("blue");
+export default function ThemePreferences() {
+  const [prefs, setPrefs] = useState<ThemePreferencesData>({
+    theme: "dark",
+    accent: "blue",
+  });
 
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 space-y-6">
@@ -16,8 +19,10 @@ export function ThemePreferences() {
         <div>
           <label className="text-xs text-slate-400">Theme</label>
           <select
-            value={theme}
-            onChange={(e) => setTheme(e.target.value)}
+            value={prefs.theme}
+            onChange={(e) =>
+              setPrefs({ ...prefs, theme: e.target.value as ThemePreferencesData["theme"] })
+            }
             className="w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 text-sm"
           >
             <option value="dark">Dark</option>
@@ -28,8 +33,13 @@ export function ThemePreferences() {
         <div>
           <label className="text-xs text-slate-400">Accent Color</label>
           <select
-            value={accent}
-            onChange={(e) => setAccent(e.target.value)}
+            value={prefs.accent}
+            onChange={(e) =>
+              setPrefs({
+                ...prefs,
+                accent: e.target.value as ThemePreferencesData["accent"],
+              })
+            }
             className="w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 text-sm"
           >
             <option value="blue">Blue</option>

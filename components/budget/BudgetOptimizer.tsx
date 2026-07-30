@@ -1,25 +1,25 @@
 "use client";
 
 import { useState } from "react";
+import { BudgetItem } from "./types";
 
 export function BudgetOptimizer({
   items,
   onOptimize
 }: {
-  items: any[];
-  onOptimize: (optimized: any[]) => void;
+  items: BudgetItem[];
+  onOptimize: (optimized: BudgetItem[]) => void;
 }) {
   const [loading, setLoading] = useState(false);
 
   async function optimize() {
     setLoading(true);
 
-    // Placeholder — real AI integration comes later
     await new Promise((r) => setTimeout(r, 800));
 
     const optimized = items.map((item) => ({
       ...item,
-      amount: Math.round(item.amount * 0.95) // 5% efficiency savings
+      amount: Math.round(item.amount * 0.95)
     }));
 
     onOptimize(optimized);

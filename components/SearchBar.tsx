@@ -3,11 +3,18 @@
 import { useState } from "react";
 import { useWorkspaceSearch } from "@/hooks/useWorkspaceSearch";
 
-export default function SearchBar() {
-  const [query, setQuery] = useState("");
-  const { search, loading, error } = useWorkspaceSearch();
+interface WorkspaceSearchResult {
+  search: (query: string) => Promise<void>;
+  loading: boolean;
+  error: string | null;
+}
 
-  const handleSubmit = async (e: React.FormEvent) => {
+export default function SearchBar() {
+  const [query, setQuery] = useState<string>("");
+  const { search, loading, error } =
+    useWorkspaceSearch() as WorkspaceSearchResult;
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!query.trim()) return;

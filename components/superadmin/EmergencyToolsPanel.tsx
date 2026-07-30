@@ -1,17 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { EmergencyResponse } from "./types";
 
 export default function EmergencyToolsPanel() {
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState<string>("");
 
-  async function run(action, payload) {
+  async function run(action: string, payload: Record<string, any>) {
     const res = await fetch("/api/superadmin/emergency", {
       method: "POST",
       body: JSON.stringify({ action, payload }),
     });
 
-    const data = await res.json();
+    const data: EmergencyResponse = await res.json();
     setMessage(JSON.stringify(data, null, 2));
   }
 
@@ -20,7 +21,6 @@ export default function EmergencyToolsPanel() {
       <h2 className="text-2xl font-bold text-red-700">Emergency Tools</h2>
 
       <div className="space-y-4">
-
         <button
           onClick={() =>
             run("repairWorkspaceOwner", {

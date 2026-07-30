@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 export default function NavBar() {
   const pathname = usePathname();
 
-  const linkClasses = (path: string) =>
+  const linkClasses = (path: string): string =>
     `px-4 py-2 rounded-lg text-sm font-medium transition ${
       pathname === path
         ? "bg-blue-600 text-white"
@@ -57,9 +57,9 @@ export default function NavBar() {
 
 function MobileMenu() {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState<boolean>(false);
 
-  const linkClasses = (path: string) =>
+  const linkClasses = (path: string): string =>
     `block px-4 py-2 rounded-lg text-sm font-medium transition ${
       pathname === path
         ? "bg-blue-600 text-white"

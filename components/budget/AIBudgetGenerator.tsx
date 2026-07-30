@@ -2,26 +2,27 @@
 
 import { SparklesIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
+import { BudgetItem } from "./types";
 
 export function AIBudgetGenerator({
   onGenerate
 }: {
-  onGenerate: (items: any[]) => void;
+  onGenerate: (items: BudgetItem[]) => void;
 }) {
   const [loading, setLoading] = useState(false);
 
   async function generate() {
     setLoading(true);
 
-    // Placeholder — real AI integration comes later
     await new Promise((r) => setTimeout(r, 800));
 
-    onGenerate([
+    const items: BudgetItem[] = [
       { id: crypto.randomUUID(), category: "Personnel", description: "Program Director", amount: 60000 },
       { id: crypto.randomUUID(), category: "Supplies", description: "Training materials", amount: 8000 },
       { id: crypto.randomUUID(), category: "Travel", description: "Community outreach travel", amount: 5000 }
-    ]);
+    ];
 
+    onGenerate(items);
     setLoading(false);
   }
 

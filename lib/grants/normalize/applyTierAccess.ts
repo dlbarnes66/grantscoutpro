@@ -1,6 +1,11 @@
+// lib/grants/normalize/applyTierAccess.ts
+
 import { GrantSource, GrantTierAccess } from "@prisma/client";
 
-export function applyTierAccess(grant: any) {
+export function applyTierAccess(grant: {
+  source: GrantSource;
+  tierAccess?: GrantTierAccess;
+}) {
   switch (grant.source) {
     case GrantSource.FEDERAL:
       grant.tierAccess = GrantTierAccess.FEDERAL_ONLY;
@@ -11,9 +16,6 @@ export function applyTierAccess(grant: any) {
       break;
 
     case GrantSource.FOUNDATION:
-      grant.tierAccess = GrantTierAccess.PRO; // Enterprise inherits PRO
-      break;
-
     case GrantSource.PHILANTHROPIC:
       grant.tierAccess = GrantTierAccess.PRO;
       break;

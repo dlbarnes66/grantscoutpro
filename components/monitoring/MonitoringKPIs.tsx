@@ -1,4 +1,12 @@
-export function MonitoringKPIs({ kpis }: { kpis: any[] }) {
+"use client";
+
+import { MonitoringKPI } from "./types";
+
+export default function MonitoringKPIs({
+  kpis
+}: {
+  kpis: MonitoringKPI[];
+}) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6">
       <h2 className="text-sm font-semibold text-slate-100 mb-4">
@@ -9,9 +17,11 @@ export function MonitoringKPIs({ kpis }: { kpis: any[] }) {
         {kpis.map((kpi, i) => {
           const percent = Math.round((kpi.current / kpi.target) * 100);
           const color =
-            percent < 50 ? "text-red-400" :
-            percent < 80 ? "text-yellow-400" :
-            "text-green-400";
+            percent < 50
+              ? "text-red-400"
+              : percent < 80
+              ? "text-yellow-400"
+              : "text-green-400";
 
           return (
             <div key={i} className="rounded-lg bg-slate-800 p-4 space-y-2">

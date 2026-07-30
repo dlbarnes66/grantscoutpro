@@ -1,13 +1,14 @@
 "use client";
 
+import { AuditLog } from "./types";
 import { SeverityBadge } from "./SeverityBadge";
 
 export function AuditTable({
   logs,
   onSelect
 }: {
-  logs: any[];
-  onSelect: (l: any) => void;
+  logs: AuditLog[];
+  onSelect: (l: AuditLog) => void;
 }) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6">

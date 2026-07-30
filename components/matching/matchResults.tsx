@@ -1,6 +1,11 @@
-export function MatchResults({ results }: { results: any[] }) {
-  if (!results || results.length === 0)
+"use client";
+
+import { MatchResultItem } from "./types";
+
+export function MatchResults({ results }: { results: MatchResultItem[] }) {
+  if (!results || results.length === 0) {
     return <div className="text-slate-400">No results yet.</div>;
+  }
 
   return (
     <div className="space-y-4">

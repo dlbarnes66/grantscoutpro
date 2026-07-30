@@ -1,9 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { WorkspaceMember } from "./admin/types";
 
-export default function AdminDashboard({ workspaceId }) {
-  const [members, setMembers] = useState([]);
+export default function AdminDashboard({
+  workspaceId,
+}: {
+  workspaceId: string;
+}) {
+  const [members, setMembers] = useState<WorkspaceMember[]>([]);
 
   useEffect(() => {
     async function load() {
@@ -14,11 +19,12 @@ export default function AdminDashboard({ workspaceId }) {
     load();
   }, [workspaceId]);
 
-  async function updateRole(userId, newRole) {
+  async function updateRole(userId: string, newRole: WorkspaceMember["role"]) {
     await fetch(`/api/workspaces/${workspaceId}/admin/members`, {
       method: "POST",
       body: JSON.stringify({ targetUserId: userId, newRole }),
     });
+
     location.reload();
   }
 
@@ -39,12 +45,14 @@ export default function AdminDashboard({ workspaceId }) {
               >
                 Member
               </button>
+
               <button
                 onClick={() => updateRole(m.userId, "ADMIN")}
                 className="px-3 py-1 bg-blue-500 text-white rounded"
               >
                 Admin
               </button>
+
               <button
                 onClick={() => updateRole(m.userId, "OWNER")}
                 className="px-3 py-1 bg-green-600 text-white rounded"

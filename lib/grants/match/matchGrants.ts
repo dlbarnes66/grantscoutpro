@@ -1,6 +1,9 @@
+// lib/grants/match/matchGrants.ts
+
 import { prisma } from "@/lib/prisma";
-import { calculateMatchScore } from "./calculateMatchScore";
-import { enforceMatchTierAccess } from "./enforceMatchTierAccess";
+import { calculateMatchScore, MatchProfile } from "./calculateMatchScore";
+import { enforceMatchTierAccess, Tier } from "./enforceMatchTierAccess";
+import { Grant } from "@prisma/client";
 
 export async function matchGrants({
   workspaceId,
@@ -8,11 +11,11 @@ export async function matchGrants({
   profile,
 }: {
   workspaceId: string;
-  tier: string;
-  profile: any;
+  tier: Tier;
+  profile: MatchProfile;
 }) {
   // ⭐ Fetch all grants visible to this workspace
-  const grants = await prisma.grant.findMany({
+  const grants: Grant[] = await prisma.grant.findMany({
     where: {
       OR: [
         { workspaceId },

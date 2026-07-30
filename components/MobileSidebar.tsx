@@ -14,11 +14,17 @@ import {
   BriefcaseIcon,
 } from "@heroicons/react/24/outline";
 
+interface SidebarLink {
+  label: string;
+  href: string;
+  icon: (props: React.ComponentProps<"svg">) => JSX.Element;
+}
+
 export default function MobileSidebar() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState<boolean>(false);
   const pathname = usePathname();
 
-  const links = [
+  const links: SidebarLink[] = [
     { label: "Home", href: "/dashboard", icon: HomeIcon },
     { label: "Search Grants", href: "/dashboard/search", icon: MagnifyingGlassIcon },
     { label: "Search History", href: "/dashboard/search-history", icon: ClockIcon },
@@ -30,7 +36,7 @@ export default function MobileSidebar() {
 
   return (
     <>
-      {/* Hamburger Button (TopNav triggers this) */}
+      {/* Hamburger Button */}
       <button
         onClick={() => setOpen(true)}
         className="md:hidden text-gray-700 hover:text-brandBlue transition"

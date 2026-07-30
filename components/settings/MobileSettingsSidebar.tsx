@@ -9,7 +9,6 @@ export default function MobileSettingsSidebar() {
 
   return (
     <div className="md:hidden">
-      {/* Toggle button */}
       <button
         onClick={() => setOpen(true)}
         className="p-2 rounded-md border bg-white shadow-sm"
@@ -17,7 +16,6 @@ export default function MobileSettingsSidebar() {
         <Bars3Icon className="h-6 w-6 text-gray-700" />
       </button>
 
-      {/* Slide-out sidebar */}
       {open && (
         <div className="fixed inset-0 bg-black/40 z-40">
           <div className="absolute left-0 top-0 h-full w-64 bg-white shadow-lg p-6 space-y-6">

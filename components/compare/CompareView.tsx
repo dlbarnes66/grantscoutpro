@@ -1,17 +1,18 @@
-// components/compare/CompareView.tsx
 "use client";
 
 import React from "react";
+
+export interface CompareViewProps {
+  grantId: string;
+  workspaceId: string;
+  userId: string;
+}
 
 export default function CompareView({
   grantId,
   workspaceId,
   userId,
-}: {
-  grantId: string;
-  workspaceId: string;
-  userId: string;
-}) {
+}: CompareViewProps) {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Grant Comparison</h1>

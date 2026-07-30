@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { TabItem } from "./types";
 
-export function Tabs({ tabs }) {
+export default function Tabs({ tabs }: { tabs: TabItem[] }) {
   const [active, setActive] = useState(0);
 
   return (

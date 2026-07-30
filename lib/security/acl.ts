@@ -38,3 +38,11 @@ export async function canRunDocumentAI(userId: string, documentId: string) {
 
   return access?.canRunAI ?? false;
 }
+
+/**
+ * Legacy compatibility wrapper
+ * Some older routes still import `canRunAI`
+ */
+export async function canRunAI(userId: string, documentId: string) {
+  return canRunDocumentAI(userId, documentId);
+}

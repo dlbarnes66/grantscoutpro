@@ -1,14 +1,20 @@
 "use client";
 
 import { useGrantACL } from "@/lib/security/useGrantACL";
+import { GrantACL } from "./types";
 
 export default function GrantAIButton({
   workspaceId,
   grantId,
   onClick,
-  children,
+  children
+}: {
+  workspaceId: string;
+  grantId: string;
+  onClick: () => void;
+  children: React.ReactNode;
 }) {
-  const acl = useGrantACL(workspaceId, grantId);
+  const acl: GrantACL = useGrantACL(workspaceId, grantId);
 
   if (acl.loading) {
     return (
@@ -21,9 +27,7 @@ export default function GrantAIButton({
     );
   }
 
-  if (!acl.canRunAI) {
-    return null; // auto-hide
-  }
+  if (!acl.canRunDocumentAI) return null;
 
   return (
     <button

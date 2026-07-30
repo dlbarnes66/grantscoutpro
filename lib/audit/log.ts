@@ -1,28 +1,31 @@
 import { prisma } from "@/lib/prisma";
 
+/**
+ * Writes an audit log entry.
+ * Exported as `auditEvent` because multiple routes depend on that name.
+ */
 export async function auditEvent({
   actorId,
   orgId,
   action,
   entity,
-  entityId,
-  metadata,
+  metadata = {}
 }: {
   actorId: string;
-  orgId?: string | null;
+  orgId: string | null;
   action: string;
   entity: string;
-  entityId?: string | null;
-  metadata?: any;
+  metadata?: Record<string, any>;
 }) {
   return prisma.auditLog.create({
     data: {
-      actorId,
       orgId,
       action,
-      entity,
-      entityId,
-      metadata,
-    },
+      metadata: {
+        actorId,
+        entity,
+        ...metadata
+      }
+    }
   });
 }

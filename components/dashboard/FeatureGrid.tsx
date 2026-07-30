@@ -1,11 +1,14 @@
+"use client";
+
 import {
   SparklesIcon,
   PencilSquareIcon,
   Squares2X2Icon,
   BookmarkSquareIcon,
 } from "@heroicons/react/24/outline";
+import { FeatureItem } from "./types";
 
-const features = [
+const features: FeatureItem[] = [
   {
     title: "AI Grant Matching",
     description:

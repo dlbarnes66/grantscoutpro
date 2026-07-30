@@ -1,9 +1,15 @@
-export function WebhookList({ webhooks }: { webhooks: any[] }) {
+"use client";
+
+import { Webhook } from "./types";
+
+export default function WebhookList({
+  webhooks,
+}: {
+  webhooks: Webhook[];
+}) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6">
-      <h2 className="text-sm font-semibold text-slate-100 mb-4">
-        Webhooks
-      </h2>
+      <h2 className="text-sm font-semibold text-slate-100 mb-4">Webhooks</h2>
 
       {webhooks.length === 0 && (
         <div className="text-slate-400 text-sm">No webhooks created yet.</div>

@@ -1,80 +1,69 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Card from "@/components/ui/Card";
+import { Loader2 } from "lucide-react";
+import { PlatformAnalyticsStats } from "./types";
 
 export default function PlatformAnalyticsDashboard() {
-  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<PlatformAnalyticsStats | null>(null);
 
   useEffect(() => {
     async function load() {
-      const res = await fetch("/api/superadmin/platform-analytics");
-      const json = await res.json();
-      setData(json);
+      try {
+        const res = await fetch("/api/superadmin/platform-analytics");
+        const data = await res.json();
+        setStats(data);
+      } finally {
+        setLoading(false);
+      }
     }
     load();
   }, []);
 
-  if (!data) return <div>Loading platform analytics…</div>;
+  if (loading) {
+    return (
+      <Card className="p-6 flex justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-gray-500" />
+      </Card>
+    );
+  }
+
+  if (!stats) {
+    return (
+      <Card className="p-6">
+        <h3 className="text-xl font-semibold">Platform Analytics</h3>
+        <p className="text-gray-500">No analytics data available.</p>
+      </Card>
+    );
+  }
 
   return (
-    <div className="p-6 space-y-8">
-      <h1 className="text-3xl font-bold">Platform Analytics</h1>
+    <Card className="p-6 space-y-4">
+      <h3 className="text-xl font-semibold">Platform Analytics</h3>
 
-      {/* Totals */}
-      <section className="p-4 border rounded bg-white shadow">
-        <h2 className="text-xl font-semibold mb-3">Totals</h2>
-        <div className="grid grid-cols-2 gap-4">
-          <Metric label="Users" value={data.totals.users} />
-          <Metric label="Workspaces" value={data.totals.workspaces} />
-          <Metric label="Grants" value={data.totals.grants} />
-          <Metric label="Documents" value={data.totals.documents} />
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="p-4 bg-gray-50 border rounded">
+          <p className="text-sm text-gray-500">Total Users</p>
+          <p className="text-2xl font-bold">{stats.totalUsers}</p>
         </div>
-      </section>
 
-      {/* AI Usage */}
-      <section className="p-4 border rounded bg-white shadow">
-        <h2 className="text-xl font-semibold mb-3">AI Usage</h2>
-        <div className="grid grid-cols-2 gap-4">
-          <Metric label="Tokens Used" value={data.ai.tokens} />
-          <Metric label="AI Cost ($)" value={data.ai.cost.toFixed(4)} />
+        <div className="p-4 bg-gray-50 border rounded">
+          <p className="text-sm text-gray-500">Active Workspaces</p>
+          <p className="text-2xl font-bold">{stats.activeWorkspaces}</p>
         </div>
-      </section>
 
-      {/* Billing */}
-      <section className="p-4 border rounded bg-white shadow">
-        <h2 className="text-xl font-semibold mb-3">Billing</h2>
-        <Metric label="Total Revenue ($)" value={data.billing.revenue.toFixed(2)} />
-      </section>
-
-      {/* Growth */}
-      <section className="p-4 border rounded bg-white shadow">
-        <h2 className="text-xl font-semibold mb-3">Growth (Last 30 Days)</h2>
-        <div className="grid grid-cols-2 gap-4">
-          <Metric label="New Users" value={data.growth.newUsers30d} />
-          <Metric label="New Workspaces" value={data.growth.newWorkspaces30d} />
+        <div className="p-4 bg-gray-50 border rounded">
+          <p className="text-sm text-gray-500">Documents</p>
+          <p className="text-2xl font-bold">{stats.documents}</p>
         </div>
-      </section>
 
-      {/* Churn */}
-      <section className="p-4 border rounded bg-white shadow">
-        <h2 className="text-xl font-semibold mb-3">Churn</h2>
-        <Metric label="Churned Workspaces" value={data.churn.churnedWorkspaces} />
-      </section>
-
-      {/* Enterprise */}
-      <section className="p-4 border rounded bg-white shadow">
-        <h2 className="text-xl font-semibold mb-3">Enterprise Adoption</h2>
-        <Metric label="Enterprise Workspaces" value={data.enterprise.enterpriseWorkspaces} />
-      </section>
-    </div>
-  );
-}
-
-function Metric({ label, value }) {
-  return (
-    <div className="p-3 border rounded bg-gray-50">
-      <div className="text-sm text-gray-600">{label}</div>
-      <div className="text-xl font-bold">{value}</div>
-    </div>
+        <div className="p-4 bg-gray-50 border rounded">
+          <p className="text-sm text-gray-500">AI Requests</p>
+          <p className="text-2xl font-bold">{stats.aiRequests}</p>
+        </div>
+      </div>
+    </Card>
   );
 }

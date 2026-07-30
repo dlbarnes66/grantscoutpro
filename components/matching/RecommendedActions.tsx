@@ -1,3 +1,5 @@
+"use client";
+
 export function RecommendedActions({ actions }: { actions: string[] }) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 space-y-4">

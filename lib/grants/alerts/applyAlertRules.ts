@@ -1,6 +1,19 @@
-export function applyAlertRules(grant: any) {
-  const alerts: any[] = [];
+// lib/grants/alerts/applyAlertRules.ts
 
+import { Grant } from "@prisma/client";
+
+type Alert = {
+  type:
+    | "NEW_GRANT"
+    | "DEADLINE_SOON"
+    | "HIGH_ALIGNMENT"
+    | "HIGH_READINESS"
+    | "FOUNDATION_UPDATE";
+  message: string;
+};
+
+export function applyAlertRules(grant: Grant) {
+  const alerts: Alert[] = [];
   const now = new Date();
 
   // ⭐ Rule 1: New grant posted in last 48 hours
@@ -41,7 +54,7 @@ export function applyAlertRules(grant: any) {
     });
   }
 
-  // ⭐ Rule 5: Foundation updates (mission change, new giving areas)
+  // ⭐ Rule 5: Foundation updates
   if (grant.foundationMission || grant.foundationGivingAreas) {
     alerts.push({
       type: "FOUNDATION_UPDATE",

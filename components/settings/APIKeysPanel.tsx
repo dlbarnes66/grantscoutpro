@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export function APIKeysPanel() {
+export default function APIKeysPanel() {
   const [key, setKey] = useState("sk_live_123456789");
 
   function regenerate() {
@@ -11,9 +11,7 @@ export function APIKeysPanel() {
 
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 space-y-6">
-      <h2 className="text-sm font-semibold text-slate-100">
-        API Keys
-      </h2>
+      <h2 className="text-sm font-semibold text-slate-100">API Keys</h2>
 
       <div className="space-y-2">
         <div className="text-xs text-slate-400">Current Key</div>

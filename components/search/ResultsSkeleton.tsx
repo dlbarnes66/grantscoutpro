@@ -1,4 +1,6 @@
-export function ResultsSkeleton() {
+"use client";
+
+export default function ResultsSkeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {[...Array(4)].map((_, i) => (

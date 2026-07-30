@@ -1,9 +1,9 @@
 "use client";
 
 import { Sidebar } from "./Sidebar";
-import { Topbar } from "./Topbar";
+import Topbar from "./Topbar";
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex bg-slate-950 text-slate-100">
       <Sidebar />

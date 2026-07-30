@@ -1,21 +1,23 @@
-import { authMiddleware } from "@clerk/nextjs";
 import { NextResponse } from "next/server";
+import { authMiddleware } from "@clerk/nextjs";
 import { prisma } from "@/lib/prisma";
 
+// Clerk wrapper — REQUIRED
 export default authMiddleware({
-  publicRoutes: [
-    "/",
-    "/sign-in",
-    "/sign-up",
-    "/api/webhooks(.*)",
-  ],
-
-  async afterAuth(auth, req) {
+  publicRoutes: ["/", "/sign-in", "/sign-up"],
+  afterAuth: async (auth, req) => {
     const url = req.nextUrl;
     const pathname = url.pathname;
+    const userId = auth.userId;
 
-    // If user not signed in, allow public routes
-    if (!auth.userId) {
+    // Logged-in redirect from marketing homepage → dashboard
+    if (userId && pathname === "/") {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
+
+    // Public routes allowed without auth
+    const publicRoutes = ["/", "/sign-in", "/sign-up"];
+    if (!userId && publicRoutes.includes(pathname)) {
       return NextResponse.next();
     }
 
@@ -38,12 +40,12 @@ export default authMiddleware({
       return NextResponse.redirect(new URL("/not-found", url));
     }
 
-    // ⭐ Workspace membership check
+    // Workspace membership check
     const member = await prisma.workspaceMember.findUnique({
       where: {
         workspaceId_userId: {
           workspaceId,
-          userId: auth.userId,
+          userId: userId || "",
         },
       },
     });
@@ -63,6 +65,7 @@ export default authMiddleware({
   },
 });
 
+// Matcher — REQUIRED for Clerk
 export const config = {
   matcher: [
     "/((?!_next/static|_next/image|favicon.ico|api/webhooks).*)",

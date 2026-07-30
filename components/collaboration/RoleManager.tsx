@@ -1,6 +1,8 @@
 "use client";
 
-export function RoleManager({ members }: { members: any[] }) {
+import { MemberItem } from "./types";
+
+export function RoleManager({ members }: { members: MemberItem[] }) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 space-y-4">
       <h2 className="text-sm font-semibold text-slate-100">
@@ -12,11 +14,14 @@ export function RoleManager({ members }: { members: any[] }) {
           <li key={m.id} className="flex items-center justify-between">
             <span>{m.name}</span>
 
-            <select className="rounded-md bg-slate-800 border border-slate-700 px-3 py-2 text-sm">
-              <option value="Owner" selected={m.role === "Owner"}>Owner</option>
-              <option value="Editor" selected={m.role === "Editor"}>Editor</option>
-              <option value="Reviewer" selected={m.role === "Reviewer"}>Reviewer</option>
-              <option value="Viewer" selected={m.role === "Viewer"}>Viewer</option>
+            <select
+              defaultValue={m.role}
+              className="rounded-md bg-slate-800 border border-slate-700 px-3 py-2 text-sm"
+            >
+              <option value="Owner">Owner</option>
+              <option value="Editor">Editor</option>
+              <option value="Reviewer">Reviewer</option>
+              <option value="Viewer">Viewer</option>
             </select>
           </li>
         ))}

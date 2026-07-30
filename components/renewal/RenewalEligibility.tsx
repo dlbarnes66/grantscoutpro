@@ -1,4 +1,12 @@
-export function RenewalEligibility({ eligibility }: { eligibility: any }) {
+"use client";
+
+import { RenewalEligibilityData } from "./types";
+
+export default function RenewalEligibility({
+  eligibility
+}: {
+  eligibility: RenewalEligibilityData;
+}) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 space-y-4">
       <h2 className="text-sm font-semibold text-slate-100">
@@ -16,15 +24,15 @@ export function RenewalEligibility({ eligibility }: { eligibility: any }) {
       )}
 
       <div className="space-y-2 text-sm text-slate-300">
-        {eligibility.reasons.map((r: string, i: number) => (
+        {eligibility.reasons.map((r, i) => (
           <div key={i}>• {r}</div>
         ))}
 
         {eligibility.issues.length > 0 && (
           <div className="text-red-400 pt-2">
             Issues:
-            {eligibility.issues.map((i: string, idx: number) => (
-              <div key={idx}>• {i}</div>
+            {eligibility.issues.map((issue, idx) => (
+              <div key={idx}>• {issue}</div>
             ))}
           </div>
         )}

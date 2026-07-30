@@ -6,8 +6,14 @@ import MobileSidebar from "@/components/MobileSidebar";
 import UserDropdown from "@/components/UserDropdown";
 import NotificationBell from "@/components/NotificationBell";
 
+interface NavLinkProps {
+  href: string;
+  label: string;
+  pathname: string;
+}
+
 export default function TopNav() {
-  const pathname = usePathname();
+  const pathname: string = usePathname();
 
   return (
     <header className="w-full bg-white border-b shadow-sm px-6 py-4 flex items-center justify-between sticky top-0 z-50">
@@ -45,15 +51,7 @@ export default function TopNav() {
   );
 }
 
-function NavLink({
-  href,
-  label,
-  pathname,
-}: {
-  href: string;
-  label: string;
-  pathname: string;
-}) {
+function NavLink({ href, label, pathname }: NavLinkProps) {
   const active = pathname.startsWith(href);
 
   return (

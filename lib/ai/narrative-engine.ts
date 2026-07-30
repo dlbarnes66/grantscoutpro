@@ -1,14 +1,14 @@
 import OpenAI from "openai";
 
 const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 export async function generateNarrative(
   section: string,
-  project: any,
+  project: unknown,
   tone: string
-) {
+): Promise<string> {
   const prompt = `
 You are an expert grant writer. Write the "${section}" section for the following project.
 
@@ -31,8 +31,8 @@ Return ONLY the narrative text.
   const completion = await client.chat.completions.create({
     model: "gpt-4o-mini",
     messages: [{ role: "user", content: prompt }],
-    temperature: 0.4
+    temperature: 0.4,
   });
 
-  return completion.choices[0].message.content;
+  return completion.choices[0].message.content ?? "";
 }

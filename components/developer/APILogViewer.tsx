@@ -1,4 +1,8 @@
-export function APILogViewer({ logs }: { logs: any[] }) {
+"use client";
+
+import { APILogEntry } from "./types";
+
+export function APILogViewer({ logs }: { logs: APILogEntry[] }) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6">
       <h2 className="text-sm font-semibold text-slate-100 mb-4">
@@ -10,8 +14,8 @@ export function APILogViewer({ logs }: { logs: any[] }) {
       )}
 
       <ul className="space-y-4 text-sm text-slate-300">
-        {logs.map((log, i) => (
-          <li key={i} className="rounded-lg bg-slate-800 p-4 space-y-1">
+        {logs.map((log) => (
+          <li key={log.timestamp} className="rounded-lg bg-slate-800 p-4 space-y-1">
             <div className="font-semibold text-slate-100">
               {log.method} {log.endpoint}
             </div>

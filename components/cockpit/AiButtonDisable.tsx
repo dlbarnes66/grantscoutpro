@@ -21,7 +21,7 @@ export default function AiButtonDisabled({
     );
   }
 
-  const disabled = !acl.canRunAI;
+  const disabled = !acl.canRunDocumentAI;
 
   return (
     <button

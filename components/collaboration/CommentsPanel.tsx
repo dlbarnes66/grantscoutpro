@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { CommentItem } from "./types";
 
-export function CommentsPanel({ comments }: { comments: any[] }) {
+export function CommentsPanel({ comments }: { comments: CommentItem[] }) {
   const [value, setValue] = useState("");
 
   return (

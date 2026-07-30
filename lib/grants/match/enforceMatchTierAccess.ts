@@ -1,6 +1,14 @@
-import { GrantTierAccess } from "@prisma/client";
+// lib/grants/match/enforceMatchTierAccess.ts
 
-export function enforceMatchTierAccess(grants: any[], tier: string) {
+import { Grant, GrantTierAccess } from "@prisma/client";
+
+export type Tier =
+  | "ENTERPRISE"
+  | "PRO"
+  | "FEDERAL_STATE"
+  | "FEDERAL_ONLY";
+
+export function enforceMatchTierAccess(grants: Grant[], tier: Tier) {
   return grants.filter((grant) => {
     switch (tier) {
       case "ENTERPRISE":

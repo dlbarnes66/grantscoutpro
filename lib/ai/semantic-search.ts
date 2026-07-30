@@ -1,49 +1,35 @@
 import { prisma } from "@/lib/prisma";
-import { embedText } from "./document-embedder";
+import { embedText } from "./embeddings";
+import { cosineSimilarity } from "./similarity";
 
-// This version matches rag-chat.ts perfectly
-export async function semanticSearch({
-  workspaceId,
-  query,
-}: {
-  workspaceId: string;
-  query: string;
-}) {
+/**
+ * Performs semantic search across document embeddings.
+ */
+export async function semanticSearch(workspaceId: string, query: string) {
   // 1. Embed the query
   const queryEmbedding = await embedText(query);
 
-  // 2. Search embeddings in this workspace
-  const results = await prisma.workspaceEmbedding.findMany({
+  // 2. Fetch all document embeddings
+  const embeddings = await prisma.documentEmbedding.findMany({
     where: { workspaceId },
-    select: {
-      id: true,
-      documentId: true,
-      content: true,
-      embedding: true,
-      documentTitle: true, // add this if your rag-chat expects it
-      snippet: true,       // add this if your rag-chat expects it
-    },
+    include: { document: true }
   });
 
-  // 3. Compute similarity scores
-  const scored = results.map((item) => {
-    const score = cosineSimilarity(queryEmbedding, item.embedding);
-    return { ...item, score };
+  // 3. Score each document
+  const results = embeddings.map((e) => {
+    const vector = new Float32Array(
+      e.embedding.buffer,
+      e.embedding.byteOffset,
+      e.embedding.byteLength / 4
+    );
+
+    return {
+      id: e.documentId,
+      text: e.content || "",
+      score: cosineSimilarity(queryEmbedding, Array.from(vector))
+    };
   });
 
-  // 4. Sort by score
-  scored.sort((a, b) => b.score - a.score);
-
-  // 5. Return in the shape rag-chat expects
-  return {
-    results: scored.slice(0, 10),
-  };
-}
-
-// Simple cosine similarity
-function cosineSimilarity(a: number[], b: number[]) {
-  const dot = a.reduce((sum, val, i) => sum + val * b[i], 0);
-  const magA = Math.sqrt(a.reduce((sum, val) => sum + val * val, 0));
-  const magB = Math.sqrt(b.reduce((sum, val) => sum + val * val, 0));
-  return dot / (magA * magB);
+  // 4. Sort by relevance
+  return results.sort((a, b) => b.score - a.score);
 }

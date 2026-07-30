@@ -1,109 +1,96 @@
-/**
- * RAG answer generator using GPT-4o-mini.
- *
- * Responsibilities:
- * - Embed user question
- * - Rank workspace documents by similarity
- * - Select top relevant context
- * - Generate grounded answer
- */
-
-import OpenAI from "openai";
 import { prisma } from "@/lib/prisma";
-import { createEmbedding } from "./embeddings";
 import { cosineSimilarity } from "./similarity";
-
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+import { embedText } from "./embeddings";
 
 /**
- * Retrieves the top N most relevant documents for a question.
+ * Convert Prisma Bytes → Float[] for similarity scoring.
  */
-async function getRelevantDocuments(
-  workspaceId: string,
-  questionEmbedding: number[],
-  limit: number = 5
-) {
-  const docs = await prisma.documentEmbedding.findMany({
-    where: { workspaceId },
-    include: {
-      document: true,
-    },
-  });
-
-  const ranked = docs
-    .map((d) => ({
-      id: d.documentId,
-      text: d.text,
-      score: cosineSimilarity(questionEmbedding, d.vector),
-    }))
-    .sort((a, b) => b.score - a.score)
-    .slice(0, limit);
-
-  return ranked;
+function decodeEmbedding(bytes: Buffer): number[] {
+  const floatArray = new Float32Array(
+    bytes.buffer,
+    bytes.byteOffset,
+    bytes.byteLength / 4
+  );
+  return Array.from(floatArray);
 }
 
 /**
- * Generates a grounded RAG answer.
+ * Retrieves relevant document embeddings and scores them.
+ */
+export async function getRelevantDocuments(
+  workspaceId: string,
+  questionEmbedding: number[]
+) {
+  const embeddings = await prisma.documentEmbedding.findMany({
+    where: { workspaceId },
+    include: {
+      document: true
+    }
+  });
+
+  return embeddings
+    .map((d) => {
+      const vector = decodeEmbedding(d.embedding);
+
+      return {
+        id: d.documentId,
+        text: d.content || "",
+        score: cosineSimilarity(questionEmbedding, vector)
+      };
+    })
+    .sort((a, b) => b.score - a.score);
+}
+
+/**
+ * Basic LLM completion wrapper.
+ * Replace with your actual LLM provider.
+ */
+export async function generateCompletion(prompt: string): Promise<string> {
+  return `LLM Response: ${prompt}`;
+}
+
+/**
+ * Full RAG answer generator.
+ * Returns { answer, sources } instead of a raw string.
  */
 export async function generateRagAnswer(
   workspaceId: string,
   question: string
-): Promise<{
-  answer: string;
-  sources: { id: string; score: number }[];
-}> {
-  if (!question || question.trim().length === 0) {
-    throw new Error("RAG error: question cannot be empty");
-  }
-
+): Promise<{ answer: string; sources: { id: string; text: string }[] }> {
   // 1. Embed the question
-  const questionEmbedding = await createEmbedding(question);
+  const questionEmbedding = await embedText(question);
 
   // 2. Retrieve relevant documents
-  const relevantDocs = await getRelevantDocuments(
-    workspaceId,
-    questionEmbedding
-  );
+  const docs = await getRelevantDocuments(workspaceId, questionEmbedding);
 
-  const contextText = relevantDocs
-    .map((d, i) => `Source ${i + 1}:\n${d.text}`)
+  const topDocs = docs.slice(0, 5);
+
+  // 3. Build context block
+  const context = topDocs
+    .map((d) => `Document ${d.id}:\n${d.text}`)
     .join("\n\n");
 
-  // 3. Generate grounded answer
-  const response = await client.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      {
-        role: "system",
-        content:
-          "You are a helpful AI assistant. Answer using ONLY the provided context. If the answer is not in the context, say you don't know.",
-      },
-      {
-        role: "user",
-        content: `Context:\n${contextText}\n\nQuestion: ${question}`,
-      },
-    ],
-  });
+  // 4. Build final prompt
+  const prompt = `
+You are an AI assistant answering a question using workspace documents.
 
-  const answer = response.choices[0].message.content || "";
+Question:
+${question}
+
+Relevant Context:
+${context}
+
+Answer clearly and concisely:
+`;
+
+  // 5. Generate completion
+  const answer = await generateCompletion(prompt);
 
   return {
     answer,
-    sources: relevantDocs.map((d) => ({
+    sources: topDocs.map((d) => ({
       id: d.id,
-      score: d.score,
-    })),
+      text: d.text
+    }))
   };
-}
-export async function generateCompletion(prompt: string): Promise<string> {
-  const response = await client.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      { role: "user", content: prompt }
-    ],
-  });
-
-  return response.choices[0].message.content || "";
 }

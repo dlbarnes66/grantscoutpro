@@ -2,19 +2,26 @@
 
 import { useState } from "react";
 import { useGrantACL } from "@/lib/security/useGrantACL";
+import { GrantACL, GrantIntelligenceResult } from "./types";
 
-export default function GrantIntelligencePanel({ workspaceId, grantId }) {
-  const acl = useGrantACL(workspaceId, grantId);
+export default function GrantIntelligencePanel({
+  workspaceId,
+  grantId
+}: {
+  workspaceId: string;
+  grantId: string;
+}) {
+  const acl: GrantACL = useGrantACL(workspaceId, grantId);
 
-  const [mode, setMode] = useState("eligibility");
-  const [result, setResult] = useState(null);
+  const [mode, setMode] = useState<string>("eligibility");
+  const [result, setResult] = useState<GrantIntelligenceResult | null>(null);
 
   if (acl.loading) {
     return <div className="p-4">Loading permissions…</div>;
   }
 
-  if (!acl.canRunAI) {
-    return null; // auto-hide
+  if (!acl.canRunDocumentAI) {
+    return null;
   }
 
   async function runIntelligence() {
@@ -22,11 +29,11 @@ export default function GrantIntelligencePanel({ workspaceId, grantId }) {
       `/api/workspaces/${workspaceId}/grants/${grantId}/intelligence`,
       {
         method: "POST",
-        body: JSON.stringify({ mode }),
+        body: JSON.stringify({ mode })
       }
     );
 
-    const data = await res.json();
+    const data: GrantIntelligenceResult = await res.json();
     setResult(data);
   }
 

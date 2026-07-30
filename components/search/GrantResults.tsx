@@ -1,13 +1,14 @@
 "use client";
 
-import { GrantCard } from "./GrantCard";
-import { ResultsSkeleton } from "./ResultsSkeleton";
+import GrantCard from "./GrantCard";
+import ResultsSkeleton from "./ResultsSkeleton";
+import { GrantSearchItem } from "./types";
 
-export function GrantResults({
+export default function GrantResults({
   results,
   loading
 }: {
-  results: any[];
+  results: GrantSearchItem[];
   loading: boolean;
 }) {
   if (loading) return <ResultsSkeleton />;

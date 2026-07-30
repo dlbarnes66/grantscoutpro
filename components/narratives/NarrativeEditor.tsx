@@ -1,6 +1,6 @@
 "use client";
 
-export function NarrativeEditor({
+export default function NarrativeEditor({
   text,
   onChange
 }: {

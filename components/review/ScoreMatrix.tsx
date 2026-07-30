@@ -1,4 +1,12 @@
-export function ScoreMatrix({ criteria }: { criteria: any[] }) {
+"use client";
+
+import { ScoreMatrixCriterion } from "./types";
+
+export default function ScoreMatrix({
+  criteria
+}: {
+  criteria: ScoreMatrixCriterion[];
+}) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 space-y-4">
       <h2 className="text-sm font-semibold text-slate-100">
@@ -11,7 +19,7 @@ export function ScoreMatrix({ criteria }: { criteria: any[] }) {
             <div className="text-sm text-slate-300">{c.label}</div>
 
             <div className="flex gap-2">
-              {c.scores.map((score: number, i: number) => (
+              {c.scores.map((score, i) => (
                 <div
                   key={i}
                   className="rounded-md bg-slate-800 px-3 py-2 text-sm text-slate-100"

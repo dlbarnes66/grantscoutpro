@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { NarrativeSection } from "./types";
 
-export function SectionEditor({
+export default function SectionEditor({
   section,
   onChange
 }: {
-  section: any;
+  section: NarrativeSection;
   onChange: (content: string) => void;
 }) {
   const [value, setValue] = useState(section.content);

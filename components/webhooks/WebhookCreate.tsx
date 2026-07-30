@@ -1,19 +1,24 @@
 "use client";
 
 import { useState } from "react";
+import { Webhook } from "./types";
 
-export function WebhookCreate({ onCreate }: { onCreate: (w: any) => void }) {
+export default function WebhookCreate({
+  onCreate,
+}: {
+  onCreate: (w: Webhook) => void;
+}) {
   const [url, setUrl] = useState("");
   const [event, setEvent] = useState("grant.updated");
 
   function create() {
     if (!url) return;
 
-    const webhook = {
+    const webhook: Webhook = {
       id: crypto.randomUUID(),
       url,
       event,
-      created: new Date().toISOString()
+      created: new Date().toISOString(),
     };
 
     onCreate(webhook);
@@ -22,9 +27,7 @@ export function WebhookCreate({ onCreate }: { onCreate: (w: any) => void }) {
 
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 space-y-6">
-      <h2 className="text-sm font-semibold text-slate-100">
-        Create Webhook
-      </h2>
+      <h2 className="text-sm font-semibold text-slate-100">Create Webhook</h2>
 
       <input
         value={url}

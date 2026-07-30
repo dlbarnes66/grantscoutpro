@@ -14,7 +14,13 @@ import {
   Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
 
-const navItems = [
+interface NavItem {
+  name: string;
+  href: string;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+}
+
+const navItems: NavItem[] = [
   { name: "Home", href: "/dashboard", icon: HomeIcon },
   { name: "Search Grants", href: "/search", icon: MagnifyingGlassIcon },
   { name: "Search History", href: "/history", icon: ClockIcon },
@@ -42,7 +48,9 @@ export function Sidebar() {
               key={item.name}
               href={item.href}
               className={`flex items-center gap-3 px-3 py-2 rounded-lg transition group ${
-                active ? "bg-slate-800 text-white" : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                active
+                  ? "bg-slate-800 text-white"
+                  : "text-slate-300 hover:bg-slate-800 hover:text-white"
               }`}
             >
               <item.icon

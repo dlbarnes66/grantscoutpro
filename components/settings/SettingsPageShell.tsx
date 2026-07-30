@@ -12,13 +12,8 @@ export default function SettingsPageShell({
 }) {
   return (
     <div className="space-y-6">
-      {/* Header */}
       <SettingsHeader title={title} />
-
-      {/* Breadcrumbs */}
       <SettingsBreadcrumbs />
-
-      {/* Page Content */}
       <div className="bg-white p-6 rounded-xl shadow-sm border space-y-6">
         {children}
       </div>

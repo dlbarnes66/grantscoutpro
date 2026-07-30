@@ -6,7 +6,7 @@ export function useGrantACL(workspaceId: string, grantId: string) {
   const [acl, setACL] = useState({
     canView: false,
     canEdit: false,
-    canRunAI: false,
+    canRunDocumentAI: false,
     loading: true,
   });
 
@@ -21,7 +21,7 @@ export function useGrantACL(workspaceId: string, grantId: string) {
       setACL({
         canView: data.canView,
         canEdit: data.canEdit,
-        canRunAI: data.canRunAI,
+        canRunDocumentAI: data.canRunDocumentAI,
         loading: false,
       });
     }

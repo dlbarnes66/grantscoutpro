@@ -1,57 +1,67 @@
 import { prisma } from "@/lib/prisma";
 
+// VIEW PERMISSION
 export async function canViewGrant(userId: string, grantId: string) {
   const access = await prisma.grantAccess.findUnique({
     where: {
       grantId_userId: {
         grantId,
-        userId,
-      },
-    },
+        userId
+      }
+    }
   });
 
   return access?.canView ?? false;
 }
 
+// EDIT PERMISSION
 export async function canEditGrant(userId: string, grantId: string) {
   const access = await prisma.grantAccess.findUnique({
     where: {
       grantId_userId: {
         grantId,
-        userId,
-      },
-    },
+        userId
+      }
+    }
   });
 
   return access?.canEdit ?? false;
 }
 
+// AI PERMISSION (RUN AI ON GRANT)
 export async function canRunGrantAI(userId: string, grantId: string) {
   const access = await prisma.grantAccess.findUnique({
     where: {
       grantId_userId: {
         grantId,
-        userId,
-      },
-    },
+        userId
+      }
+    }
   });
 
   return access?.canRunAI ?? false;
 }
 
+// REQUIRE AI PERMISSION (THROW IF NOT ALLOWED)
 export async function requireGrantAI(userId: string, grantId: string) {
-  return await canRunGrantAI(userId, grantId);
+  const allowed = await canRunGrantAI(userId, grantId);
+  if (!allowed) {
+    throw new Error("User does not have permission to run AI on this grant.");
+  }
 }
 
+// FILTER GRANTS BY VIEW PERMISSION
 export async function filterViewableGrants(userId: string, grantIds: string[]) {
   const accessList = await prisma.grantAccess.findMany({
     where: {
       userId,
-      grantId: { in: grantIds },
-      canView: true,
-    },
-    select: { grantId: true },
+      grantId: { in: grantIds }
+    }
   });
 
-  return new Set(accessList.map(a => a.grantId));
+  const allowed = new Set(
+    accessList.filter(a => a.canView).map(a => a.grantId)
+  );
+
+  return grantIds.filter(id => allowed.has(id));
 }

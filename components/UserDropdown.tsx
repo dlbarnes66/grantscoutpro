@@ -2,15 +2,22 @@
 
 import { UserButton, useUser } from "@clerk/nextjs";
 
+interface ClerkUser {
+  firstName?: string | null;
+  username?: string | null;
+}
+
 export default function UserDropdown() {
   const { user } = useUser();
+
+  const typedUser = user as ClerkUser | null;
 
   return (
     <div className="flex items-center gap-3">
       {/* User Name (optional) */}
-      {user && (
+      {typedUser && (
         <span className="hidden md:block text-gray-700 font-medium">
-          {user.firstName || user.username || "User"}
+          {typedUser.firstName || typedUser.username || "User"}
         </span>
       )}
 

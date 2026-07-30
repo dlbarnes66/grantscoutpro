@@ -1,4 +1,8 @@
-export function Pagination({ page, totalPages, onChange }) {
+"use client";
+
+import { PaginationProps } from "./types";
+
+export default function Pagination({ page, totalPages, onChange }: PaginationProps) {
   return (
     <div className="flex items-center justify-center gap-3 mt-10">
       <button

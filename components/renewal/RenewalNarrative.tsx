@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export function RenewalNarrative() {
+export default function RenewalNarrative() {
   const [value, setValue] = useState("");
 
   return (

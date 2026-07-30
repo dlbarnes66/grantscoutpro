@@ -3,11 +3,16 @@
 import { useState } from "react";
 import { BellIcon } from "@heroicons/react/24/outline";
 
+interface NotificationItem {
+  id: number;
+  text: string;
+}
+
 export default function NotificationBell() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState<boolean>(false);
 
   // Placeholder notifications
-  const notifications = [
+  const notifications: NotificationItem[] = [
     { id: 1, text: "Your grant search job has completed." },
     { id: 2, text: "A new grant matches your saved search." },
     { id: 3, text: "Your account was accessed from a new device." },

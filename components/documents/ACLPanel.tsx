@@ -36,7 +36,7 @@ export default function ACLPanel({ workspaceId, documentId }) {
           targetUserId: userId,
           canView: field === "canView" ? value : acl.find(a => a.userId === userId)?.canView,
           canEdit: field === "canEdit" ? value : acl.find(a => a.userId === userId)?.canEdit,
-          canRunAI: field === "canRunAI" ? value : acl.find(a => a.userId === userId)?.canRunAI,
+          canRunDocumentAI: field === "canRunDocumentAI" ? value : acl.find(a => a.userId === userId)?.canRunDocumentAI,
         }),
       }
     );
@@ -88,8 +88,8 @@ export default function ACLPanel({ workspaceId, documentId }) {
             <label>
               <input
                 type="checkbox"
-                checked={entry.canRunAI}
-                onChange={e => updateACL(entry.userId, "canRunAI", e.target.checked)}
+                checked={entry.canRunDocumentAI}
+                onChange={e => updateACL(entry.userId, "canRunDocumentAI", e.target.checked)}
               />
               Run AI
             </label>

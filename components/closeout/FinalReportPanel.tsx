@@ -2,8 +2,16 @@
 
 import { useState } from "react";
 
-export function FinalReportPanel() {
-  const [value, setValue] = useState("");
+export interface FinalReportData {
+  content: string;
+}
+
+export function FinalReportPanel({
+  initial
+}: {
+  initial?: FinalReportData;
+}) {
+  const [value, setValue] = useState(initial?.content ?? "");
 
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 space-y-4">

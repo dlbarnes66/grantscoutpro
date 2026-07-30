@@ -1,4 +1,12 @@
-export function ConsensusSummary({ consensus }: { consensus: any }) {
+"use client";
+
+import { ConsensusData } from "./types";
+
+export default function ConsensusSummary({
+  consensus
+}: {
+  consensus: ConsensusData;
+}) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 space-y-4">
       <h2 className="text-sm font-semibold text-slate-100">
@@ -11,12 +19,12 @@ export function ConsensusSummary({ consensus }: { consensus: any }) {
 
       <div className="space-y-2 text-sm text-slate-300">
         <div className="font-semibold text-slate-100">Strengths</div>
-        {consensus.strengths.map((s: string, i: number) => (
+        {consensus.strengths.map((s, i) => (
           <div key={i}>• {s}</div>
         ))}
 
         <div className="font-semibold text-slate-100 pt-3">Weaknesses</div>
-        {consensus.weaknesses.map((w: string, i: number) => (
+        {consensus.weaknesses.map((w, i) => (
           <div key={i}>• {w}</div>
         ))}
       </div>

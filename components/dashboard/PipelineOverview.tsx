@@ -1,7 +1,9 @@
 "use client";
 
+import { PipelineStage } from "./types";
+
 export default function PipelineOverview() {
-  const stages = [
+  const stages: PipelineStage[] = [
     { label: "Searching", count: 12 },
     { label: "Drafting", count: 4 },
     { label: "Budgeting", count: 3 },

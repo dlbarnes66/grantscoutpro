@@ -1,4 +1,13 @@
-export function WorkspaceShell({ title, children }) {
+"use client";
+
+import { ReactNode } from "react";
+
+interface WorkspaceShellProps {
+  title: string;
+  children: ReactNode;
+}
+
+export default function WorkspaceShell({ title, children }: WorkspaceShellProps) {
   return (
     <div className="max-w-6xl mx-auto">
       <h1 className="text-3xl font-bold text-white mb-4">{title}</h1>

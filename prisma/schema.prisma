@@ -2,6 +2,7 @@ generator client {
   provider = "prisma-client-js"
 }
 
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -12,46 +13,30 @@ model User {
   name          String?
   email         String?   @unique
   password      String?
-  emailVerified DateTime?
   image         String?
+  emailVerified DateTime?
 
   role       String  @default("user")
   superAdmin Boolean @default(false)
 
-  accounts             Account[]
-  sessions             Session[]
-  jobs                 Job[]                @relation("UserJobs")
-  searchHistory        SearchHistory[]
-  savedSearches        SavedSearch[]
-  savedGrants          SavedGrant[]
-  comparisons          GrantComparison[]
-  comments             ComparisonComment[]
-  notifications        Notification[]
-  applicationHistories ApplicationHistory[]
-  applications         Application[]
-
-  profile UserProfile?
-
-  // Stripe
   stripeCustomerId String?   @unique
   planName         String?
   status           String?
   renewalDate      DateTime?
 
-  // Workspace membership + invites
   workspaceMembers WorkspaceMember[]
   workspaceInvites WorkspaceInvite[]
+  ownedWorkspaces  Workspace[]       @relation("WorkspaceOwner")
 
-  // Inverse for Workspace.owner
-  ownedWorkspaces Workspace[] @relation("WorkspaceOwner")
+  accounts Account[]
+  sessions Session[]
 
-  grantDrafts GrantDraft[]
+  profile UserProfile?
 
-  narratives Narrative[]
-  reports    Report[]
-  auditLogs  AuditLog[]
-
-  portfolioOptimizations PortfolioOptimization[]
+  applications         Application[]
+  applicationHistories ApplicationHistory[]
+  grantDrafts          GrantDraft[]
+  narratives           Narrative[]
 
   postAwardHistory          PostAwardHistory[]
   renewalHistory            RenewalHistory[]
@@ -79,36 +64,58 @@ model User {
   outreachHistory           OutreachHistory[]
   budgetHistory             BudgetHistory[]
 
-  ApiKey           ApiKey[]
+  grantTruthfulnessHistory GrantTruthfulnessHistory[]
+  grantEvidenceHistory     GrantEvidenceHistory[]
+  grantCompletenessHistory GrantCompletenessHistory[]
+  grantQualityHistory      GrantQualityHistory[]
+  grantOptimizationHistory GrantOptimizationHistory[]
+  grantEnhancementHistory  GrantEnhancementHistory[]
+  grantAuditHistory        GrantAuditHistory[]
+  grantReviewerHistory     GrantReviewerHistory[]
+  grantDecisionHistory     GrantDecisionHistory[]
+
+  searchHistory SearchHistory[]
+  savedSearches SavedSearch[]
+  savedGrants   SavedGrant[]
+
+  comparisons GrantComparison[]
+  comments    ComparisonComment[]
+
+  notifications          Notification[]
+  workspaceNotifications WorkspaceNotification[]
+  workspaceReports       WorkspaceReport[]
+
   DocumentPatch    DocumentPatch[]
   Document         Document[]
   DocumentSnapshot DocumentSnapshot[]
   DocumentVersion  DocumentVersion[]
   File             File[]
-
-  // Messaging
-  sentMessages     Message[]          @relation("SentMessages")
-  receivedMessages Message[]          @relation("ReceivedMessages")
   DocumentMessage  DocumentMessage[]
   DocumentComment  DocumentComment[]
   DocumentPresence DocumentPresence[]
   Embedding        Embedding[]
 
-  // Workspace activity
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+
   activities WorkspaceActivity[]
 
-  // Inverse for WorkspaceNotification.user
-  workspaceNotifications WorkspaceNotification[]
-
-  // Inverse for WorkspaceReport.user
-  workspaceReports WorkspaceReport[]
-
-  // FIXED ACL RELATIONS
   documentAccess DocumentAccess[]
   grantAccess    GrantAccess[]
 
-  // AI Usage (inverse relation)
   aiUsage AiUsage[]
+
+  jobs Job[] @relation("UserJobs")
+
+  // REQUIRED opposite relation for Automation.user
+  automations Automation[]
+
+  Org                   Org?                    @relation(fields: [orgId], references: [id])
+  orgId                 String?
+  ApiKey                ApiKey?
+  Report                Report[]
+  AuditLog              AuditLog[]
+  PortfolioOptimization PortfolioOptimization[]
 }
 
 model Account {
@@ -191,41 +198,33 @@ model Workspace {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Owner
   ownerId String
   owner   User   @relation("WorkspaceOwner", fields: [ownerId], references: [id])
 
-  // Members
   members WorkspaceMember[] @relation("WorkspaceToMember")
   invites WorkspaceInvite[] @relation("WorkspaceToInvite")
 
-  // Grants & Intelligence
-  grants      Grant[]            @relation("WorkspaceToGrant")
+  grants      Grant[]           @relation("WorkspaceToGrant")
   comparisons GrantComparison[]
 
-  // Insights (Primary + Secondary)
   insights          WorkspaceInsight[] @relation("PrimaryInsights")
   workspaceInsights WorkspaceInsight[] @relation("SecondaryInsights")
 
-  // Analytics & Notifications
   searchAnalytics        SearchAnalytics[]
   workspaceNotifications WorkspaceNotification[] @relation("WorkspaceToNotification")
 
-  // Applications
   applications Application[]
   reports      WorkspaceReport[] @relation("WorkspaceToReport")
   budgets      WorkspaceBudget[] @relation("WorkspaceToBudget")
 
-  // Workspace-level Documents & Files
-  documents  WorkspaceDocument[] @relation("WorkspaceToDocument")
-  files      WorkspaceFile[]     @relation("WorkspaceToFile")
+  documents  WorkspaceDocument[]  @relation("WorkspaceToDocument")
+  files      WorkspaceFile[]      @relation("WorkspaceToFile")
   embeddings WorkspaceEmbedding[]
 
-  // Addons + Addon Billing
-  addons        WorkspaceAddon[]   @relation("WorkspaceToAddon")
-  addonBillings AddonBilling[]     @relation("WorkspaceToAddonBilling")
+  addons        WorkspaceAddon[]  @relation("WorkspaceToAddon")
+  addonBillings AddonBilling[]    @relation("WorkspaceToAddonBilling")
+  billing       WorkspaceBilling? @relation("WorkspaceToBilling")
 
-  // Global models referencing Workspace
   userDocuments      Document[]
   userFiles          File[]
   globalEmbeddings   Embedding[]
@@ -234,50 +233,58 @@ model Workspace {
   documentEmbeddings DocumentEmbedding[]
   fileEmbeddings     FileEmbedding[]
 
-  // Billing (one-to-one)
-  billing WorkspaceBilling? @relation("WorkspaceToBilling")
-
-  // ─────────────────────────────────────────
-  // Workspace-level billing + seats + trials
-  // ─────────────────────────────────────────
-
   stripeCustomerId   String?
-  subscriptionTier   String   @default("basic")
-  billingStatus      String   @default("inactive")
-  billingPeriod      String   @default("monthly")
+  subscriptionTier   String    @default("basic")
+  billingStatus      String    @default("inactive")
+  billingPeriod      String    @default("monthly")
   billingRenewalDate DateTime?
 
   maxSeats     Int @default(1)
   currentSeats Int @default(1)
 
-  trialStart        DateTime?
-  trialEnd          DateTime?
-  trialActive       Boolean  @default(false)
-  trialLocked       Boolean  @default(false)
+  trialStart         DateTime?
+  trialEnd           DateTime?
+  trialActive        Boolean   @default(false)
+  trialLocked        Boolean   @default(false)
   trialDaysRemaining Int?
   trialBannerColor   String?
-  trialPromoCode     String? @default("promo10")
+  trialPromoCode     String?   @default("promo10")
 
-  pilotMode        Boolean   @default(false)
-  pilotActive      Boolean   @default(false)
-  pilotStart       DateTime?
-  pilotEndsAt      DateTime?
-  pilotLocked      Boolean   @default(false)
-  pilotTier        String?
-  allowedDowngradeTiers String[] @default(["basic", "team"])
+  pilotMode             Boolean   @default(false)
+  pilotActive           Boolean   @default(false)
+  pilotStart            DateTime?
+  pilotEndsAt           DateTime?
+  pilotLocked           Boolean   @default(false)
+  pilotTier             String?
+  allowedDowngradeTiers String[]  @default(["basic", "team"])
 
-  // Organization
   state String?
   orgId String?
   org   Org?    @relation(fields: [orgId], references: [id])
 
-  // Activity
   activities WorkspaceActivity[] @relation("WorkspaceToActivity")
 
-  // AI Usage
   aiUsage AiUsage[] @relation("WorkspaceToAiUsage")
-}
 
+  grantTruthfulnessHistory GrantTruthfulnessHistory[]
+  grantEvidenceHistory     GrantEvidenceHistory[]
+  grantCompletenessHistory GrantCompletenessHistory[]
+  grantQualityHistory      GrantQualityHistory[]
+  grantOptimizationHistory GrantOptimizationHistory[]
+  grantEnhancementHistory  GrantEnhancementHistory[]
+  grantAuditHistory        GrantAuditHistory[]
+  grantReviewerHistory     GrantReviewerHistory[]
+  grantDecisionHistory     GrantDecisionHistory[]
+
+  // REQUIRED opposite relation for Automation.workspace
+  automations Automation[]
+
+  // REQUIRED opposite relation for AutomationRun.workspace
+  automationRuns AutomationRun[]
+
+  // REQUIRED opposite relation for RiskHistory.workspace
+  riskHistory RiskHistory[]
+}
 
 model WorkspaceMember {
   id          String   @id @default(cuid())
@@ -286,10 +293,7 @@ model WorkspaceMember {
   role        String   @default("member")
   createdAt   DateTime @default(now())
 
-  // Correct relation to Workspace
   workspace Workspace @relation("WorkspaceToMember", fields: [workspaceId], references: [id])
-
-  // Relation to User
   user      User      @relation(fields: [userId], references: [id])
 
   @@unique([workspaceId, userId])
@@ -303,13 +307,9 @@ model WorkspaceInvite {
   status      String   @default("pending")
   createdAt   DateTime @default(now())
 
-  // Correct relation to Workspace
   workspace Workspace @relation("WorkspaceToInvite", fields: [workspaceId], references: [id])
-
-  // Relation to User
-  invitedBy User @relation(fields: [invitedById], references: [id])
+  invitedBy User      @relation(fields: [invitedById], references: [id])
 }
-
 
 model SearchAnalytics {
   id        String   @id @default(cuid())
@@ -331,10 +331,7 @@ model WorkspaceActivity {
   metadata    Json?
   createdAt   DateTime @default(now())
 
-  // Correct relation to Workspace
   workspace Workspace @relation("WorkspaceToActivity", fields: [workspaceId], references: [id])
-
-  // Relation to User
   user      User?     @relation(fields: [userId], references: [id])
 }
 
@@ -350,13 +347,9 @@ model WorkspaceNotification {
   message String
   read    Boolean @default(false)
 
-  // Correct relation to Workspace
   workspace Workspace @relation("WorkspaceToNotification", fields: [workspaceId], references: [id])
-
-  // Relation to User
   user      User?     @relation(fields: [userId], references: [id])
 }
-
 
 model WorkspaceReport {
   id          String   @id @default(cuid())
@@ -367,10 +360,7 @@ model WorkspaceReport {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  // Correct relation to Workspace
   workspace Workspace @relation("WorkspaceToReport", fields: [workspaceId], references: [id])
-
-  // Relation to User
   user      User?     @relation(fields: [userId], references: [id])
 }
 
@@ -382,7 +372,6 @@ model WorkspaceBudget {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  // Correct relation to Workspace
   workspace Workspace @relation("WorkspaceToBudget", fields: [workspaceId], references: [id])
 }
 
@@ -392,10 +381,8 @@ model WorkspaceDocument {
   title       String
   content     String?
 
-  // Correct relation to Workspace
   workspace Workspace @relation("WorkspaceToDocument", fields: [workspaceId], references: [id])
 
-  // ACL relation
   accessList DocumentAccess[]
 
   createdAt DateTime @default(now())
@@ -412,10 +399,8 @@ model WorkspaceFile {
   storage     String
   createdAt   DateTime @default(now())
 
-  // Correct relation to Workspace
   workspace Workspace @relation("WorkspaceToFile", fields: [workspaceId], references: [id])
 }
-
 
 model WorkspaceEmbedding {
   id          String   @id @default(cuid())
@@ -440,41 +425,34 @@ model WorkspaceBilling {
   periodStart          DateTime  @default(now())
   periodEnd            DateTime?
 
-  // Correct relation to Workspace
   workspace Workspace @relation("WorkspaceToBilling", fields: [workspaceId], references: [id])
 }
 
-
 model WorkspaceAddon {
-  id           String   @id @default(cuid())
-  workspaceId  String
-  addonType    String
-  active       Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id          String   @id @default(cuid())
+  workspaceId String
+  addonType   String
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  // Correct relation to Workspace
   workspace Workspace @relation("WorkspaceToAddon", fields: [workspaceId], references: [id])
 
-  // Billing for this addon
   addonBillings AddonBilling[]
 }
 
 model AddonBilling {
-  id           String   @id @default(cuid())
-  workspaceId  String
-  addonId      String
-  amount       Int
-  period       String   // "monthly" | "annual"
-  status       String   @default("inactive")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id          String   @id @default(cuid())
+  workspaceId String
+  addonId     String
+  amount      Int
+  period      String
+  status      String   @default("inactive")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  // Correct relation to Workspace
-  workspace Workspace @relation("WorkspaceToAddonBilling", fields: [workspaceId], references: [id])
-
-  // Correct relation to WorkspaceAddon
-  addon WorkspaceAddon @relation(fields: [addonId], references: [id])
+  workspace Workspace      @relation("WorkspaceToAddonBilling", fields: [workspaceId], references: [id])
+  addon     WorkspaceAddon @relation(fields: [addonId], references: [id])
 }
 
 model WorkspaceInsight {
@@ -488,13 +466,9 @@ model WorkspaceInsight {
   description String?
   aiScore     Float?
 
-  // Primary Workspace relation
   workspacePrimary   Workspace @relation("PrimaryInsights", fields: [primaryWorkspaceId], references: [id])
-
-  // Secondary Workspace relation
   workspaceSecondary Workspace @relation("SecondaryInsights", fields: [secondaryWorkspaceId], references: [id])
 }
-
 
 model Application {
   id        String   @id @default(cuid())
@@ -509,7 +483,6 @@ model Application {
 
   versions ApplicationVersion[]
 
-  // Added to match Workspace.applications
   workspaceId String?
   workspace   Workspace? @relation(fields: [workspaceId], references: [id])
 }
@@ -520,17 +493,18 @@ model Embedding {
   workspaceId String
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
 
-  documentId String?
-  document   Document? @relation(fields: [documentId], references: [id])
-
   userId String?
   user   User?   @relation(fields: [userId], references: [id])
 
+  documentId String?
+  document   Document? @relation(fields: [documentId], references: [id])
+
+  grantPageId String?
+  GrantPage   GrantPage? @relation(fields: [grantPageId], references: [id])
+
   vector Float[]
 
-  createdAt   DateTime   @default(now())
-  GrantPage   GrantPage? @relation(fields: [grantPageId], references: [id])
-  grantPageId String?
+  createdAt DateTime @default(now())
 }
 
 model Document {
@@ -541,26 +515,24 @@ model Document {
   content     Json?
   createdAt   DateTime @default(now())
 
-  lockedBy    String?
+  lockedBy String?
 
-  // Semantic Engine Fields
-  embedding   Float[]       // Primary embedding vector
-  summary     String?       // Semantic summary of the document
-  matchScore  Float?        // Score from semantic search
-  updatedAt   DateTime? @updatedAt
+  embedding  Float[]
+  summary    String?
+  matchScore Float?
+  updatedAt  DateTime? @updatedAt
 
-  // Relations
-  workspace         Workspace?        @relation(fields: [workspaceId], references: [id])
-  user              User?             @relation(fields: [userId], references: [id])
+  workspace Workspace? @relation(fields: [workspaceId], references: [id])
+  user      User?      @relation(fields: [userId], references: [id])
 
-  patches           DocumentPatch[]
-  versions          DocumentVersion[]
-  snapshots         DocumentSnapshot[]
-  DocumentMessage   DocumentMessage[]
-  DocumentComment   DocumentComment[]
-  DocumentPresence  DocumentPresence[]
-  Embedding         Embedding[]
-  File              File[]
+  patches          DocumentPatch[]
+  versions         DocumentVersion[]
+  snapshots        DocumentSnapshot[]
+  DocumentMessage  DocumentMessage[]
+  DocumentComment  DocumentComment[]
+  DocumentPresence DocumentPresence[]
+  Embedding        Embedding[]
+  File             File[]
 
   documentEmbeddings DocumentEmbedding[]
 }
@@ -576,17 +548,17 @@ model Budget {
 }
 
 model DocumentEmbedding {
-  id          String   @id @default(cuid())
+  id          String @id @default(cuid())
   documentId  String
   workspaceId String
   content     String
 
-  embedding   Bytes
+  embedding Bytes
 
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
 
-  document    Document   @relation(fields: [documentId], references: [id])
-  workspace   Workspace  @relation(fields: [workspaceId], references: [id])
+  document  Document  @relation(fields: [documentId], references: [id])
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
 
   @@index([workspaceId])
   @@index([documentId])
@@ -639,35 +611,75 @@ enum GrantTierAccess {
 }
 
 model Grant {
-  id           String    @id @default(cuid())
-  workspaceId  String
-  title        String
-  description  String?
-  category     String?
-  agency       String?
-  summary      String?
-  amount       Float?
-  deadline     DateTime?
-  openDate     DateTime?
-  url          String?
-  industry     String?
-  location     String?
-  fundingRange String?
-  status       String    @default("open")
-  embedding    Float[]   @default([])
+  id          String   @id @default(cuid())
+  workspaceId String
 
-  raw Json?
+  title       String
+  description String?
+  category    String?
+  agency      String?
+  summary     String?
+  status      String   @default("open")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  amount         Float?
+  amountMin      Float?
+  amountMax      Float?
+  totalFunding   Float?
+  awardFloor     Float?
+  awardCeiling   Float?
+  expectedAwards Int?
 
-  applicationHistories ApplicationHistory[]
-  applications         Application[]
+  deadline    DateTime?
+  openDate    DateTime?
+  postedDate  DateTime?
+  updatedDate DateTime?
 
-  // Correct relation to Workspace
+  industry             String?
+  location             String?
+  eligibleStates       String?
+  geographicFocus      String?
+  eligibleApplicants   String?
+  ineligibleApplicants String?
+  eligibility          Json?
+
+  foundationName         String?
+  foundationEIN          String?
+  foundationMission      String?
+  foundationRestrictions String?
+  foundationGivingAreas  String?
+  foundationPastGrantees Json?
+  foundationBoardMembers Json?
+  foundation990PF        Json?
+
+  philanthropicType    String?
+  philanthropicFocus   String?
+  philanthropicHistory Json?
+
+  aiEligibilityScore     Float?
+  aiAlignmentScore       Float?
+  aiCompetitivenessScore Float?
+  aiRiskScore            Float?
+  aiReadinessScore       Float?
+  aiSummary              String?
+  aiRecommendations      Json?
+
+  embedding Float[] @default([])
+  raw       Json?
+
+  url String?   // ⭐ Added field
+
   workspace Workspace @relation("WorkspaceToGrant", fields: [workspaceId], references: [id])
 
-  narratives Narrative[]
+  applications         Application[]
+  applicationHistories ApplicationHistory[]
+
+  narratives        Narrative[]
+  documents         GrantDocument[]
+  GrantDraft        GrantDraft[]
+  GrantSection      GrantSection[]
+  ClusterAssignment ClusterAssignment[]
 
   postAwardHistory          PostAwardHistory[]
   renewalHistory            RenewalHistory[]
@@ -695,59 +707,24 @@ model Grant {
   outreachHistory           OutreachHistory[]
   budgetHistory             BudgetHistory[]
 
-  documents         GrantDocument[]
-  GrantDraft        GrantDraft[]
-  GrantSection      GrantSection[]
-  ClusterAssignment ClusterAssignment[]
-
-  source     GrantSource     @default(FEDERAL)
-  tierAccess GrantTierAccess @default(FEDERAL_ONLY)
-
-  amountMin      Float?
-  amountMax      Float?
-  totalFunding   Float?
-  awardFloor     Float?
-  awardCeiling   Float?
-  expectedAwards Int?
-
-  postedDate  DateTime?
-  updatedDate DateTime?
-
-  eligibility          Json?
-  eligibleApplicants   String?
-  ineligibleApplicants String?
-
-  eligibleStates  String?
-  geographicFocus String?
-
-  foundationName         String?
-  foundationEIN          String?
-  foundationMission      String?
-  foundationRestrictions String?
-  foundationGivingAreas  String?
-  foundationPastGrantees Json?
-  foundationBoardMembers Json?
-  foundation990PF        Json?
-
-  philanthropicType    String?
-  philanthropicFocus   String?
-  philanthropicHistory Json?
-
-  aiEligibilityScore     Float?
-  aiAlignmentScore       Float?
-  aiCompetitivenessScore Float?
-  aiRiskScore            Float?
-  aiReadinessScore       Float?
-
-  aiSummary         String?
-  aiRecommendations Json?
+  truthfulnessHistory  GrantTruthfulnessHistory[]
+  evidenceHistory      GrantEvidenceHistory[]
+  completenessHistory  GrantCompletenessHistory[]
+  qualityHistory       GrantQualityHistory[]
+  optimizationHistory  GrantOptimizationHistory[]
+  enhancementHistory   GrantEnhancementHistory[]
+  auditHistory         GrantAuditHistory[]
+  grantReviewerHistory GrantReviewerHistory[]
+  decisionHistory      GrantDecisionHistory[]
 
   tags                  String[]
   SavedGrant            SavedGrant[]
   PortfolioOptimization PortfolioOptimization[]
   GrantAccess           GrantAccess[]
-}
 
+  source     GrantSource     @default(FEDERAL)
+  tierAccess GrantTierAccess @default(FEDERAL_ONLY)
+}
 
 model GrantDocument {
   id        String   @id @default(cuid())
@@ -828,15 +805,17 @@ model ReviewerHistory {
 }
 
 model RiskHistory {
-  id        String   @id @default(cuid())
-  userId    String
-  grantId   String
-  riskLevel String?
-  notes     String?
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  userId      String
+  grantId     String
+  workspaceId String? // REQUIRED
+  riskLevel   String?
+  notes       String?
+  createdAt   DateTime @default(now())
 
-  user  User  @relation(fields: [userId], references: [id])
-  grant Grant @relation(fields: [grantId], references: [id])
+  user      User       @relation(fields: [userId], references: [id])
+  grant     Grant      @relation(fields: [grantId], references: [id])
+  workspace Workspace? @relation(fields: [workspaceId], references: [id])
 }
 
 model SubmissionHistory {
@@ -1154,6 +1133,8 @@ model Org {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  users User[]
+
   auditLogs       AuditLog[]
   ownedResources  SharedResource[] @relation("OwnedResources")
   sharedResources SharedResource[] @relation("SharedResources")
@@ -1234,6 +1215,7 @@ model JobLog {
   id        String   @id @default(cuid())
   jobId     String
   message   String
+  name      String?
   createdAt DateTime @default(now())
 
   job Job @relation(fields: [jobId], references: [id])
@@ -1516,10 +1498,301 @@ model AiUsage {
   cost        Float
   createdAt   DateTime @default(now())
 
-  // Correct relation to Workspace
   workspace Workspace @relation("WorkspaceToAiUsage", fields: [workspaceId], references: [id])
-
-  // Relation to User
   user      User?     @relation(fields: [userId], references: [id])
 }
 
+model GrantTruthfulnessHistory {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  workspaceId String
+  userId      String
+  grantId     String
+
+  factualAccuracy   Int
+  evidenceAlignment Int
+  truthConsistency  Int
+  narrativeTruth    Int
+  dataTruth         Int
+  scoringTruth      Int
+  overall           Int
+
+  analysis           String
+  factualFactors     String
+  evidenceFactors    String
+  consistencyFactors String
+  narrativeFactors   String
+  dataFactors        String
+  scoringFactors     String
+  strategy           String
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  grant     Grant     @relation(fields: [grantId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+}
+
+model GrantEvidenceHistory {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  workspaceId String
+  userId      String
+  grantId     String
+
+  evidenceStrength    Int
+  evidenceRelevance   Int
+  evidenceSufficiency Int
+  evidenceConsistency Int
+  evidenceQuality     Int
+  evidenceAlignment   Int
+  overall             Int
+
+  analysis           String
+  strengthFactors    String
+  relevanceFactors   String
+  sufficiencyFactors String
+  consistencyFactors String
+  qualityFactors     String
+  alignmentFactors   String
+  strategy           String
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  grant     Grant     @relation(fields: [grantId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+}
+
+model GrantCompletenessHistory {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  workspaceId String
+  userId      String
+  grantId     String
+
+  sectionCompleteness     Int
+  narrativeCompleteness   Int
+  dataCompleteness        Int
+  complianceCompleteness  Int
+  applicationCompleteness Int
+  evidenceCompleteness    Int
+  overall                 Int
+
+  analysis           String
+  sectionFactors     String
+  narrativeFactors   String
+  dataFactors        String
+  complianceFactors  String
+  applicationFactors String
+  evidenceFactors    String
+  strategy           String
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  grant     Grant     @relation(fields: [grantId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+}
+
+model GrantQualityHistory {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  workspaceId String
+  userId      String
+  grantId     String
+
+  writingQuality      Int
+  structuralQuality   Int
+  professionalQuality Int
+  persuasiveQuality   Int
+  strategicQuality    Int
+  reviewerQuality     Int
+  overall             Int
+
+  analysis            String
+  writingFactors      String
+  structuralFactors   String
+  professionalFactors String
+  persuasiveFactors   String
+  strategicFactors    String
+  reviewerFactors     String
+  strategy            String
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  grant     Grant     @relation(fields: [grantId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+}
+
+model GrantOptimizationHistory {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  workspaceId String
+  userId      String
+  grantId     String
+
+  narrativeOptimization  Int
+  budgetOptimization     Int
+  timelineOptimization   Int
+  strategyOptimization   Int
+  complianceOptimization Int
+  readinessOptimization  Int
+  overall                Int
+
+  analysis          String
+  narrativeFactors  String
+  budgetFactors     String
+  timelineFactors   String
+  strategyFactors   String
+  complianceFactors String
+  readinessFactors  String
+  strategy          String
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  grant     Grant     @relation(fields: [grantId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+}
+
+model GrantEnhancementHistory {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  workspaceId String
+  userId      String
+  grantId     String
+
+  narrativeEnhancement  Int
+  structuralEnhancement Int
+  persuasiveEnhancement Int
+  complianceEnhancement Int
+  evidenceEnhancement   Int
+  strategicEnhancement  Int
+  overall               Int
+
+  analysis          String
+  narrativeFactors  String
+  structuralFactors String
+  persuasiveFactors String
+  complianceFactors String
+  evidenceFactors   String
+  strategicFactors  String
+  strategy          String
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  grant     Grant     @relation(fields: [grantId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+}
+
+model GrantAuditHistory {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  workspaceId String
+  userId      String
+  grantId     String
+
+  complianceAudit    Int
+  financialAudit     Int
+  documentationAudit Int
+  riskAudit          Int
+  eligibilityAudit   Int
+  integrityAudit     Int
+  overall            Int
+
+  analysis             String
+  complianceFactors    String
+  financialFactors     String
+  documentationFactors String
+  riskFactors          String
+  eligibilityFactors   String
+  integrityFactors     String
+  strategy             String
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  grant     Grant     @relation(fields: [grantId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+}
+
+model GrantReviewerHistory {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  workspaceId String
+  userId      String
+  grantId     String
+
+  reviewerFit             Int
+  reviewerMerit           Int
+  reviewerCapacity        Int
+  reviewerFeasibility     Int
+  reviewerImpact          Int
+  reviewerCompetitiveness Int
+  overall                 Int
+
+  analysis               String
+  fitFactors             String
+  meritFactors           String
+  capacityFactors        String
+  feasibilityFactors     String
+  impactFactors          String
+  competitivenessFactors String
+  strategy               String
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  grant     Grant     @relation(fields: [grantId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+}
+
+model GrantDecisionHistory {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  workspaceId String
+  userId      String
+  grantId     String
+
+  decisionReadiness     Int
+  decisionConfidence    Int
+  decisionRisk          Int
+  decisionOpportunity   Int
+  decisionStrategyScore Int
+  overall               Int
+
+  decisionOutcome String
+
+  analysis           String
+  readinessFactors   String
+  confidenceFactors  String
+  riskFactors        String
+  opportunityFactors String
+  strategyFactors    String
+  strategy           String
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  grant     Grant     @relation(fields: [grantId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+}
+
+model Automation {
+  id          String   @id @default(cuid())
+  workspaceId String
+  userId      String
+  type        String
+  frequency   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace       @relation(fields: [workspaceId], references: [id])
+  user      User            @relation(fields: [userId], references: [id])
+  runs      AutomationRun[]
+}
+
+model AutomationRun {
+  id           String   @id @default(cuid())
+  workspaceId  String
+  automationId String
+  results      String
+  createdAt    DateTime @default(now())
+
+  workspace  Workspace  @relation(fields: [workspaceId], references: [id])
+  automation Automation @relation(fields: [automationId], references: [id])
+}

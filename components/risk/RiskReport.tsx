@@ -1,4 +1,12 @@
-export function RiskReport({ report }: { report: any }) {
+"use client";
+
+import { RiskReportData } from "./types";
+
+export default function RiskReport({
+  report
+}: {
+  report: RiskReportData;
+}) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 space-y-6">
       <div>
@@ -20,7 +28,7 @@ export function RiskReport({ report }: { report: any }) {
           Compliance Issues
         </h2>
         <ul className="space-y-1 text-sm text-red-300">
-          {report.compliance_issues.map((i: string, idx: number) => (
+          {report.compliance_issues.map((i, idx) => (
             <li key={idx}>• {i}</li>
           ))}
         </ul>
@@ -31,7 +39,7 @@ export function RiskReport({ report }: { report: any }) {
           Recommendations
         </h2>
         <ul className="space-y-1 text-sm text-green-300">
-          {report.recommendations.map((r: string, idx: number) => (
+          {report.recommendations.map((r, idx) => (
             <li key={idx}>• {r}</li>
           ))}
         </ul>

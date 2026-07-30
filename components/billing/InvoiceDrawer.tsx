@@ -1,10 +1,12 @@
 "use client";
 
+import { Invoice } from "./types";
+
 export function InvoiceDrawer({
   invoice,
   onClose
 }: {
-  invoice: any;
+  invoice: Invoice;
   onClose: () => void;
 }) {
   return (

@@ -1,4 +1,8 @@
-export function TeamMembers({ members }: { members: any[] }) {
+"use client";
+
+import { MemberItem } from "./types";
+
+export function TeamMembers({ members }: { members: MemberItem[] }) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6">
       <h2 className="text-sm font-semibold text-slate-100 mb-4">

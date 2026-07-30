@@ -16,11 +16,17 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
+interface SidebarNavItem {
+  name: string;
+  href: string;
+  icon: (props: React.ComponentProps<"svg">) => JSX.Element;
+}
+
 export default function Sidebar() {
   const pathname = usePathname();
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState<boolean>(true);
 
-  const navItems = [
+  const navItems: SidebarNavItem[] = [
     { name: "Home", href: "/", icon: Home },
     { name: "Search Grants", href: "/search", icon: Search },
     { name: "Search History", href: "/history", icon: History },
@@ -75,9 +81,7 @@ export default function Sidebar() {
 
       {/* Footer */}
       <div className="absolute bottom-0 w-full px-2 py-4 border-t">
-        <button
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 w-full"
-        >
+        <button className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 w-full">
           <LogOut className="w-5 h-5" />
           {open && <span className="text-sm font-medium">Logout</span>}
         </button>

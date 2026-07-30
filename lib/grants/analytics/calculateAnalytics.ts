@@ -1,11 +1,14 @@
-export function calculateAnalytics(grants: any[]) {
+// lib/grants/analytics/calculateAnalytics.ts
+
+import { Grant } from "@prisma/client";
+
+export function calculateAnalytics(grants: Grant[]) {
   const categories: Record<string, number> = {};
   const agencies: Record<string, number> = {};
   const states: Record<string, number> = {};
   const foundations: Record<string, number> = {};
 
   let totalFunding = 0;
-  let avgFunding = 0;
 
   let aiEligibilityAvg = 0;
   let aiAlignmentAvg = 0;

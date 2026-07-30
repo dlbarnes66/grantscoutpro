@@ -2,7 +2,11 @@
 
 import { SparklesIcon } from "@heroicons/react/24/outline";
 
-export function AIRenewalRecommendations({ insights }: { insights: string }) {
+export default function AIRenewalRecommendations({
+  insights
+}: {
+  insights: string;
+}) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 space-y-4">
       <div className="flex items-center gap-2">

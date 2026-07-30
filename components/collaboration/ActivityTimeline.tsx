@@ -1,4 +1,8 @@
-export function ActivityTimeline({ activity }: { activity: any[] }) {
+"use client";
+
+import { ActivityItem } from "./types";
+
+export function ActivityTimeline({ activity }: { activity: ActivityItem[] }) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 space-y-4">
       <h2 className="text-sm font-semibold text-slate-100">

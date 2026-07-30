@@ -1,11 +1,13 @@
 "use client";
 
+import { AdminUser } from "./types";
+
 export function UserStatusPanel({
   user,
   onUpdate
 }: {
-  user: any;
-  onUpdate: (u: any) => void;
+  user: AdminUser;
+  onUpdate: (u: AdminUser) => void;
 }) {
   function suspend() {
     onUpdate({ ...user, status: "suspended" });

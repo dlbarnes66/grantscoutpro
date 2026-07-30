@@ -1,15 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { AdminUser } from "./types";
 
 export function RoleEditor({
   user,
   onUpdate
 }: {
-  user: any;
-  onUpdate: (u: any) => void;
+  user: AdminUser;
+  onUpdate: (u: AdminUser) => void;
 }) {
-  const [role, setRole] = useState(user.role);
+  const [role, setRole] = useState<AdminUser["role"]>(user.role);
 
   function save() {
     onUpdate({ ...user, role });
@@ -23,7 +24,7 @@ export function RoleEditor({
 
       <select
         value={role}
-        onChange={(e) => setRole(e.target.value)}
+        onChange={(e) => setRole(e.target.value as AdminUser["role"])}
         className="w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 text-sm"
       >
         <option value="Owner">Owner</option>

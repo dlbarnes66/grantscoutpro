@@ -2,21 +2,27 @@
 
 import { useState, useEffect } from "react";
 import { useDocumentACL } from "@/lib/security/useDocumentACL";
+import { DocumentData, DocumentACL } from "../documents/types";
 
-export default function DocumentEditor({ workspaceId, documentId }) {
-  const acl = useDocumentACL(workspaceId, documentId);
+export default function DocumentEditor({
+  workspaceId,
+  documentId
+}: {
+  workspaceId: string;
+  documentId: string;
+}) {
+  const acl: DocumentACL = useDocumentACL(workspaceId, documentId);
 
-  const [doc, setDoc] = useState(null);
+  const [doc, setDoc] = useState<DocumentData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Load document content
   useEffect(() => {
     async function loadDoc() {
       const res = await fetch(
         `/api/workspaces/${workspaceId}/documents/${documentId}/editor`
       );
-      const data = await res.json();
+      const data: DocumentData = await res.json();
       setDoc(data);
       setLoading(false);
     }
@@ -24,11 +30,10 @@ export default function DocumentEditor({ workspaceId, documentId }) {
     loadDoc();
   }, [workspaceId, documentId]);
 
-  if (acl.loading || loading) {
+  if (acl.loading || loading || !doc) {
     return <div className="p-4">Loading document...</div>;
   }
 
-  // Block view entirely
   if (!acl.canView) {
     return (
       <div className="p-4 text-red-600">
@@ -48,8 +53,8 @@ export default function DocumentEditor({ workspaceId, documentId }) {
         method: "POST",
         body: JSON.stringify({
           title: doc.title,
-          content: doc.content,
-        }),
+          content: doc.content
+        })
       }
     );
 

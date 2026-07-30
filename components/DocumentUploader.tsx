@@ -4,15 +4,24 @@ import { useState } from "react";
 import { useUploadDocument } from "@/hooks/useUploadDocument";
 import { Upload, Loader2, FileText } from "lucide-react";
 
-export default function DocumentUploader() {
-  const { upload, loading, error, uploadedId } = useUploadDocument();
-  const [dragging, setDragging] = useState(false);
+interface UploadResult {
+  upload: (file: File) => Promise<void>;
+  loading: boolean;
+  error: string | null;
+  uploadedId: string | null;
+}
 
-  function handleDrop(e: React.DragEvent) {
+export default function DocumentUploader() {
+  const { upload, loading, error, uploadedId } =
+    useUploadDocument() as UploadResult;
+
+  const [dragging, setDragging] = useState<boolean>(false);
+
+  function handleDrop(e: React.DragEvent<HTMLDivElement>) {
     e.preventDefault();
     setDragging(false);
 
-    const file = e.dataTransfer.files[0];
+    const file = e.dataTransfer.files?.[0];
     if (file) upload(file);
   }
 

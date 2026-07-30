@@ -6,7 +6,7 @@ export function useDocumentACL(workspaceId: string, documentId: string) {
   const [acl, setACL] = useState({
     canView: false,
     canEdit: false,
-    canRunAI: false,
+    canRunDocumentAI: false,
     loading: true,
   });
 
@@ -21,7 +21,7 @@ export function useDocumentACL(workspaceId: string, documentId: string) {
       setACL({
         canView: data.canView,
         canEdit: data.canEdit,
-        canRunAI: data.canRunAI,
+        canRunDocumentAI: data.canRunDocumentAI,
         loading: false,
       });
     }

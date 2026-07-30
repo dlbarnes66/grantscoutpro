@@ -1,13 +1,22 @@
-import prisma from "@/lib/prisma";
+// lib/grants/alerts/generateAlerts.ts
+
+import { prisma } from "@/lib/prisma";
 import { applyAlertRules } from "./applyAlertRules";
 import { enforceAlertTierAccess } from "./enforceAlertTierAccess";
+import { Grant, GrantTierAccess } from "@prisma/client";
+
+type Tier =
+  | "ENTERPRISE"
+  | "PRO"
+  | "FEDERAL_STATE"
+  | "FEDERAL_ONLY";
 
 export async function generateAlerts({
   workspaceId,
   tier,
 }: {
   workspaceId: string;
-  tier: string;
+  tier: Tier;
 }) {
   // ⭐ Fetch grants visible to this workspace
   const grants = await prisma.grant.findMany({
@@ -25,7 +34,7 @@ export async function generateAlerts({
   // ⭐ Apply alert rules
   const alerts = tierFiltered
     .map((grant) => applyAlertRules(grant))
-    .filter((a) => a !== null);
+    .filter((a): a is NonNullable<typeof a> => a !== null);
 
   return {
     count: alerts.length,

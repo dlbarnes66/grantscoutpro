@@ -1,4 +1,16 @@
-export function calculateMatchScore(grant: any, profile: any) {
+// lib/grants/match/calculateMatchScore.ts
+
+import { Grant } from "@prisma/client";
+
+export interface MatchProfile {
+  mission?: string;
+  state?: string;
+  budget?: number;
+  orgType?: string;
+  category?: string;
+}
+
+export function calculateMatchScore(grant: Grant, profile: MatchProfile) {
   let score = 0;
 
   // ⭐ Mission alignment
@@ -24,7 +36,7 @@ export function calculateMatchScore(grant: any, profile: any) {
   }
 
   // ⭐ Funding alignment
-  if (profile.budget && grant.amountMax) {
+  if (profile.budget && grant.amountMax != null) {
     if (profile.budget <= grant.amountMax) {
       score += 15;
     }
@@ -32,8 +44,13 @@ export function calculateMatchScore(grant: any, profile: any) {
 
   // ⭐ Organization type alignment
   if (profile.orgType && grant.eligibility) {
+    const eligibilityString =
+      typeof grant.eligibility === "string"
+        ? grant.eligibility
+        : JSON.stringify(grant.eligibility);
+
     if (
-      JSON.stringify(grant.eligibility)
+      eligibilityString
         .toLowerCase()
         .includes(profile.orgType.toLowerCase())
     ) {

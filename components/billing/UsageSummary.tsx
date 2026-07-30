@@ -1,4 +1,8 @@
-export function UsageSummary({ summary }: { summary: any }) {
+"use client";
+
+import { UsageSummaryData } from "./types";
+
+export function UsageSummary({ summary }: { summary: UsageSummaryData }) {
   const cards = [
     { label: "AI Tokens Used", value: summary.ai_tokens },
     { label: "Grant Searches", value: summary.grant_searches },

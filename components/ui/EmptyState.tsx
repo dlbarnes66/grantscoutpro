@@ -1,6 +1,9 @@
-import { FolderIcon } from "@heroicons/react/24/outline";
+"use client";
 
-export function EmptyState({ title, description, actionLabel, onAction }) {
+import { FolderIcon } from "@heroicons/react/24/outline";
+import { EmptyStateProps } from "./types";
+
+export default function EmptyState({ title, description, actionLabel, onAction }: EmptyStateProps) {
   return (
     <div className="text-center py-20">
       <FolderIcon className="h-12 w-12 text-slate-500 mx-auto mb-6" />

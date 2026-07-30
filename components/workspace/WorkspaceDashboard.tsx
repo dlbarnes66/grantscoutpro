@@ -3,17 +3,20 @@
 import WorkspaceACLHide from "@/components/workspace/WorkspaceACLHide";
 import DocumentList from "@/components/documents/DocumentList";
 
-export default function WorkspaceDashboard({ workspaceId }) {
+interface WorkspaceDashboardProps {
+  workspaceId: string;
+}
+
+export default function WorkspaceDashboard({
+  workspaceId,
+}: WorkspaceDashboardProps) {
   return (
     <div className="space-y-6 p-4">
-
-      {/* Documents (everyone with canViewDocument sees only their allowed docs) */}
       <div>
         <h2 className="text-xl font-bold mb-2">Documents</h2>
         <DocumentList workspaceId={workspaceId} />
       </div>
 
-      {/* Admin-only: Member Management */}
       <WorkspaceACLHide workspaceId={workspaceId} requireAdmin={true}>
         <div>
           <h2 className="text-xl font-bold mb-2">Members</h2>
@@ -26,7 +29,6 @@ export default function WorkspaceDashboard({ workspaceId }) {
         </div>
       </WorkspaceACLHide>
 
-      {/* Owner-only: Workspace Settings */}
       <WorkspaceACLHide workspaceId={workspaceId} requireOwner={true}>
         <div>
           <h2 className="text-xl font-bold mb-2">Workspace Settings</h2>
@@ -39,7 +41,6 @@ export default function WorkspaceDashboard({ workspaceId }) {
         </div>
       </WorkspaceACLHide>
 
-      {/* Admin-only: Billing */}
       <WorkspaceACLHide workspaceId={workspaceId} requireAdmin={true}>
         <div>
           <h2 className="text-xl font-bold mb-2">Billing</h2>
@@ -51,7 +52,6 @@ export default function WorkspaceDashboard({ workspaceId }) {
           </a>
         </div>
       </WorkspaceACLHide>
-
     </div>
   );
 }

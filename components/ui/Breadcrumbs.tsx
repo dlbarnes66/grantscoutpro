@@ -1,6 +1,9 @@
-import Link from "next/link";
+"use client";
 
-export function Breadcrumbs({ items }) {
+import Link from "next/link";
+import { BreadcrumbItem } from "./types";
+
+export default function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
   return (
     <nav className="flex items-center gap-2 text-sm mb-6">
       {items.map((item, i) => (

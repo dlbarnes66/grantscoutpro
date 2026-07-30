@@ -1,4 +1,12 @@
-export function RiskDetails({ details }: { details: any }) {
+"use client";
+
+import { RiskDetailsMap } from "./types";
+
+export default function RiskDetails({
+  details
+}: {
+  details: RiskDetailsMap;
+}) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 space-y-6">
       <h2 className="text-sm font-semibold text-slate-100">
@@ -12,7 +20,7 @@ export function RiskDetails({ details }: { details: any }) {
           </div>
 
           <ul className="space-y-1 text-sm text-slate-300">
-            {(items as string[]).map((item, i) => (
+            {items.map((item, i) => (
               <li key={i}>• {item}</li>
             ))}
           </ul>

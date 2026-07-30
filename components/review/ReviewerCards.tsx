@@ -1,4 +1,12 @@
-export function ReviewerCards({ reviewers }: { reviewers: any[] }) {
+"use client";
+
+import { ReviewerCard } from "./types";
+
+export default function ReviewerCards({
+  reviewers
+}: {
+  reviewers: ReviewerCard[];
+}) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {reviewers.map((r) => (

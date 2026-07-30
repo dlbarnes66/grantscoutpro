@@ -4,8 +4,19 @@ import { useGrantMatching } from "@/hooks/useGrantMatching";
 import { FileText } from "lucide-react";
 import Link from "next/link";
 
+interface GrantMatchResult {
+  id: string;
+  title?: string;
+  summary?: string;
+  score: number; // 0–1 normalized score
+}
+
+interface GrantMatchingResultHook {
+  results: GrantMatchResult[] | null;
+}
+
 export default function GrantMatchingResults() {
-  const { results } = useGrantMatching();
+  const { results } = useGrantMatching() as GrantMatchingResultHook;
 
   if (!results || results.length === 0) {
     return null;

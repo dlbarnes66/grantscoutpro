@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export function WebhookSecret() {
+export default function WebhookSecret() {
   const [secret, setSecret] = useState("whsec_123456789");
 
   function regenerate() {

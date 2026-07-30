@@ -1,7 +1,44 @@
-import { GrantSource, GrantTierAccess } from "@prisma/client";
+// lib/grants/federal/normalizeFederalGrant.ts
 
-export function normalizeFederalGrant(raw: any) {
+import { GrantSource, GrantTierAccess } from "@prisma/client";
+import { FederalGrantRaw } from "./fetchFederalGrants";
+
+export interface NormalizedFederalGrant {
+  id: string;
+  source: GrantSource;
+  tierAccess: GrantTierAccess;
+
+  title: string;
+  summary: string | null;
+  description: string | null;
+
+  agency: string | null;
+  category: string | null;
+
+  deadline: Date | null;
+  postedDate: Date | null;
+  updatedDate: Date | null;
+
+  amountMin: number | null;
+  amountMax: number | null;
+  totalFunding: number | null;
+
+  eligibility: string | null;
+  eligibleApplicants: string | null;
+  ineligibleApplicants: string | null;
+
+  geographicFocus: string;
+  eligibleStates: string;
+
+  url: string | null;
+
+  raw: FederalGrantRaw;
+}
+
+export function normalizeFederalGrant(raw: FederalGrantRaw): NormalizedFederalGrant {
   return {
+    id: raw.opportunityNumber || raw.title || "UNKNOWN_ID",
+
     source: GrantSource.FEDERAL,
     tierAccess: GrantTierAccess.FEDERAL_ONLY,
 
@@ -16,9 +53,9 @@ export function normalizeFederalGrant(raw: any) {
     postedDate: raw.postedDate ? new Date(raw.postedDate) : null,
     updatedDate: raw.lastUpdatedDate ? new Date(raw.lastUpdatedDate) : null,
 
-    amountMin: raw.awardFloor || null,
-    amountMax: raw.awardCeiling || null,
-    totalFunding: raw.estimatedTotalProgramFunding || null,
+    amountMin: raw.awardFloor ?? null,
+    amountMax: raw.awardCeiling ?? null,
+    totalFunding: raw.estimatedTotalProgramFunding ?? null,
 
     eligibility: raw.eligibility || raw.eligibleApplicants || null,
     eligibleApplicants: raw.eligibleApplicants || null,

@@ -1,4 +1,8 @@
-export function GrantMeta({ grant }: { grant: any }) {
+"use client";
+
+import { GrantMetaData } from "./types";
+
+export function GrantMeta({ grant }: { grant: GrantMetaData }) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 space-y-4">
       <h2 className="text-sm font-semibold text-slate-100">

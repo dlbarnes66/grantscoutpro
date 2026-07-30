@@ -1,4 +1,8 @@
-export function BudgetTotals({ items }: { items: any[] }) {
+"use client";
+
+import { BudgetItem } from "./types";
+
+export function BudgetTotals({ items }: { items: BudgetItem[] }) {
   const total = items.reduce((sum, item) => sum + item.amount, 0);
 
   return (

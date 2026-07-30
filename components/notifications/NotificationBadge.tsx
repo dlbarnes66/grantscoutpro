@@ -1,6 +1,6 @@
 "use client";
 
-export function NotificationBadge({ count }: { count: number }) {
+export default function NotificationBadge({ count }: { count: number }) {
   return (
     <div className="relative">
       <span className="material-icons text-slate-300">notifications</span>

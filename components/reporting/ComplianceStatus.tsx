@@ -1,4 +1,12 @@
-export function ComplianceStatus({ compliance }: { compliance: any }) {
+"use client";
+
+import { ComplianceData } from "./types";
+
+export default function ComplianceStatus({
+  compliance
+}: {
+  compliance: ComplianceData;
+}) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 space-y-4">
       <h2 className="text-sm font-semibold text-slate-100">
@@ -12,7 +20,7 @@ export function ComplianceStatus({ compliance }: { compliance: any }) {
       ) : (
         <div className="space-y-2 text-sm text-red-400">
           <div className="font-semibold">Issues Found:</div>
-          {compliance.issues.map((issue: string, i: number) => (
+          {compliance.issues.map((issue, i) => (
             <div key={i}>• {issue}</div>
           ))}
         </div>

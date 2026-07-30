@@ -1,4 +1,8 @@
-export function UsageOverages({ overages }: { overages: any }) {
+"use client";
+
+import { Overages } from "./types";
+
+export function UsageOverages({ overages }: { overages: Overages }) {
   if (!overages || overages.total === 0)
     return (
       <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 text-slate-300">
@@ -12,7 +16,7 @@ export function UsageOverages({ overages }: { overages: any }) {
       <div>Total Overages: ${overages.total.toFixed(2)}</div>
 
       <ul className="mt-3 space-y-2 text-sm">
-        {overages.items.map((o: any) => (
+        {overages.items.map((o) => (
           <li key={o.category}>
             {o.category}: ${o.cost.toFixed(2)}
           </li>

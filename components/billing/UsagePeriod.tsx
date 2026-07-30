@@ -1,4 +1,8 @@
-export function UsagePeriod({ period }: { period: any }) {
+"use client";
+
+import { UsagePeriodData } from "./types";
+
+export function UsagePeriod({ period }: { period: UsagePeriodData }) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6">
       <div className="text-xs text-slate-400">Billing Period</div>

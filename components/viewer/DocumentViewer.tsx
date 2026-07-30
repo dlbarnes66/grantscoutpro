@@ -3,13 +3,24 @@
 import { useState, useEffect } from "react";
 import { useDocumentACL } from "@/lib/security/useDocumentACL";
 
-export default function DocumentViewer({ workspaceId, documentId }) {
+interface DocumentData {
+  title: string;
+  content: string;
+  updatedAt: string;
+}
+
+export default function DocumentViewer({
+  workspaceId,
+  documentId,
+}: {
+  workspaceId: string;
+  documentId: string;
+}) {
   const acl = useDocumentACL(workspaceId, documentId);
 
-  const [doc, setDoc] = useState(null);
+  const [doc, setDoc] = useState<DocumentData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Load document content
   useEffect(() => {
     async function loadDoc() {
       const res = await fetch(
@@ -27,11 +38,18 @@ export default function DocumentViewer({ workspaceId, documentId }) {
     return <div className="p-4">Loading document...</div>;
   }
 
-  // Block view entirely
   if (!acl.canView) {
     return (
       <div className="p-4 text-red-600">
         You do not have permission to view this document.
+      </div>
+    );
+  }
+
+  if (!doc) {
+    return (
+      <div className="p-4 text-red-600">
+        Document could not be loaded.
       </div>
     );
   }

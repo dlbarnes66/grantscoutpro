@@ -1,3 +1,5 @@
+// lib/billing/initBilling.ts
+
 import { prisma } from "@/lib/prisma";
 
 export async function initBilling(workspaceId: string) {

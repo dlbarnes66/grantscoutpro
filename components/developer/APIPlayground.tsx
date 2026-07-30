@@ -1,21 +1,23 @@
 "use client";
 
 import { useState } from "react";
+import { APILogEntry, APIResponse } from "./types";
 
-export function APIPlayground({ onLog }: { onLog: (entry: any) => void }) {
+export function APIPlayground({ onLog }: { onLog: (entry: APILogEntry) => void }) {
   const [method, setMethod] = useState("GET");
   const [endpoint, setEndpoint] = useState("/v1/grants");
   const [body, setBody] = useState("");
-  const [response, setResponse] = useState<any>(null);
+  const [response, setResponse] = useState<APIResponse | null>(null);
 
   async function sendRequest() {
-    const fakeResponse = {
+    const fakeResponse: APIResponse = {
       status: 200,
       data: { message: "This is a mock API response." },
       timestamp: new Date().toISOString()
     };
 
     setResponse(fakeResponse);
+
     onLog({
       method,
       endpoint,

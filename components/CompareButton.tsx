@@ -1,29 +1,34 @@
 "use client";
 
-import { Squares2X2Icon } from "@heroicons/react/24/outline";
-import Button from "@/components/ui/Button";
+import { useState } from "react";
+import { Button } from "@/components/ui/Button";
 
 interface CompareButtonProps {
-  comparing?: boolean;
-  loading?: boolean;
-  onClick?: () => void;
+  comparing: boolean;
+  onClick: () => void;
 }
 
-export default function CompareButton({
-  comparing = false,
-  loading = false,
-  onClick,
-}: CompareButtonProps) {
+export default function CompareButton({ comparing, onClick }: CompareButtonProps) {
+  const [loading, setLoading] = useState(false);
+
+  const handleClick = async () => {
+    setLoading(true);
+    await onClick();
+    setLoading(false);
+  };
+
   return (
     <Button
-      variant={comparing ? "primary" : "outline"}
-      size="sm"
-      loading={loading}
-      onClick={onClick}
-      className="flex items-center gap-2"
+      variant={comparing ? "primary" : "secondary"}
+      className="px-3 py-1 text-sm"
+      onClick={handleClick}
+      disabled={loading}
     >
-      <Squares2X2Icon className="w-4 h-4" />
-      {comparing ? "Added" : "Compare"}
+      {loading
+        ? "Loading…"
+        : comparing
+        ? "Comparing…"
+        : "Compare"}
     </Button>
   );
 }

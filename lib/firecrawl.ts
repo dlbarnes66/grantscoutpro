@@ -1,5 +1,7 @@
-import FirecrawlApp from "@mendable/firecrawl-js";
+export async function getFirecrawl() {
+  const { FirecrawlApp } = await import("@mendable/firecrawl-js");
 
-export const firecrawl = new FirecrawlApp({
-  apiKey: process.env.FIRECRAWL_API_KEY!,
-});
+  return new FirecrawlApp({
+    apiKey: process.env.FIRECRAWL_API_KEY!,
+  });
+}

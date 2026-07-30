@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export function APIKeyViewer() {
+export default function APIKeyViewer() {
   const [key, setKey] = useState("sk_live_123456789");
 
   function regenerate() {

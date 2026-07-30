@@ -3,9 +3,12 @@
 import { prisma } from "@/lib/prisma";
 import { USAGE_LIMITS } from "./usage-limits";
 
+type UsageType = "searches" | "uploads" | "ai" | "members";
+type Plan = "free" | "trial" | "paid";
+
 export async function checkUsage(
   workspaceId: string,
-  type: "searches" | "uploads" | "ai" | "members"
+  type: UsageType
 ) {
   const billing = await prisma.workspaceBilling.findUnique({
     where: { workspaceId },
@@ -13,21 +16,21 @@ export async function checkUsage(
 
   if (!billing) throw new Error("Billing not initialized");
 
-  const plan = billing.plan as "free" | "trial" | "paid";
-  const limit = USAGE_LIMITS[plan][type];
-  const current = billing[`usage${capitalize(type)}`];
+  const plan = billing.plan as Plan;
 
-  if (current >= limit) {
-    return {
-      allowed: false,
-      limit,
-      current,
-      plan,
-    };
-  }
+  const field = (`usage${capitalize(type)}` as
+    | "usageSearches"
+    | "usageUploads"
+    | "usageAI"
+    | "usageMembers");
+
+  const current = billing[field];
+  const limit = USAGE_LIMITS[plan][type];
+
+  const allowed = current < limit;
 
   return {
-    allowed: true,
+    allowed,
     limit,
     current,
     plan,

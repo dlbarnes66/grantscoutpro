@@ -1,24 +1,25 @@
 "use client";
 
 import { useState } from "react";
+import { Webhook, WebhookLogEntry } from "./types";
 
-export function WebhookTester({
+export default function WebhookTester({
   webhooks,
-  onLog
+  onLog,
 }: {
-  webhooks: any[];
-  onLog: (entry: any) => void;
+  webhooks: Webhook[];
+  onLog: (entry: WebhookLogEntry) => void;
 }) {
-  const [payload, setPayload] = useState("{ \"test\": true }");
+  const [payload, setPayload] = useState('{ "test": true }');
 
-  function send(w: any) {
-    const fakeDelivery = {
+  function send(w: Webhook) {
+    const fakeDelivery: WebhookLogEntry = {
       webhookId: w.id,
       url: w.url,
       event: w.event,
       payload,
       status: 200,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     onLog(fakeDelivery);

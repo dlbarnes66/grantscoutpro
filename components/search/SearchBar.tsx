@@ -2,7 +2,7 @@
 
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 
-export function SearchBar({
+export default function SearchBar({
   query,
   onChange,
   onSearch

@@ -12,9 +12,14 @@ export function AICloseoutSummary({ insights }: { insights: string }) {
         </h2>
       </div>
 
-      <p className="text-sm text-slate-300">{insights}</p>
+      <p className="text-sm text-slate-300 whitespace-pre-line">
+        {insights}
+      </p>
 
-      <button className="w-full rounded-md bg-blue-600 hover:bg-blue-700 transition px-3 py-2 text-sm font-medium">
+      <button
+        type="button"
+        className="w-full rounded-md bg-blue-600 hover:bg-blue-700 transition px-3 py-2 text-sm font-medium"
+      >
         Generate Full AI Closeout Report
       </button>
     </div>

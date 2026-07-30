@@ -1,24 +1,39 @@
 import { prisma } from "@/lib/prisma";
 
-export async function logSearch(workspaceId: string, query: string) {
+/**
+ * Logs a search event for analytics.
+ */
+export async function logSearch(
+  workspaceId: string,
+  query: string,
+  resultCount: number,
+  durationMs: number
+) {
+  // Check if an analytics record already exists for this query
   const existing = await prisma.searchAnalytics.findFirst({
-    where: { workspaceId, query },
+    where: { workspaceId, query }
   });
 
   if (existing) {
-    return prisma.searchAnalytics.update({
+    // Update existing record
+    await prisma.searchAnalytics.update({
       where: { id: existing.id },
       data: {
-        count: existing.count + 1,
-        lastSearchedAt: new Date(),
-      },
+        resultCount: existing.resultCount + resultCount,
+        durationMs
+      }
     });
+
+    return;
   }
 
-  return prisma.searchAnalytics.create({
+  // Create new analytics record
+  await prisma.searchAnalytics.create({
     data: {
       workspaceId,
       query,
-    },
+      resultCount,
+      durationMs
+    }
   });
 }

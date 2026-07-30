@@ -1,13 +1,15 @@
 "use client";
 
+export type AuditFilter = "all" | "info" | "warning" | "system";
+
 export function AuditFilters({
   filter,
   onChange
 }: {
-  filter: string;
-  onChange: (f: string) => void;
+  filter: AuditFilter;
+  onChange: (f: AuditFilter) => void;
 }) {
-  const filters = [
+  const filters: { id: AuditFilter; label: string }[] = [
     { id: "all", label: "All" },
     { id: "info", label: "Info" },
     { id: "warning", label: "Warnings" },

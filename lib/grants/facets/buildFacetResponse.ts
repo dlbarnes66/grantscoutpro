@@ -1,4 +1,8 @@
-export function buildFacetResponse(grants: any[]) {
+// lib/grants/facets/buildFacetResponse.ts
+
+import { Grant } from "@prisma/client";
+
+export function buildFacetResponse(grants: Grant[]) {
   const categories = new Set<string>();
   const agencies = new Set<string>();
   const states = new Set<string>();
@@ -14,9 +18,7 @@ export function buildFacetResponse(grants: any[]) {
   for (const g of grants) {
     if (g.category) categories.add(g.category);
     if (g.agency) agencies.add(g.agency);
-
     if (g.eligibleStates) states.add(g.eligibleStates);
-
     if (g.foundationName) foundations.add(g.foundationName);
     if (g.philanthropicType) philanthropic.add(g.philanthropicType);
 

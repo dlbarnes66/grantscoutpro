@@ -3,9 +3,22 @@
 import { useEffect, useState } from "react";
 import { useWorkspaceACL } from "@/lib/security/useWorkspaceACL";
 
-export default function WorkspaceAnalyticsPanel({ workspaceId }) {
+interface WorkspaceAnalytics {
+  documentCount: number;
+  grantCount: number;
+  aiUsage: number;
+}
+
+interface WorkspaceAnalyticsPanelProps {
+  workspaceId: string;
+}
+
+export default function WorkspaceAnalyticsPanel({
+  workspaceId,
+}: WorkspaceAnalyticsPanelProps) {
   const acl = useWorkspaceACL(workspaceId);
-  const [analytics, setAnalytics] = useState(null);
+
+  const [analytics, setAnalytics] = useState<WorkspaceAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
 
   if (acl.loading) {
@@ -27,7 +40,7 @@ export default function WorkspaceAnalyticsPanel({ workspaceId }) {
     loadAnalytics();
   }, [workspaceId]);
 
-  if (loading) {
+  if (loading || !analytics) {
     return <div className="p-4">Loading analytics…</div>;
   }
 

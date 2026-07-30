@@ -1,7 +1,9 @@
 "use client";
 
+import { KPIItem } from "./types";
+
 export default function KPISnapshot() {
-  const kpis = [
+  const kpis: KPIItem[] = [
     { label: "Avg Match Score", value: "82%" },
     { label: "Submission Readiness", value: "74%" },
     { label: "Compliance Health", value: "91%" }

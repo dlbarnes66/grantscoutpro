@@ -4,15 +4,29 @@ import { useState } from "react";
 import { useGrantMatching } from "@/hooks/useGrantMatching";
 import { Sparkles, Loader2 } from "lucide-react";
 
+interface GrantMatchPayload {
+  organizationType: string;
+  projectDescription: string;
+  location: string;
+  budget: string;
+}
+
+interface GrantMatchingResult {
+  match: (payload: GrantMatchPayload) => Promise<void>;
+  loading: boolean;
+  error: string | null;
+}
+
 export default function GrantMatchingForm() {
-  const { match, loading, error } = useGrantMatching();
+  const { match, loading, error } =
+    useGrantMatching() as GrantMatchingResult;
 
-  const [organizationType, setOrganizationType] = useState("");
-  const [projectDescription, setProjectDescription] = useState("");
-  const [location, setLocation] = useState("");
-  const [budget, setBudget] = useState("");
+  const [organizationType, setOrganizationType] = useState<string>("");
+  const [projectDescription, setProjectDescription] = useState<string>("");
+  const [location, setLocation] = useState<string>("");
+  const [budget, setBudget] = useState<string>("");
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     await match({

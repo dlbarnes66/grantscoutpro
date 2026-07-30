@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": false,
@@ -15,28 +11,37 @@
     "moduleResolution": "Bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,
-    "ignoreDeprecations": "6.0",
-    "baseUrl": ".",
+    "jsx": "react-jsx",
+
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./src/*"],
+      "@/app/*": ["./src/app/*"],
+      "@/components/*": ["./src/components/*"],
+      "@/hooks/*": ["./src/hooks/*"],
+      "@/lib/*": ["./src/lib/*"],
+      "@/auth": ["./src/auth.ts"]
     },
+
     "plugins": [
       {
         "name": "next"
       }
-    ]
+    ],
+
+    "incremental": true,
+    "ignoreDeprecations": "6.0"
   },
+
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
   ],
+
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "grantscout-pro-mobile"
   ]
 }

@@ -1,10 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { OrgSettingsData } from "./types";
 
-export function OrgSettings() {
-  const [orgName, setOrgName] = useState("GrantDynamics");
-  const [timezone, setTimezone] = useState("America/Chicago");
+export default function OrgSettings() {
+  const [settings, setSettings] = useState<OrgSettingsData>({
+    orgName: "GrantDynamics",
+    timezone: "America/Chicago",
+  });
 
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 space-y-6">
@@ -16,8 +19,10 @@ export function OrgSettings() {
         <div>
           <label className="text-xs text-slate-400">Organization Name</label>
           <input
-            value={orgName}
-            onChange={(e) => setOrgName(e.target.value)}
+            value={settings.orgName}
+            onChange={(e) =>
+              setSettings({ ...settings, orgName: e.target.value })
+            }
             className="w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 text-sm"
           />
         </div>
@@ -25,8 +30,10 @@ export function OrgSettings() {
         <div>
           <label className="text-xs text-slate-400">Timezone</label>
           <select
-            value={timezone}
-            onChange={(e) => setTimezone(e.target.value)}
+            value={settings.timezone}
+            onChange={(e) =>
+              setSettings({ ...settings, timezone: e.target.value })
+            }
             className="w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 text-sm"
           >
             <option value="America/Chicago">Central Time</option>

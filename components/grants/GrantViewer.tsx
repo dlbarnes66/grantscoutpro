@@ -2,20 +2,26 @@
 
 import { useState, useEffect } from "react";
 import { useGrantACL } from "@/lib/security/useGrantACL";
+import { GrantViewerData, GrantACL } from "./types";
 
-export default function GrantViewer({ workspaceId, grantId }) {
-  const acl = useGrantACL(workspaceId, grantId);
+export default function GrantViewer({
+  workspaceId,
+  grantId
+}: {
+  workspaceId: string;
+  grantId: string;
+}) {
+  const acl: GrantACL = useGrantACL(workspaceId, grantId);
 
-  const [grant, setGrant] = useState(null);
+  const [grant, setGrant] = useState<GrantViewerData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Load grant content
   useEffect(() => {
     async function loadGrant() {
       const res = await fetch(
         `/api/workspaces/${workspaceId}/grants/${grantId}/viewer`
       );
-      const data = await res.json();
+      const data: GrantViewerData = await res.json();
       setGrant(data);
       setLoading(false);
     }
@@ -23,11 +29,10 @@ export default function GrantViewer({ workspaceId, grantId }) {
     loadGrant();
   }, [workspaceId, grantId]);
 
-  if (acl.loading || loading) {
+  if (acl.loading || loading || !grant) {
     return <div className="p-4">Loading grant…</div>;
   }
 
-  // Block view entirely
   if (!acl.canView) {
     return (
       <div className="p-4 text-red-600">

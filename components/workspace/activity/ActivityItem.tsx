@@ -1,6 +1,9 @@
+"use client";
+
+import { WorkspaceActivity } from "../types";
 import { getActivityIcon } from "./icons";
 
-export default function ActivityItem({ item }: { item: any }) {
+export default function ActivityItem({ item }: { item: WorkspaceActivity }) {
   const Icon = getActivityIcon(item.type);
 
   return (

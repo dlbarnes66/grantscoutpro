@@ -1,40 +1,45 @@
 import { semanticSearch } from "./semantic-search";
 import { generateCompletion } from "./llm";
 
+/**
+ * RAG chat handler.
+ */
 export async function ragChat({
   workspaceId,
   message,
-  history,
+  history
 }: {
   workspaceId: string;
   message: string;
   history: any[];
 }) {
-  const searchResults = await semanticSearch({
-    workspaceId,
-    query: message,
-  });
+  // FIXED — semanticSearch expects (workspaceId, query)
+  const searchResults = await semanticSearch(workspaceId, message);
 
-  const context = searchResults.results
-    .map((r: any) => `${r.documentTitle}: ${r.snippet}`)
+  const context = searchResults
+    .slice(0, 5)
+    .map((r) => `Document ${r.id}:\n${r.text}`)
     .join("\n\n");
 
   const prompt = `
-You are an AI assistant helping with grant research and writing.
+You are an AI assistant answering a user's chat message using workspace documents.
 
-User message:
+Message:
 ${message}
 
-Relevant workspace documents:
+Relevant Context:
 ${context}
 
-Conversation history:
-${history.map((h) => `${h.role}: ${h.content}`).join("\n")}
+Chat History:
+${JSON.stringify(history, null, 2)}
 
-Respond clearly and helpfully.
+Respond clearly and helpfully:
 `;
 
-  const completion = await generateCompletion(prompt);
+  const answer = await generateCompletion(prompt);
 
-  return completion;
+  return {
+    answer,
+    sources: searchResults.slice(0, 5)
+  };
 }

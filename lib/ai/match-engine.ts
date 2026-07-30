@@ -1,14 +1,20 @@
 import OpenAI from "openai";
 
 const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
-/**
- * Main function: Scores and ranks grants using AI.
- */
-export async function matchGrants(project: any, grants: any[]) {
-  const results: any[] = [];
+export interface MatchResult {
+  grant: unknown;
+  score: number;
+  explanation: string;
+}
+
+export async function matchGrants(
+  project: unknown,
+  grants: unknown[]
+): Promise<MatchResult[]> {
+  const results: MatchResult[] = [];
 
   for (const grant of grants) {
     const prompt = `
@@ -28,25 +34,27 @@ Return a JSON object with:
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [{ role: "user", content: prompt }],
-      temperature: 0.2
+      temperature: 0.2,
     });
 
-    const parsed = JSON.parse(completion.choices[0].message.content);
+    let parsed: { score: number; explanation: string };
+
+    try {
+      parsed = JSON.parse(completion.choices[0].message.content ?? "{}");
+    } catch {
+      parsed = { score: 0, explanation: "AI parsing error." };
+    }
 
     results.push({
       grant,
       score: parsed.score,
-      explanation: parsed.explanation
+      explanation: parsed.explanation,
     });
   }
 
   return rankResults(results);
 }
 
-/**
- * 126C — Ranking Algorithm
- * Sorts grants by score (highest → lowest).
- */
-function rankResults(results: any[]) {
+function rankResults(results: MatchResult[]): MatchResult[] {
   return results.sort((a, b) => b.score - a.score);
 }

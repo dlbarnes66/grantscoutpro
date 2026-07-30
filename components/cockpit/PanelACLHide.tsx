@@ -22,7 +22,7 @@ export default function PanelACLHide({
   }
 
   // Hide panel if user cannot run AI
-  if (requireAI && !acl.canRunAI) {
+  if (requireAI && !acl.canRunDocumentAI) {
     return null;
   }
 

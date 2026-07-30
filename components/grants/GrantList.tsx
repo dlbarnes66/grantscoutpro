@@ -1,17 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { GrantListItem } from "./types";
 
-export default function GrantList({ workspaceId }) {
-  const [grants, setGrants] = useState([]);
+export default function GrantList({ workspaceId }: { workspaceId: string }) {
+  const [grants, setGrants] = useState<GrantListItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadGrants() {
-      const res = await fetch(
-        `/api/workspaces/${workspaceId}/grants/list`
-      );
-      const data = await res.json();
+      const res = await fetch(`/api/workspaces/${workspaceId}/grants/list`);
+      const data: GrantListItem[] = await res.json();
       setGrants(data);
       setLoading(false);
     }
@@ -33,7 +32,7 @@ export default function GrantList({ workspaceId }) {
 
   return (
     <div className="p-4 space-y-3">
-      {grants.map(grant => (
+      {grants.map((grant) => (
         <a
           key={grant.id}
           href={`/workspace/${workspaceId}/grants/${grant.id}`}

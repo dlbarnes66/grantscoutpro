@@ -1,10 +1,11 @@
+"use client";
+
+import { FitAnalysisData } from "./types";
+
 export function FitAnalysis({
   strengths,
   weaknesses
-}: {
-  strengths: string[];
-  weaknesses: string[];
-}) {
+}: FitAnalysisData) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 space-y-6">
       <h2 className="text-sm font-semibold text-slate-100">

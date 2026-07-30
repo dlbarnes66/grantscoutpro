@@ -1,6 +1,14 @@
-import { GrantTierAccess } from "@prisma/client";
+// lib/grants/detail/filterGrantByTier.ts
 
-export function filterGrantByTier(grant: any, tier: string) {
+import { Grant, GrantTierAccess } from "@prisma/client";
+
+type Tier =
+  | "ENTERPRISE"
+  | "PRO"
+  | "FEDERAL_STATE"
+  | "FEDERAL_ONLY";
+
+export function filterGrantByTier(grant: Grant, tier: Tier) {
   const allowed =
     tier === "ENTERPRISE"
       ? true
@@ -19,7 +27,6 @@ export function filterGrantByTier(grant: any, tier: string) {
       summary: grant.summary,
       description: grant.description,
       deadline: grant.deadline,
-      url: grant.url,
       source: grant.source,
       tierAccess: grant.tierAccess,
     };

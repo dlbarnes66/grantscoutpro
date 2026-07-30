@@ -1,4 +1,12 @@
-export function FormattingChecks({ formatting }: { formatting: any }) {
+"use client";
+
+import { FormattingCheckData } from "./types";
+
+export default function FormattingChecks({
+  formatting
+}: {
+  formatting: FormattingCheckData;
+}) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 space-y-4">
       <h2 className="text-sm font-semibold text-slate-100">
@@ -12,7 +20,7 @@ export function FormattingChecks({ formatting }: { formatting: any }) {
       ) : (
         <div className="space-y-2 text-sm text-red-400">
           <div className="font-semibold">Issues Found:</div>
-          {formatting.issues.map((issue: string, i: number) => (
+          {formatting.issues.map((issue, i) => (
             <div key={i}>• {issue}</div>
           ))}
         </div>

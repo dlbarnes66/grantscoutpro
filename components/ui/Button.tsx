@@ -1,11 +1,12 @@
-import React from "react";
+"use client";
 
-type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+import clsx from "clsx";
+
+export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: "primary" | "secondary" | "danger" | "ghost";
-  className?: string;
 };
 
-export function Button({
+export default function Button({
   children,
   variant = "primary",
   className = "",
@@ -22,7 +23,7 @@ export function Button({
   };
 
   return (
-    <button className={`${base} ${variants[variant]} ${className}`} {...props}>
+    <button className={clsx(base, variants[variant], className)} {...props}>
       {children}
     </button>
   );

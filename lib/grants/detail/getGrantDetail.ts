@@ -1,6 +1,15 @@
+// lib/grants/detail/getGrantDetail.ts
+
 import { prisma } from "@/lib/prisma";
 import { filterGrantByTier } from "./filterGrantByTier";
 import { injectAiFields } from "./injectAiFields";
+import { Grant } from "@prisma/client";
+
+type Tier =
+  | "ENTERPRISE"
+  | "PRO"
+  | "FEDERAL_STATE"
+  | "FEDERAL_ONLY";
 
 export async function getGrantDetail({
   id,
@@ -8,7 +17,7 @@ export async function getGrantDetail({
   workspaceId,
 }: {
   id: string;
-  tier: string;
+  tier: Tier;
   workspaceId?: string;
 }) {
   const grant = await prisma.grant.findUnique({
@@ -25,16 +34,11 @@ export async function getGrantDetail({
 
   if (!grant) return null;
 
-  // ⭐ Tier enforcement
   const tierFiltered = filterGrantByTier(grant, tier);
 
-  // ⭐ Workspace scoping
   if (workspaceId && grant.workspaceId && grant.workspaceId !== workspaceId) {
     return null;
   }
 
-  // ⭐ AI fields injection
-  const aiInjected = injectAiFields(tierFiltered);
-
-  return aiInjected;
+  return injectAiFields(tierFiltered);
 }

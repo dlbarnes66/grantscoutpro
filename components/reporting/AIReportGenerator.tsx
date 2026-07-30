@@ -2,15 +2,19 @@
 
 import { SparklesIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
+import { OutcomeItem } from "./types";
 
-export function AIReportGenerator({ outcomes }: { outcomes: any[] }) {
+export default function AIReportGenerator({
+  outcomes
+}: {
+  outcomes: OutcomeItem[];
+}) {
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState("");
 
   async function generate() {
     setLoading(true);
 
-    // Placeholder — real AI integration comes later
     await new Promise((r) => setTimeout(r, 800));
 
     setReport(

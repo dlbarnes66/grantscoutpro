@@ -1,29 +1,24 @@
-import { redis } from "@/lib/redis";
+import { getRedis } from "@/lib/redis";
 
-export async function rateLimit({
-  key,
-  limit,
-  windowSeconds,
-}: {
-  key: string;
-  limit: number;
-  windowSeconds: number;
-}) {
-  const now = Date.now();
-  const windowKey = `ratelimit:${key}:${Math.floor(now / 1000 / windowSeconds)}`;
+export async function checkRateLimit(key: string, limit: number, windowSeconds: number) {
+  const redis = getRedis();
 
-  const current = await redis.incr(windowKey);
-
-  if (current === 1) {
-    await redis.expire(windowKey, windowSeconds);
+  if (!redis) {
+    console.warn("Redis unavailable during build — skipping rate limit.");
+    return { allowed: true, remaining: limit };
   }
 
-  const allowed = current <= limit;
+  const now = Date.now();
+  const windowStart = now - windowSeconds * 1000;
 
-  return {
-    allowed,
-    current,
-    limit,
-    windowSeconds,
-  };
+  const current = await redis.get(key);
+  const count = current ? parseInt(current, 10) : 0;
+
+  if (count >= limit) {
+    return { allowed: false, remaining: 0 };
+  }
+
+  await redis.set(key, (count + 1).toString(), "EX", windowSeconds);
+
+  return { allowed: true, remaining: limit - (count + 1) };
 }

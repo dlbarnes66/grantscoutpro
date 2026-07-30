@@ -1,21 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import GrantAIButton from "@/components/grants/GrantAIButton";
+import { GrantComparisonResult } from "./types";
 
-export default function GrantComparisonPanel({ workspaceId, grantIds }) {
-  const [result, setResult] = useState(null);
+export default function GrantComparisonPanel({
+  workspaceId,
+  grantIds
+}: {
+  workspaceId: string;
+  grantIds: string[];
+}) {
+  const [result, setResult] = useState<GrantComparisonResult | null>(null);
 
   async function compare() {
     const res = await fetch(
       `/api/workspaces/${workspaceId}/grants/compare`,
       {
         method: "POST",
-        body: JSON.stringify({ grantIds }),
+        body: JSON.stringify({ grantIds })
       }
     );
 
-    const data = await res.json();
+    const data: GrantComparisonResult = await res.json();
     setResult(data);
   }
 
@@ -32,7 +38,7 @@ export default function GrantComparisonPanel({ workspaceId, grantIds }) {
 
       {result && (
         <div className="space-y-4">
-          {result.compared.map(g => (
+          {result.compared.map((g) => (
             <div key={g.id} className="border p-3 rounded bg-gray-50">
               <div className="font-semibold">{g.title}</div>
               <div className="text-sm text-gray-600">

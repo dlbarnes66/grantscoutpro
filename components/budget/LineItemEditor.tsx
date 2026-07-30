@@ -1,13 +1,15 @@
 "use client";
 
+import { BudgetItem } from "./types";
+
 export function LineItemEditor({
   items,
   onUpdate,
   onAdd,
   onRemove
 }: {
-  items: any[];
-  onUpdate: (id: string, field: string, value: any) => void;
+  items: BudgetItem[];
+  onUpdate: (id: string, field: keyof BudgetItem, value: string | number) => void;
   onAdd: () => void;
   onRemove: (id: string) => void;
 }) {

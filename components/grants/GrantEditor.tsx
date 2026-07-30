@@ -2,21 +2,27 @@
 
 import { useState, useEffect } from "react";
 import { useGrantACL } from "@/lib/security/useGrantACL";
+import { GrantEditorData, GrantACL } from "./types";
 
-export default function GrantEditor({ workspaceId, grantId }) {
-  const acl = useGrantACL(workspaceId, grantId);
+export default function GrantEditor({
+  workspaceId,
+  grantId
+}: {
+  workspaceId: string;
+  grantId: string;
+}) {
+  const acl: GrantACL = useGrantACL(workspaceId, grantId);
 
-  const [grant, setGrant] = useState(null);
+  const [grant, setGrant] = useState<GrantEditorData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Load grant content
   useEffect(() => {
     async function loadGrant() {
       const res = await fetch(
         `/api/workspaces/${workspaceId}/grants/${grantId}/editor`
       );
-      const data = await res.json();
+      const data: GrantEditorData = await res.json();
       setGrant(data);
       setLoading(false);
     }
@@ -24,11 +30,10 @@ export default function GrantEditor({ workspaceId, grantId }) {
     loadGrant();
   }, [workspaceId, grantId]);
 
-  if (acl.loading || loading) {
+  if (acl.loading || loading || !grant) {
     return <div className="p-4">Loading grant…</div>;
   }
 
-  // Block view entirely
   if (!acl.canView) {
     return (
       <div className="p-4 text-red-600">
@@ -50,8 +55,8 @@ export default function GrantEditor({ workspaceId, grantId }) {
           title: grant.title,
           agency: grant.agency,
           deadline: grant.deadline,
-          summary: grant.summary,
-        }),
+          summary: grant.summary
+        })
       }
     );
 
@@ -60,7 +65,6 @@ export default function GrantEditor({ workspaceId, grantId }) {
 
   return (
     <div className="p-4 space-y-4">
-
       <input
         type="text"
         value={grant.title}

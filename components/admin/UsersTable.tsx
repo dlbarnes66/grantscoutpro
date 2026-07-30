@@ -1,13 +1,15 @@
 "use client";
 
+import { AdminUser } from "./types";
+
 export function UsersTable({
   users,
   onSelect,
   onUpdate
 }: {
-  users: any[];
-  onSelect: (u: any) => void;
-  onUpdate: (u: any[]) => void;
+  users: AdminUser[];
+  onSelect: (u: AdminUser) => void;
+  onUpdate: (u: AdminUser[]) => void;
 }) {
   function removeUser(id: string) {
     onUpdate(users.filter((u) => u.id !== id));

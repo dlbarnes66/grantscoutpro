@@ -1,7 +1,9 @@
 "use client";
 
+import { RecentActivityItem } from "./types";
+
 export default function RecentActivity() {
-  const items = [
+  const items: RecentActivityItem[] = [
     { text: "Generated narrative for Youth Empowerment Grant" },
     { text: "Updated budget for Community Health Initiative" },
     { text: "Reviewed compliance for STEM Innovation Fund" },

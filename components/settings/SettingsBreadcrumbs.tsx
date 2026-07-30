@@ -7,26 +7,21 @@ import { ChevronRightIcon, Cog6ToothIcon } from "@heroicons/react/24/outline";
 export default function SettingsBreadcrumbs() {
   const pathname = usePathname();
 
-  // Example: /dashboard/settings/billing
   const parts = pathname.split("/").filter(Boolean);
-
-  // We only care about: ["settings", "billing"]
   const settingsIndex = parts.indexOf("settings");
-  const crumbs = parts.slice(settingsIndex);
+  const crumbs =
+    settingsIndex === -1 ? [] : parts.slice(settingsIndex);
 
-  // Convert "api-keys" → "API Keys"
   const format = (str: string) =>
     str
       .replace(/-/g, " ")
       .replace(/\b\w/g, (c) => c.toUpperCase());
 
-  // Build breadcrumb paths
   const buildHref = (index: number) =>
     "/dashboard/" + crumbs.slice(0, index + 1).join("/");
 
   return (
     <nav className="flex items-center gap-2 text-sm text-gray-500 mb-4">
-      {/* Settings root */}
       <Link
         href="/dashboard/settings"
         className="flex items-center gap-1 hover:text-brandBlue transition"

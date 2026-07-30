@@ -1,10 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { ProfileSettingsData } from "./types";
 
-export function ProfileSettings() {
-  const [name, setName] = useState("Darryl Barnes");
-  const [email, setEmail] = useState("darryl@example.com");
+export default function ProfileSettings() {
+  const [profile, setProfile] = useState<ProfileSettingsData>({
+    name: "Darryl Barnes",
+    email: "darryl@example.com",
+  });
 
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 space-y-6">
@@ -16,8 +19,10 @@ export function ProfileSettings() {
         <div>
           <label className="text-xs text-slate-400">Name</label>
           <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={profile.name}
+            onChange={(e) =>
+              setProfile({ ...profile, name: e.target.value })
+            }
             className="w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 text-sm"
           />
         </div>
@@ -25,8 +30,10 @@ export function ProfileSettings() {
         <div>
           <label className="text-xs text-slate-400">Email</label>
           <input
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={profile.email}
+            onChange={(e) =>
+              setProfile({ ...profile, email: e.target.value })
+            }
             className="w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 text-sm"
           />
         </div>

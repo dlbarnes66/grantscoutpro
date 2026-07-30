@@ -1,16 +1,30 @@
-export function injectAiFields(grant: any) {
+// lib/grants/detail/injectAiFields.ts
+
+import { Grant } from "@prisma/client";
+
+type PartialGrantForTier = {
+  id: string;
+  title: string;
+  summary: string;
+  description: string;
+  deadline: Date | null;
+  source: string;
+  tierAccess: any;
+};
+
+export function injectAiFields(grant: Grant | PartialGrantForTier) {
   return {
     ...grant,
 
     ai: {
-      eligibilityScore: grant.aiEligibilityScore || null,
-      alignmentScore: grant.aiAlignmentScore || null,
-      competitivenessScore: grant.aiCompetitivenessScore || null,
-      riskScore: grant.aiRiskScore || null,
-      readinessScore: grant.aiReadinessScore || null,
+      eligibilityScore: (grant as Grant).aiEligibilityScore || null,
+      alignmentScore: (grant as Grant).aiAlignmentScore || null,
+      competitivenessScore: (grant as Grant).aiCompetitivenessScore || null,
+      riskScore: (grant as Grant).aiRiskScore || null,
+      readinessScore: (grant as Grant).aiReadinessScore || null,
 
-      summary: grant.aiSummary || null,
-      recommendations: grant.aiRecommendations || null,
+      summary: (grant as Grant).aiSummary || null,
+      recommendations: (grant as Grant).aiRecommendations || null,
     },
   };
 }

@@ -1,8 +1,12 @@
-export function RenewalProbability({ score }: { score: number }) {
+"use client";
+
+export default function RenewalProbability({ score }: { score: number }) {
   const color =
-    score < 40 ? "text-red-400" :
-    score < 70 ? "text-yellow-400" :
-    "text-green-400";
+    score < 40
+      ? "text-red-400"
+      : score < 70
+      ? "text-yellow-400"
+      : "text-green-400";
 
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 text-center space-y-3">

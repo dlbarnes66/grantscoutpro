@@ -1,10 +1,12 @@
 "use client";
 
+import { AuditLog } from "./types";
+
 export function AuditDetailDrawer({
   log,
   onClose
 }: {
-  log: any;
+  log: AuditLog;
   onClose: () => void;
 }) {
   return (

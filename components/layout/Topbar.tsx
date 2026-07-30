@@ -3,7 +3,7 @@
 import { BellIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 
-export function Topbar() {
+export default function Topbar() {
   return (
     <header className="w-full h-16 bg-slate-950 border-b border-slate-800 flex items-center justify-between px-6">
       

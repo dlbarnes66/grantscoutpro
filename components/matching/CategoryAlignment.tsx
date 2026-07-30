@@ -1,7 +1,11 @@
+"use client";
+
+import { CategoryScore } from "./types";
+
 export function CategoryAlignment({
   categories
 }: {
-  categories: { name: string; score: number }[];
+  categories: CategoryScore[];
 }) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 space-y-4">

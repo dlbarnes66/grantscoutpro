@@ -1,9 +1,13 @@
+"use client";
+
+import { AdminSectionData } from "../types";
+
 export default function AdminSection({
   title,
   data,
 }: {
   title: string;
-  data: any;
+  data: AdminSectionData;
 }) {
   return (
     <div className="border rounded-lg p-6 bg-white shadow-sm space-y-4">

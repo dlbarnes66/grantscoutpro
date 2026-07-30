@@ -26,7 +26,7 @@ export default function PanelACLWrapper({
   }
 
   // Block AI panels
-  if (requireAI && !acl.canRunAI) {
+  if (requireAI && !acl.canRunDocumentAI) {
     return (
       <div className="p-4 text-red-600">
         You do not have permission to run AI on this document.

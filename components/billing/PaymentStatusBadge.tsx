@@ -1,5 +1,9 @@
-export function PaymentStatusBadge({ status }: { status: string }) {
-  const colors = {
+export function PaymentStatusBadge({
+  status
+}: {
+  status: "paid" | "open" | "uncollectible" | "void";
+}) {
+  const colors: Record<typeof status, string> = {
     paid: "text-green-400",
     open: "text-yellow-400",
     uncollectible: "text-red-400",
@@ -7,7 +11,7 @@ export function PaymentStatusBadge({ status }: { status: string }) {
   };
 
   return (
-    <span className={`font-semibold ${colors[status] || "text-slate-400"}`}>
+    <span className={`font-semibold ${colors[status]}`}>
       {status.toUpperCase()}
     </span>
   );

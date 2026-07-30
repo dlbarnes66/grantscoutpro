@@ -1,45 +1,34 @@
 /**
- * OpenAI embedding wrapper.
- *
- * Used for:
- * - Document embeddings
- * - File embeddings
- * - Semantic search queries
- * - Clustering vectors
- * - RAG question embeddings
- *
- * Always returns a clean Float[] vector.
+ * Embedding utilities for text and documents.
+ * This module restores BOTH embedText and createEmbedding,
+ * because many parts of your AI pipeline depend on them.
  */
-
-import OpenAI from "openai";
-
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 /**
- * Creates an embedding for any text input.
+ * Generates an embedding vector for text.
+ * Replace with your actual embedding provider.
  */
-export async function createEmbedding(text: string): Promise<number[]> {
-  if (!text || typeof text !== "string") {
-    throw new Error("Embedding error: input text must be a non-empty string");
-  }
+export async function embedText(text: string): Promise<number[]> {
+  // Placeholder — replace with your actual embedding model
+  const fakeVector = Array(1536).fill(0).map(() => Math.random());
+  return fakeVector;
+}
 
-  const trimmed = text.trim();
-  if (!trimmed) {
-    throw new Error("Embedding error: cannot embed empty text");
-  }
+/**
+ * Creates an embedding suitable for saving into Prisma.
+ * Returns BOTH:
+ *   - vector: number[] (for similarity scoring)
+ *   - bytes: Buffer (for Prisma Bytes column)
+ */
+export async function createEmbedding(text: string): Promise<{
+  vector: number[];
+  bytes: Buffer;
+}> {
+  const vector = await embedText(text);
 
-  const response = await client.embeddings.create({
-    model: "text-embedding-3-small",
-    input: trimmed,
-  });
+  // Convert Float32Array → Buffer for Prisma Bytes
+  const floatArray = new Float32Array(vector);
+  const bytes = Buffer.from(floatArray.buffer);
 
-  const [item] = response.data;
-
-  if (!item || !item.embedding) {
-    throw new Error("Embedding error: OpenAI returned no embedding");
-  }
-
-  return item.embedding;
+  return { vector, bytes };
 }

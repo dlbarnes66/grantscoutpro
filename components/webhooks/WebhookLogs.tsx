@@ -1,4 +1,12 @@
-export function WebhookLogs({ logs }: { logs: any[] }) {
+"use client";
+
+import { WebhookLogEntry } from "./types";
+
+export default function WebhookLogs({
+  logs,
+}: {
+  logs: WebhookLogEntry[];
+}) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6">
       <h2 className="text-sm font-semibold text-slate-100 mb-4">

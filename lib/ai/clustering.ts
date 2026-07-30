@@ -1,22 +1,5 @@
 /**
  * K-means clustering engine for document embeddings.
- *
- * Used for:
- * - Workspace-wide topic clustering
- * - Grant theme grouping
- * - Narrative clustering
- * - AI workspace intelligence
- *
- * Input:
- * - vectors: number[][]
- * - k: number (cluster count)
- *
- * Output:
- * {
- *   clusters: number[][][]   // vectors grouped by cluster
- *   assignments: number[]    // cluster index per vector
- *   centroids: number[][]    // final centroid vectors
- * }
  */
 
 import { cosineSimilarity } from "./similarity";
@@ -68,7 +51,6 @@ function recomputeCentroids(
 
   return clusters.map((cluster) => {
     if (cluster.length === 0) {
-      // Empty cluster — return zero vector
       return new Array(vectors[0].length).fill(0);
     }
 
@@ -87,7 +69,10 @@ function recomputeCentroids(
 /**
  * Main K-means clustering function.
  */
-export function kmeans(vectors: number[][], k: number): {
+export function kmeans(
+  vectors: number[][],
+  k: number
+): {
   clusters: number[][][];
   assignments: number[];
   centroids: number[][];
@@ -100,7 +85,6 @@ export function kmeans(vectors: number[][], k: number): {
     throw new Error("Clustering error: k must be > 0");
   }
 
-  // 1. Initialize centroids
   let centroids = initializeCentroids(vectors, k);
 
   let assignments: number[] = [];
@@ -109,17 +93,14 @@ export function kmeans(vectors: number[][], k: number): {
   while (iterations < 20) {
     iterations++;
 
-    // 2. Assign vectors to nearest centroid
     assignments = assignClusters(vectors, centroids);
 
-    // 3. Recompute centroids
     const newCentroids = recomputeCentroids(vectors, assignments, k);
 
-    // 4. Check for convergence
     const converged = centroids.every((centroid, idx) => {
       const newCentroid = newCentroids[idx];
       const score = cosineSimilarity(centroid, newCentroid);
-      return score > 0.999; // nearly identical
+      return score > 0.999;
     });
 
     centroids = newCentroids;
@@ -127,7 +108,6 @@ export function kmeans(vectors: number[][], k: number): {
     if (converged) break;
   }
 
-  // Build final cluster groups
   const clusters: number[][][] = Array.from({ length: k }, () => []);
   vectors.forEach((vector, idx) => {
     clusters[assignments[idx]].push(vector);

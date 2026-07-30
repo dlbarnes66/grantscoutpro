@@ -1,5 +1,13 @@
-export function RiskCategories({ categories }: { categories: any[] }) {
-  const levelColor = {
+"use client";
+
+import { RiskCategory } from "./types";
+
+export default function RiskCategories({
+  categories
+}: {
+  categories: RiskCategory[];
+}) {
+  const levelColor: Record<RiskCategory["level"], string> = {
     low: "text-green-400",
     medium: "text-yellow-400",
     high: "text-red-400"

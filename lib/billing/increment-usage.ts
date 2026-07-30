@@ -2,11 +2,17 @@
 
 import { prisma } from "@/lib/prisma";
 
+type UsageType = "searches" | "uploads" | "ai" | "members";
+
 export async function incrementUsage(
   workspaceId: string,
-  type: "searches" | "uploads" | "ai" | "members"
+  type: UsageType
 ) {
-  const field = `usage${capitalize(type)}`;
+  const field = (`usage${capitalize(type)}` as
+    | "usageSearches"
+    | "usageUploads"
+    | "usageAI"
+    | "usageMembers");
 
   return prisma.workspaceBilling.update({
     where: { workspaceId },

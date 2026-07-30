@@ -1,18 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import { AdminUser } from "./types";
 
 export function InviteUserPanel({
   onInvite
 }: {
-  onInvite: (u: any) => void;
+  onInvite: (u: AdminUser) => void;
 }) {
   const [email, setEmail] = useState("");
 
   function invite() {
     if (!email) return;
 
-    const newUser = {
+    const newUser: AdminUser = {
       id: crypto.randomUUID(),
       name: email.split("@")[0],
       email,

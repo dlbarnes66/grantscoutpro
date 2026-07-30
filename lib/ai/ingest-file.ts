@@ -1,42 +1,45 @@
 import { prisma } from "@/lib/prisma";
 import { extractFileContent } from "./file-extractor";
-import { createEmbedding } from "./embeddings";
 
-export async function ingestFile(workspaceId: string, file: File) {
-  const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
-
-  // Store file metadata + raw buffer
-  const savedFile = await prisma.file.create({
+/**
+ * Ingests a file into the workspace.
+ * Stores metadata in the File model and extracted text in FileEmbedding.
+ */
+export async function ingestFile(
+  workspaceId: string,
+  file: {
+    name: string;
+    type: string;
+    size: number;
+    url: string;
+    storage: string;
+    id: string;
+  }
+) {
+  // 1. Create File record
+  const created = await prisma.file.create({
     data: {
       workspaceId,
-      name: file.name,
+      filename: file.name,
       mimeType: file.type,
       size: file.size,
-      raw: buffer,
-    },
+      url: file.url,
+      storage: file.storage
+    }
   });
 
-  // Extract text
-  const text = await extractFileContent(savedFile.id);
+  // 2. Extract text content
+  const text = await extractFileContent(created.id);
 
-  // Embed text
-  const vector = await createEmbedding(text);
-
-  // Store embedding
-  await prisma.documentEmbedding.create({
+  // 3. Store embedding text
+  await prisma.fileEmbedding.create({
     data: {
+      fileId: created.id,
       workspaceId,
-      documentId: savedFile.id,
-      documentTitle: savedFile.name,
       text,
-      vector,
-      score: 0,
-    },
+      vector: [] // embedding vector will be added later
+    }
   });
 
-  return {
-    fileId: savedFile.id,
-    textLength: text.length,
-  };
+  return created;
 }

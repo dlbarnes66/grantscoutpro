@@ -22,7 +22,7 @@ export default function AiButton({
   }
 
   // Hide button entirely if user cannot run AI
-  if (!acl.canRunAI) {
+  if (!acl.canRunDocumentAI) {
     return null;
   }
 

@@ -1,6 +1,17 @@
-import { GrantTierAccess } from "@prisma/client";
+// lib/grants/alerts/enforceAlertTierAccess.ts
 
-export function enforceAlertTierAccess(grants: any[], tier: string) {
+import { Grant, GrantTierAccess } from "@prisma/client";
+
+type Tier =
+  | "ENTERPRISE"
+  | "PRO"
+  | "FEDERAL_STATE"
+  | "FEDERAL_ONLY";
+
+export function enforceAlertTierAccess(
+  grants: Grant[],
+  tier: Tier
+) {
   return grants.filter((grant) => {
     switch (tier) {
       case "ENTERPRISE":

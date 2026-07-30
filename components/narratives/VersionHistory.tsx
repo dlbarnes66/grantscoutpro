@@ -1,16 +1,20 @@
 "use client";
 
-export function VersionHistory({ section }: { section: any }) {
-  const versions = [
+import { NarrativeSection, NarrativeVersion } from "./types";
+
+export default function VersionHistory({
+  section
+}: {
+  section: NarrativeSection;
+}) {
+  const versions: NarrativeVersion[] = [
     { id: 1, timestamp: "2026-06-30 09:15", summary: "Initial draft" },
     { id: 2, timestamp: "2026-06-30 09:45", summary: "Added impact details" }
   ];
 
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 space-y-4">
-      <h2 className="text-sm font-semibold text-slate-100">
-        Version History
-      </h2>
+      <h2 className="text-sm font-semibold text-slate-100">Version History</h2>
 
       <ul className="space-y-3 text-sm text-slate-300">
         {versions.map((v) => (

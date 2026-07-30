@@ -1,6 +1,6 @@
 "use client";
 
-export function NotificationFilters({
+export default function NotificationFilters({
   filter,
   onChange
 }: {

@@ -1,13 +1,15 @@
 "use client";
 
-export function NotificationItem({
+import { Notification } from "./types";
+
+export default function NotificationItem({
   notification,
   notifications,
   onUpdate
 }: {
-  notification: any;
-  notifications: any[];
-  onUpdate: (n: any[]) => void;
+  notification: Notification;
+  notifications: Notification[];
+  onUpdate: (n: Notification[]) => void;
 }) {
   function markRead() {
     onUpdate(
@@ -17,7 +19,7 @@ export function NotificationItem({
     );
   }
 
-  const typeColor = {
+  const typeColor: Record<Notification["type"], string> = {
     deadline: "text-yellow-400",
     ai: "text-blue-400",
     collaboration: "text-purple-400",

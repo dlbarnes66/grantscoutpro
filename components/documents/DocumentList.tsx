@@ -1,17 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { DocumentSummary } from "./types";
 
-export default function DocumentList({ workspaceId }) {
-  const [docs, setDocs] = useState([]);
+export default function DocumentList({ workspaceId }: { workspaceId: string }) {
+  const [docs, setDocs] = useState<DocumentSummary[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadDocs() {
-      const res = await fetch(
-        `/api/workspaces/${workspaceId}/documents/list`
-      );
-      const data = await res.json();
+      const res = await fetch(`/api/workspaces/${workspaceId}/documents/list`);
+      const data: DocumentSummary[] = await res.json();
       setDocs(data);
       setLoading(false);
     }
@@ -33,7 +32,7 @@ export default function DocumentList({ workspaceId }) {
 
   return (
     <div className="p-4 space-y-3">
-      {docs.map(doc => (
+      {docs.map((doc) => (
         <a
           key={doc.id}
           href={`/workspace/${workspaceId}/documents/${doc.id}`}
