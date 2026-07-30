@@ -1,0 +1,52 @@
+{
+  "sections": [
+    {
+      "id": "getting-started",
+      "title": "Getting Started",
+      "content": [
+        "Welcome to GrantScout Pro. This guide will help you understand the core features of the platform.",
+        "Use the dashboard to navigate between grants, workspaces, applications, and intelligence tools."
+      ]
+    },
+    {
+      "id": "workspaces",
+      "title": "Workspaces",
+      "content": [
+        "Workspaces allow you to organize grants, team members, and documents.",
+        "Each workspace has its own permissions, AI usage, and grant history."
+      ]
+    },
+    {
+      "id": "grant-intelligence",
+      "title": "Grant Intelligence",
+      "content": [
+        "GrantScout Pro analyzes grants using AI to provide eligibility, competitiveness, risk, and readiness scores.",
+        "You can view detailed intelligence inside each grant’s page."
+      ]
+    },
+    {
+      "id": "applications",
+      "title": "Applications",
+      "content": [
+        "Create and manage grant applications directly inside the platform.",
+        "Track versions, narratives, budgets, and submission history."
+      ]
+    },
+    {
+      "id": "ai-tools",
+      "title": "AI Tools",
+      "content": [
+        "AI tools help you summarize grants, generate narratives, analyze eligibility, and optimize your application.",
+        "AI usage is tracked per workspace."
+      ]
+    },
+    {
+      "id": "support",
+      "title": "Support",
+      "content": [
+        "If you need help, contact support through your workspace or visit the Help Center.",
+        "Enterprise clients receive priority support and onboarding assistance."
+      ]
+    }
+  ]
+}
