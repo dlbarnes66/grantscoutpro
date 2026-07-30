@@ -1,0 +1,53 @@
+export const dynamic = "force-dynamic";
+
+import { NextResponse } from "next/server";
+import OpenAI from "openai";
+
+
+
+
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+
+export async function POST(req: Request) {
+  try {
+    const { profile } = await req.json();
+
+    if (!profile) {
+      return NextResponse.json({ error: "Missing profile" }, { status: 400 });
+    }
+
+    const response = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: `
+Create synthetic grant opportunities. Return JSON:
+{
+  "opportunities": [
+    {
+      "title": string,
+      "funder": string,
+      "amount": number,
+      "deadline": string,
+      "description": string,
+      "fitReason": string
+    }
+  ]
+}
+          `
+        },
+        {
+          role: "user",
+          content: JSON.stringify(profile)
+        }
+      ],
+      max_tokens: 3500
+    });
+
+    return NextResponse.json(JSON.parse(response.choices[0].message.content || "{}"));
+  } catch (err: any) {
+    console.error("Synthetic opportunity error:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}

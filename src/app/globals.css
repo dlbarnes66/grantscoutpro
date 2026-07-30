@@ -1,0 +1,173 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ----------------------------------------
+   GLOBAL THEME — GrantScout Pro (Dark Mode)
+----------------------------------------- */
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  @apply bg-slate-950 text-slate-100;
+}
+
+/* Layout helpers */
+.container {
+  @apply max-w-7xl mx-auto px-6;
+}
+
+.page {
+  @apply p-6 space-y-6;
+}
+
+/* Headings */
+h1 {
+  @apply text-3xl font-bold mb-4;
+}
+
+h2 {
+  @apply text-2xl font-semibold mb-3;
+}
+
+h3 {
+  @apply text-xl font-semibold mb-2;
+}
+
+/* Links */
+a {
+  @apply text-blue-400 hover:text-blue-300 underline-offset-2;
+}
+
+/* Buttons */
+.btn {
+  @apply px-5 py-3 rounded-lg font-medium shadow-sm transition;
+}
+
+.btn-primary {
+  @apply bg-blue-600 text-white hover:bg-blue-700;
+}
+
+.btn-secondary {
+  @apply bg-gray-700 text-gray-200 hover:bg-gray-600;
+}
+
+.btn-success {
+  @apply bg-green-600 text-white hover:bg-green-700;
+}
+
+.btn-warning {
+  @apply bg-yellow-500 text-white hover:bg-yellow-600;
+}
+
+.btn-danger {
+  @apply bg-red-600 text-white hover:bg-red-700;
+}
+
+/* Cards */
+.card {
+  @apply bg-slate-900 border border-slate-800 rounded-xl shadow-sm p-6;
+}
+
+/* Inputs */
+.input {
+  @apply p-3 border border-slate-700 rounded-lg bg-slate-900 text-slate-100 shadow-sm 
+         focus:ring-2 focus:ring-blue-500 focus:outline-none;
+}
+
+/* Textareas */
+.textarea {
+  @apply p-4 border border-slate-700 rounded-lg bg-slate-900 text-slate-100 shadow-sm 
+         leading-relaxed focus:ring-2 focus:ring-blue-500 focus:outline-none;
+}
+
+/* Subtle text */
+.text-muted {
+  @apply text-slate-400;
+}
+
+/* Hover card */
+.hover-card {
+  @apply transition hover:shadow-md hover:bg-slate-800;
+}
+
+/* Safe transition class */
+.transition-base {
+  @apply transition-colors duration-150;
+}
+
+/* Toast animation */
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) translateX(0);
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.25s ease-out;
+}
+
+/* ----------------------------------------
+   HERO SECTION — Neon Tech Grid Background
+----------------------------------------- */
+
+.hero-grid-bg {
+  background-color: #0A1A2F;
+  background-image:
+    linear-gradient(rgba(0, 229, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 229, 255, 0.08) 1px, transparent 1px);
+  background-size: 40px 40px;
+  position: relative;
+}
+
+.hero-grid-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at center,
+    rgba(0, 229, 255, 0.15),
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+/* ----------------------------------------
+   AI Pulse Animation — Glowing Intelligence
+----------------------------------------- */
+
+.ai-pulse {
+  position: relative;
+}
+
+.ai-pulse::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.6);
+  animation: aiPulse 2.2s infinite ease-in-out;
+}
+
+@keyframes aiPulse {
+  0% {
+    opacity: 0.2;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 0.2;
+    transform: scale(0.95);
+  }
+}

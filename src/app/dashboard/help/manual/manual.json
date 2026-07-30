@@ -1,0 +1,142 @@
+[
+  {
+    "title": "Welcome to GrantScout Pro",
+    "content": [
+      "GrantScout Pro is an AI-powered grant discovery, intelligence, and application platform.",
+      "It helps individuals and organizations find grants, evaluate eligibility, generate narratives, and manage applications.",
+      "This manual provides guidance for using all major features of the platform."
+    ]
+  },
+  {
+    "title": "Searching for Grants",
+    "content": [
+      "Use the Search page to find grants by keyword, category, agency, funding type, or filters.",
+      "Filters include deadline, amount range, location, industry, eligibility, and grant source.",
+      "Search results include AI-enhanced summaries, eligibility indicators, and competitiveness scores.",
+      "You can save searches for later and receive updates when new grants match your criteria."
+    ]
+  },
+  {
+    "title": "Grant Intelligence Overview",
+    "content": [
+      "Grant Intelligence provides unified AI analysis for each grant.",
+      "Scores include eligibility, risk, competitiveness, readiness, and alignment.",
+      "AI summaries explain the grant in plain language.",
+      "AI recommendations provide actionable steps to improve your chances.",
+      "Historical intelligence is stored for each grant, including rewrites, narratives, forecasts, and reviewer insights."
+    ]
+  },
+  {
+    "title": "Grant Pages",
+    "content": [
+      "Each grant has a dedicated page showing metadata, deadlines, funding amounts, eligibility, and agency details.",
+      "AI-generated sections outline the structure of the grant.",
+      "Narratives, rewrites, proposals, and AI logs are displayed for deeper insight.",
+      "You can save grants to your workspace for tracking and collaboration."
+    ]
+  },
+  {
+    "title": "Workspaces",
+    "content": [
+      "Workspaces allow teams to collaborate on grants, documents, and applications.",
+      "Members can view, edit, and run AI tools depending on their permissions.",
+      "Workspaces include shared documents, files, insights, notifications, and analytics.",
+      "Each workspace has its own grants, applications, and intelligence history."
+    ]
+  },
+  {
+    "title": "Workspace Members & Roles",
+    "content": [
+      "Owners manage workspace settings, billing, and member access.",
+      "Members can collaborate on grants, documents, and applications.",
+      "Invited users receive email notifications and can join via secure links.",
+      "Roles determine access to AI tools, editing permissions, and grant visibility."
+    ]
+  },
+  {
+    "title": "Applications & Narratives",
+    "content": [
+      "Applications include narratives, drafts, versions, and submission history.",
+      "AI tools can rewrite, critique, expand, or optimize narrative content.",
+      "Each application stores multiple versions for tracking changes over time.",
+      "Submission history includes timestamps, statuses, and reviewer notes."
+    ]
+  },
+  {
+    "title": "AI Tools",
+    "content": [
+      "AI tools assist with rewriting, summarizing, analyzing, and generating grant content.",
+      "Tools include narrative rewriting, eligibility analysis, risk scoring, competitiveness scoring, and proposal generation.",
+      "AI logs track all actions performed by the system for transparency.",
+      "AI usage is monitored per workspace for billing and analytics."
+    ]
+  },
+  {
+    "title": "Documents & Files",
+    "content": [
+      "Documents support collaborative editing, versioning, snapshots, and semantic search.",
+      "Files include uploads such as PDFs, Word documents, and supporting materials.",
+      "Embeddings allow semantic search across documents and files.",
+      "Document access controls determine who can view, edit, or run AI tools."
+    ]
+  },
+  {
+    "title": "Notifications",
+    "content": [
+      "Notifications alert users about grant updates, workspace activity, AI actions, and deadlines.",
+      "Workspace notifications include shared insights, reports, and member activity.",
+      "Users can mark notifications as read or clear them from their dashboard."
+    ]
+  },
+  {
+    "title": "Insights & Comparisons",
+    "content": [
+      "Insights provide AI-generated analysis across multiple grants.",
+      "Comparisons allow users to evaluate grants side-by-side.",
+      "Comparison activities and comments help teams collaborate on decisions.",
+      "Insights include scoring, recommendations, and strategic guidance."
+    ]
+  },
+  {
+    "title": "Billing & Subscription",
+    "content": [
+      "Workspaces have subscription tiers such as Basic, Team, and Enterprise.",
+      "Billing includes AI usage, member seats, uploads, and addon features.",
+      "Trial periods allow users to explore features before subscribing.",
+      "Stripe integration handles payments, renewals, and invoices."
+    ]
+  },
+  {
+    "title": "User Profile",
+    "content": [
+      "Users can update their organization details, mission, website, and focus areas.",
+      "Profile information helps personalize grant recommendations.",
+      "Past grants, wins, and losses improve AI scoring accuracy."
+    ]
+  },
+  {
+    "title": "Grant History Tracking",
+    "content": [
+      "GrantScout Pro tracks dozens of history types including narratives, rewrites, forecasts, reviewer insights, compliance, and more.",
+      "Each history entry includes timestamps, user IDs, workspace IDs, and grant IDs.",
+      "History is used to improve AI recommendations and provide audit trails."
+    ]
+  },
+  {
+    "title": "Security & Access Control",
+    "content": [
+      "GrantScout Pro uses role-based access control for documents, grants, and AI tools.",
+      "Users can only view or edit items they have permission for.",
+      "AI actions are logged for transparency and auditing.",
+      "All data is stored securely using encrypted connections."
+    ]
+  },
+  {
+    "title": "Support",
+    "content": [
+      "For help, use the AI Help Assistant or contact support through your workspace.",
+      "You can ask questions about features, grants, applications, or AI tools.",
+      "The help system uses this manual to provide accurate answers."
+    ]
+  }
+]

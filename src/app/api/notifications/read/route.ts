@@ -1,0 +1,59 @@
+export const dynamic = "force-dynamic";
+
+import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+
+
+
+
+export async function POST(req: Request) {
+  try {
+    if (
+      !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+      !process.env.SUPABASE_SERVICE_ROLE_KEY
+    ) {
+      return NextResponse.json(
+        { error: "Supabase environment variables missing" },
+        { status: 500 }
+      );
+    }
+
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+
+    const { notificationId } = await req.json();
+
+    if (!notificationId) {
+      return NextResponse.json(
+        { error: "notificationId is required" },
+        { status: 400 }
+      );
+    }
+
+    const { error } = await supabase
+      .from("notifications")
+      .update({
+        read: true,
+        read_at: new Date().toISOString()
+      })
+      .eq("id", notificationId);
+
+    if (error) {
+      console.error("Notification read error:", error);
+      return NextResponse.json(
+        { error: "Failed to mark notification as read" },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    console.error("Notification read route error:", err);
+    return NextResponse.json(
+      { error: err.message || "Unexpected error" },
+      { status: 500 }
+    );
+  }
+}

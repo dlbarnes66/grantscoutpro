@@ -1,0 +1,44 @@
+export const dynamic = "force-dynamic";
+
+import { NextResponse } from "next/server";
+import OpenAI from "openai";
+
+
+
+
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY!,
+});
+
+export async function POST(req: Request) {
+  try {
+    const { text } = await req.json();
+
+    if (!text) {
+      return NextResponse.json({ error: "Missing text" }, { status: 400 });
+    }
+
+    const response = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content:
+            "Rewrite the text as a concise, polished executive summary. Focus on clarity, impact, and outcomes.",
+        },
+        {
+          role: "user",
+          content: text,
+        },
+      ],
+      max_tokens: 800,
+    });
+
+    return NextResponse.json({
+      summary: response.choices[0].message.content,
+    });
+  } catch (err: any) {
+    console.error("Executive rewrite error:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}

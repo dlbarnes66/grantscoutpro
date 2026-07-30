@@ -1,0 +1,54 @@
+export const dynamic = "force-dynamic";
+
+import { NextResponse } from "next/server";
+import OpenAI from "openai";
+
+
+
+
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+
+export async function POST(req: Request) {
+  try {
+    const { grant, application } = await req.json();
+
+    if (!grant || !application) {
+      return NextResponse.json({ error: "Missing grant or application" }, { status: 400 });
+    }
+
+    const response = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: `
+Perform deep compliance scanning. Return JSON:
+{
+  "issues": string[],
+  "severity": "low" | "medium" | "high",
+  "missingRequirements": string[],
+  "nonCompliantSections": string[],
+  "summary": string
+}
+          `
+        },
+        {
+          role: "user",
+          content: `
+Grant Requirements:
+${JSON.stringify(grant)}
+
+Application:
+${JSON.stringify(application)}
+          `
+        }
+      ],
+      max_tokens: 4000
+    });
+
+    return NextResponse.json(JSON.parse(response.choices[0].message.content || "{}"));
+  } catch (err: any) {
+    console.error("Compliance scan error:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}

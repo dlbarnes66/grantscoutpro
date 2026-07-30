@@ -1,0 +1,30 @@
+export const dynamic = "force-dynamic";
+
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
+
+
+
+export async function POST(req: Request) {
+  try {
+    const { userId, role } = await req.json();
+
+    if (!userId || !role) {
+      return NextResponse.json(
+        { error: "Missing userId or role" },
+        { status: 400 }
+      );
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { role },
+    });
+
+    return NextResponse.json({ updated: true });
+  } catch (err: any) {
+    console.error("RBAC update error:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
