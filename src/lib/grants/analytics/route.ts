@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 import { getAnalytics } from "@/lib/grants/analytics/getAnalytics";
 
 export const runtime = "nodejs";
@@ -15,10 +16,13 @@ export async function POST(req: Request) {
       );
     }
 
-    const analytics = await getAnalytics({
-      workspaceId,
-      tier,
+    // ⭐ Fetch grants for this workspace
+    const grants = await prisma.grant.findMany({
+      where: { workspaceId },
     });
+
+    // ⭐ Correct call — pass (grants, tier)
+    const analytics = await getAnalytics(grants, tier);
 
     return NextResponse.json(analytics);
   } catch (err: any) {
