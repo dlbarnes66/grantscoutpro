@@ -43,7 +43,7 @@ export default function SectionCreateForm({
         <p className="mt-2">Your section has been created.</p>
 
         <a
-          href={`/dashboard/workspace/${workspaceId}/grant/${grantId}/sections/${createdSectionId}`}
+          href={`/dashboard/${params.workspaceId}/grant/${grantId}/sections/${createdSectionId}`}
           className="inline-block mt-4 px-4 py-2 bg-blue-600 text-white rounded-md"
         >
           Open Section

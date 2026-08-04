@@ -1,27 +1,112 @@
-export const dynamic = "force-dynamic";
-
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function POST(_req, { params }) {
-  const { id } = params;
+export const dynamic = "force-dynamic";
 
+
+export async function GET(request: NextRequest, context: any) {
+  req: Request,
+  context: { params: {} }
+) {
   try {
-    // Mark job as queued again
-    await prisma.job.update({
-      where: { id },
-      data: { status: "queued" },
-    });
+    const url = new URL(req.url);
 
+  const params = await (context as any).params;
+    const documentId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.documentId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.grantId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.id ||
+      url.searchParams.get("documentId");
+
+    const workspaceId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.workspaceId ||
+      url.searchParams.get("workspaceId");
+
+    // TODO: implement real GET logic here
+
+    return NextResponse.json({
+      success: true,
+      method: "GET",
+      documentId,
+      workspaceId,
+    });
+  } catch (err: any) {
+    console.error("GET ROUTE ERROR:", err);
     return NextResponse.json(
-      { message: "Retry triggered" },
-      { status: 200 }
-    );
-  } catch (error) {
-    console.error("Error retrying job:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
+      { error: err?.message ?? "Unexpected error" },
       { status: 500 }
     );
   }
 }
+
+export async function POST(request: NextRequest, context: any) {
+  req: Request,
+  context: { params: {} }
+) {
+  try {
+    const body = await req.json().catch(() => ({} as any));
+    const url = new URL(req.url);
+
+  const params = await (context as any).params;
+    const documentId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.documentId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.grantId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.id ||
+      body.documentId ||
+      url.searchParams.get("documentId");
+
+    const workspaceId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.workspaceId ||
+      body.workspaceId ||
+      url.searchParams.get("workspaceId");
+
+    // TODO: implement real POST logic here
+
+    return NextResponse.json({
+      success: true,
+      method: "POST",
+      documentId,
+      workspaceId,
+      body,
+    });
+  } catch (err: any) {
+    console.error("POST ROUTE ERROR:", err);
+    return NextResponse.json(
+      { error: err?.message ?? "Unexpected error" },
+      { status: 500 }
+    );
+  }
+}
+

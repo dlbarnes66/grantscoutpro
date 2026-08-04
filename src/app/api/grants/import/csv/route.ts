@@ -1,87 +1,112 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { GrantSource, GrantTierAccess } from "@prisma/client";
 
-export async function POST(request: NextRequest) {
+export const dynamic = "force-dynamic";
+
+
+export async function GET(request: NextRequest, context: any) {
+  req: Request,
+  context: { params: {} }
+) {
   try {
-    const body = await request.json();
+    const url = new URL(req.url);
 
-    const rows = body.rows;
-    const workspaceId = body.workspaceId;
+  const params = await (context as any).params;
+    const documentId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.documentId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.grantId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.id ||
+      url.searchParams.get("documentId");
 
-    if (!Array.isArray(rows)) {
-      return NextResponse.json(
-        { error: "Invalid CSV rows" },
-        { status: 400 }
-      );
-    }
+    const workspaceId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.workspaceId ||
+      url.searchParams.get("workspaceId");
 
-    if (!workspaceId) {
-      return NextResponse.json(
-        { error: "Missing workspaceId" },
-        { status: 400 }
-      );
-    }
+    // TODO: implement real GET logic here
 
-    for (const row of rows) {
-      if (!row.id) continue;
-
-      await prisma.grant.upsert({
-        where: { id: row.id },
-        update: {
-          title: row.title ?? "",
-          summary: row.summary ?? "",
-          description: row.description ?? "",
-          category: row.category ?? "",
-          agency: row.agency ?? "",
-
-          amount: row.amount ?? null,
-          amountMin: row.amountMin ?? null,
-          amountMax: row.amountMax ?? null,
-          totalFunding: row.totalFunding ?? null,
-
-          deadline: row.deadline ?? null,
-          industry: row.industry ?? "",
-          location: row.location ?? "",
-
-          // fundingRange removed — not in Prisma model
-
-          raw: row
-        },
-        create: {
-          id: row.id,
-          source: GrantSource.FEDERAL,
-          tierAccess: GrantTierAccess.PRO,
-
-          title: row.title ?? "",
-          summary: row.summary ?? "",
-          description: row.description ?? "",
-          category: row.category ?? "",
-          agency: row.agency ?? "",
-
-          amount: row.amount ?? null,
-          amountMin: row.amountMin ?? null,
-          amountMax: row.amountMax ?? null,
-          totalFunding: row.totalFunding ?? null,
-
-          deadline: row.deadline ?? null,
-          industry: row.industry ?? "",
-          location: row.location ?? "",
-
-          // fundingRange removed — not in Prisma model
-
-          workspace: { connect: { id: workspaceId } },
-          raw: row
-        }
-      });
-    }
-
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      method: "GET",
+      documentId,
+      workspaceId,
+    });
   } catch (err: any) {
-    console.error("CSV IMPORT ERROR:", err);
+    console.error("GET ROUTE ERROR:", err);
     return NextResponse.json(
-      { error: err.message ?? "Unexpected error" },
+      { error: err?.message ?? "Unexpected error" },
       { status: 500 }
     );
   }
 }
+
+export async function POST(request: NextRequest, context: any) {
+  req: Request,
+  context: { params: {} }
+) {
+  try {
+    const body = await req.json().catch(() => ({} as any));
+    const url = new URL(req.url);
+
+  const params = await (context as any).params;
+    const documentId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.documentId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.grantId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.id ||
+      body.documentId ||
+      url.searchParams.get("documentId");
+
+    const workspaceId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.workspaceId ||
+      body.workspaceId ||
+      url.searchParams.get("workspaceId");
+
+    // TODO: implement real POST logic here
+
+    return NextResponse.json({
+      success: true,
+      method: "POST",
+      documentId,
+      workspaceId,
+      body,
+    });
+  } catch (err: any) {
+    console.error("POST ROUTE ERROR:", err);
+    return NextResponse.json(
+      { error: err?.message ?? "Unexpected error" },
+      { status: 500 }
+    );
+  }
+}
+

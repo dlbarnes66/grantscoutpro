@@ -34,28 +34,28 @@ export default function GrantWorkspaceCard({
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
         <a
-          href={`/dashboard/workspace/${workspaceId}/grant/${grant.id}`}
+          href={`/dashboard/${params.workspaceId}/grant/${grant.id}`}
           className="p-2 bg-blue-600 text-white rounded-md text-center text-sm font-semibold"
         >
           Dashboard
         </a>
 
         <a
-          href={`/dashboard/workspace/${workspaceId}/grant/${grant.id}/sections`}
+          href={`/dashboard/${params.workspaceId}/grant/${grant.id}/sections`}
           className="p-2 bg-purple-600 text-white rounded-md text-center text-sm font-semibold"
         >
           Narrative
         </a>
 
         <a
-          href={`/dashboard/workspace/${workspaceId}/grant/${grant.id}/intelligence`}
+          href={`/dashboard/${params.workspaceId}/grant/${grant.id}/intelligence`}
           className="p-2 bg-green-600 text-white rounded-md text-center text-sm font-semibold"
         >
           Intelligence
         </a>
 
         <a
-          href={`/dashboard/workspace/${workspaceId}/grant/${grant.id}/submission`}
+          href={`/dashboard/${params.workspaceId}/grant/${grant.id}/submission`}
           className="p-2 bg-orange-600 text-white rounded-md text-center text-sm font-semibold"
         >
           Submission

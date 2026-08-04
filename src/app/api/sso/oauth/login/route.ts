@@ -1,20 +1,112 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
 export const dynamic = "force-dynamic";
 
-import { NextResponse } from "next/server";
 
+export async function GET(request: NextRequest, context: any) {
+  req: Request,
+  context: { params: {} }
+) {
+  try {
+    const url = new URL(req.url);
 
+  const params = await (context as any).params;
+    const documentId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.documentId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.grantId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.id ||
+      url.searchParams.get("documentId");
 
+    const workspaceId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.workspaceId ||
+      url.searchParams.get("workspaceId");
 
-export async function POST(req: Request) {
-  const { provider } = await req.json();
+    // TODO: implement real GET logic here
 
-  const providers: Record<string, string> = {
-    google: `https://accounts.google.com/o/oauth2/v2/auth?client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_BASE_URL}/api/sso/oauth/callback&response_type=code&scope=openid email profile`,
-    azure: `https://login.microsoftonline.com/${process.env.AZURE_TENANT_ID}/oauth2/v2.0/authorize?client_id=${process.env.AZURE_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_BASE_URL}/api/sso/oauth/callback&response_type=code&scope=openid email profile`,
-    okta: `${process.env.OKTA_DOMAIN}/oauth2/v1/authorize?client_id=${process.env.OKTA_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_BASE_URL}/api/sso/oauth/callback&response_type=code&scope=openid email profile`,
-  };
-
-  return NextResponse.json({
-    redirect: providers[provider],
-  });
+    return NextResponse.json({
+      success: true,
+      method: "GET",
+      documentId,
+      workspaceId,
+    });
+  } catch (err: any) {
+    console.error("GET ROUTE ERROR:", err);
+    return NextResponse.json(
+      { error: err?.message ?? "Unexpected error" },
+      { status: 500 }
+    );
+  }
 }
+
+export async function POST(request: NextRequest, context: any) {
+  req: Request,
+  context: { params: {} }
+) {
+  try {
+    const body = await req.json().catch(() => ({} as any));
+    const url = new URL(req.url);
+
+  const params = await (context as any).params;
+    const documentId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.documentId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.grantId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.id ||
+      body.documentId ||
+      url.searchParams.get("documentId");
+
+    const workspaceId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.workspaceId ||
+      body.workspaceId ||
+      url.searchParams.get("workspaceId");
+
+    // TODO: implement real POST logic here
+
+    return NextResponse.json({
+      success: true,
+      method: "POST",
+      documentId,
+      workspaceId,
+      body,
+    });
+  } catch (err: any) {
+    console.error("POST ROUTE ERROR:", err);
+    return NextResponse.json(
+      { error: err?.message ?? "Unexpected error" },
+      { status: 500 }
+    );
+  }
+}
+

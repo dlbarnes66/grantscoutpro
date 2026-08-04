@@ -1,54 +1,112 @@
-export const dynamic = "force-dynamic";
-
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
+
+export const dynamic = "force-dynamic";
 
 
-
-export async function POST(req: Request) {
+export async function GET(request: NextRequest, context: any) {
+  req: Request,
+  context: { params: {} }
+) {
   try {
-    const session = await auth();
+    const url = new URL(req.url);
 
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+  const params = await (context as any).params;
+    const documentId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.documentId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.grantId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.id ||
+      url.searchParams.get("documentId");
 
-    const { orgId, resourceId } = await req.json();
+    const workspaceId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.workspaceId ||
+      url.searchParams.get("workspaceId");
 
-    if (!orgId || !resourceId) {
-      return NextResponse.json(
-        { error: "Missing orgId or resourceId" },
-        { status: 400 }
-      );
-    }
-
-    // Check if the resource is shared with this org
-    const shared = await prisma.sharedResource.findFirst({
-      where: {
-        ownerOrgId: orgId,
-        resourceId,
-      },
-    });
-
-    if (!shared) {
-      return NextResponse.json(
-        { shared: false, reason: "Resource is not shared with this organization" },
-        { status: 403 }
-      );
-    }
+    // TODO: implement real GET logic here
 
     return NextResponse.json({
-      shared: true,
+      success: true,
+      method: "GET",
+      documentId,
+      workspaceId,
     });
   } catch (err: any) {
-    console.error("ORG SHARE CHECK ERROR:", err);
+    console.error("GET ROUTE ERROR:", err);
     return NextResponse.json(
-      { error: err.message },
+      { error: err?.message ?? "Unexpected error" },
       { status: 500 }
     );
   }
 }
+
+export async function POST(request: NextRequest, context: any) {
+  req: Request,
+  context: { params: {} }
+) {
+  try {
+    const body = await req.json().catch(() => ({} as any));
+    const url = new URL(req.url);
+
+  const params = await (context as any).params;
+    const documentId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.documentId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.grantId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.id ||
+      body.documentId ||
+      url.searchParams.get("documentId");
+
+    const workspaceId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.workspaceId ||
+      body.workspaceId ||
+      url.searchParams.get("workspaceId");
+
+    // TODO: implement real POST logic here
+
+    return NextResponse.json({
+      success: true,
+      method: "POST",
+      documentId,
+      workspaceId,
+      body,
+    });
+  } catch (err: any) {
+    console.error("POST ROUTE ERROR:", err);
+    return NextResponse.json(
+      { error: err?.message ?? "Unexpected error" },
+      { status: 500 }
+    );
+  }
+}
+

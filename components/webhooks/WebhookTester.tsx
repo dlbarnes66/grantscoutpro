@@ -5,10 +5,10 @@ import { Webhook, WebhookLogEntry } from "./types";
 
 export default function WebhookTester({
   webhooks,
-  onLog,
+  onLogAction,
 }: {
   webhooks: Webhook[];
-  onLog: (entry: WebhookLogEntry) => void;
+  onLogAction: (entry: WebhookLogEntry) => void;
 }) {
   const [payload, setPayload] = useState('{ "test": true }');
 
@@ -22,7 +22,7 @@ export default function WebhookTester({
       timestamp: new Date().toISOString(),
     };
 
-    onLog(fakeDelivery);
+    onLogAction(fakeDelivery);
   }
 
   return (

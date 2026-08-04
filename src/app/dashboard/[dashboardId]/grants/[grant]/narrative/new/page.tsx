@@ -35,7 +35,7 @@ export default function NewNarrativePage({
       }
 
       router.push(
-        `/dashboard/${workspaceId}/grant/${grantId}/narrative/${data.id}`
+        `/dashboard/${params.workspaceId}/grant/${grantId}/narrative/${data.id}`
       );
     } catch (err: any) {
       setError(err.message || "Error creating narrative entry");
@@ -75,7 +75,7 @@ export default function NewNarrativePage({
       {/* Cancel */}
       <button
         onClick={() =>
-          router.push(`/dashboard/${workspaceId}/grant/${grantId}/narrative`)
+          router.push(`/dashboard/${params.workspaceId}/grant/${grantId}/narrative`)
         }
         className="px-4 py-2 rounded border border-gray-300 text-gray-700 hover:bg-gray-100"
       >

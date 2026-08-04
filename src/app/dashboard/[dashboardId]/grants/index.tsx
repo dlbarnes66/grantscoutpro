@@ -1,9 +1,8 @@
 import { auth } from "@/auth";
-import { prisma } from "@/lib/prisma.ts";
+import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 
 export default async function GrantsPage() {
-  // Clerk authentication
   const { userId } = auth();
 
   if (!userId) {
@@ -14,7 +13,6 @@ export default async function GrantsPage() {
     );
   }
 
-  // Load workspace
   const workspace = await prisma.workspace.findFirst({
     where: { ownerId: userId },
   });
@@ -27,7 +25,6 @@ export default async function GrantsPage() {
     );
   }
 
-  // Load grants
   const grants = await prisma.grant.findMany({
     where: { workspaceId: workspace.id },
     orderBy: { createdAt: "desc" },
@@ -45,7 +42,7 @@ export default async function GrantsPage() {
         </div>
 
         <Link
-          href={`/dashboard/${workspace.id}/grant/new`}
+          href={`/dashboard/${params.workspaceId}/grant/new`}
           className="rounded bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
         >
           + Create Grant
@@ -62,7 +59,7 @@ export default async function GrantsPage() {
           {grants.map((grant) => (
             <Link
               key={grant.id}
-              href={`/dashboard/${workspace.id}/grant/${grant.id}`}
+              href={`/dashboard/${params.workspaceId}/grant/${grant.id}`}
               className="block rounded border border-slate-800 bg-slate-900/40 px-4 py-3 hover:bg-slate-800 transition"
             >
               <div className="text-slate-100 font-medium">{grant.title}</div>

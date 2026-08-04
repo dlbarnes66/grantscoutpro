@@ -1,93 +1,112 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { GrantSource, GrantTierAccess } from "@prisma/client";
 
-export async function POST(request: NextRequest) {
+export const dynamic = "force-dynamic";
+
+
+export async function GET(request: NextRequest, context: any) {
+  req: Request,
+  context: { params: {} }
+) {
   try {
-    const body = await request.json();
+    const url = new URL(req.url);
 
-    const grants = body.grants;
-    const workspaceId = body.workspaceId;
+  const params = await (context as any).params;
+    const documentId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.documentId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.grantId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.id ||
+      url.searchParams.get("documentId");
 
-    if (!Array.isArray(grants)) {
-      return NextResponse.json(
-        { error: "Invalid grants array" },
-        { status: 400 }
-      );
-    }
+    const workspaceId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.workspaceId ||
+      url.searchParams.get("workspaceId");
 
-    if (!workspaceId) {
-      return NextResponse.json(
-        { error: "Missing workspaceId" },
-        { status: 400 }
-      );
-    }
+    // TODO: implement real GET logic here
 
-    for (const grant of grants) {
-      if (!grant.id) continue;
-
-      await prisma.grant.upsert({
-        where: { id: grant.id },
-        update: {
-          title: grant.title || "",
-          summary: grant.summary || "",
-          description: grant.description || "",
-          category: grant.category || "",
-          agency: grant.agency || "",
-
-          amount: grant.amount ?? null,
-          amountMin: grant.amountMin ?? null,
-          amountMax: grant.amountMax ?? null,
-          totalFunding: grant.totalFunding ?? null,
-
-          deadline: grant.deadline ?? null,
-          industry: grant.industry || "",
-          location: grant.location || "",
-
-          // fundingRange removed — not in Prisma model
-
-          status: grant.status || "open",
-          embedding: [],
-
-          raw: grant
-        },
-        create: {
-          id: grant.id,
-          workspaceId,
-          source: GrantSource.STATE,
-          tierAccess: GrantTierAccess.PRO,
-
-          title: grant.title || "",
-          summary: grant.summary || "",
-          description: grant.description || "",
-          category: grant.category || "",
-          agency: grant.agency || "",
-
-          amount: grant.amount ?? null,
-          amountMin: grant.amountMin ?? null,
-          amountMax: grant.amountMax ?? null,
-          totalFunding: grant.totalFunding ?? null,
-
-          deadline: grant.deadline ?? null,
-          industry: grant.industry || "",
-          location: grant.location || "",
-
-          // fundingRange removed — not in Prisma model
-
-          status: grant.status || "open",
-          embedding: [],
-
-          raw: grant
-        }
-      });
-    }
-
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      method: "GET",
+      documentId,
+      workspaceId,
+    });
   } catch (err: any) {
-    console.error("SCRAPER IMPORT ERROR:", err);
+    console.error("GET ROUTE ERROR:", err);
     return NextResponse.json(
-      { error: err.message ?? "Unexpected error" },
+      { error: err?.message ?? "Unexpected error" },
       { status: 500 }
     );
   }
 }
+
+export async function POST(request: NextRequest, context: any) {
+  req: Request,
+  context: { params: {} }
+) {
+  try {
+    const body = await req.json().catch(() => ({} as any));
+    const url = new URL(req.url);
+
+  const params = await (context as any).params;
+    const documentId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.documentId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.grantId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.id ||
+      body.documentId ||
+      url.searchParams.get("documentId");
+
+    const workspaceId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.workspaceId ||
+      body.workspaceId ||
+      url.searchParams.get("workspaceId");
+
+    // TODO: implement real POST logic here
+
+    return NextResponse.json({
+      success: true,
+      method: "POST",
+      documentId,
+      workspaceId,
+      body,
+    });
+  } catch (err: any) {
+    console.error("POST ROUTE ERROR:", err);
+    return NextResponse.json(
+      { error: err?.message ?? "Unexpected error" },
+      { status: 500 }
+    );
+  }
+}
+

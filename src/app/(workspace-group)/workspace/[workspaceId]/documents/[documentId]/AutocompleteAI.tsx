@@ -21,7 +21,7 @@ export default function AutocompleteAI({
       controllerRef.current = new AbortController();
 
       const res = await fetch(
-        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/autocomplete`,
+        `/api/workspace/${workspaceId}/documents/${documentId}/ai/autocomplete`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

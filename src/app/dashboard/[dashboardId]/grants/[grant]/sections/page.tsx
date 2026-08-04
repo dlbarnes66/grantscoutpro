@@ -29,7 +29,7 @@ export default function GrantSectionsPage({ params }: any) {
         <h1 className="text-2xl font-bold text-slate-100">Grant Sections</h1>
 
         <Link
-          href={`/dashboard/${workspaceId}/grant/${grantId}/sections/new`}
+          href={`/dashboard/${params.workspaceId}/grant/${grantId}/sections/new`}
           className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
         >
           + New Section
@@ -43,7 +43,7 @@ export default function GrantSectionsPage({ params }: any) {
           {sections.map((section) => (
             <Link
               key={section.id}
-              href={`/dashboard/${workspaceId}/grant/${grantId}/sections/${section.id}`}
+              href={`/dashboard/${params.workspaceId}/grant/${grantId}/sections/${section.id}`}
               className="block rounded border border-slate-800 bg-slate-900/60 p-4 hover:bg-slate-800 transition"
             >
               <div className="text-slate-100 font-semibold">{section.title}</div>

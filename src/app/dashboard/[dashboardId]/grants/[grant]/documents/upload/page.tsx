@@ -21,7 +21,7 @@ export default function UploadDocumentPage({ params }: any) {
     });
 
     if (res.ok) {
-      router.push(`/dashboard/${workspaceId}/grant/${grantId}/documents`);
+      router.push(`/dashboard/${params.workspaceId}/grant/${grantId}/documents`);
     }
   }
 

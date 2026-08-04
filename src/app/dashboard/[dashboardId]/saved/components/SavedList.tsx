@@ -16,7 +16,7 @@ export function SavedList({
       {grants.map((g) => (
         <Link
           key={g.id}
-          href={`/dashboard/${workspaceId}/grant/${g.id}`}
+          href={`/dashboard/${params.workspaceId}/grant/${g.id}`}
           className="block rounded border border-gray-200 bg-white p-4 hover:bg-gray-50 transition"
         >
           <h3 className="text-lg font-semibold text-gray-900">{g.title}</h3>

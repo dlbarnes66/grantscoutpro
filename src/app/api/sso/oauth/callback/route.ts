@@ -1,68 +1,112 @@
-export const dynamic = "force-dynamic";
-
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
 
 
-
-async function fetchToken(provider: string, code: string) {
-  const endpoints: Record<string, string> = {
-    google: "https://oauth2.googleapis.com/token",
-    azure: `https://login.microsoftonline.com/${process.env.AZURE_TENANT_ID}/oauth2/v2.0/token`,
-    okta: `${process.env.OKTA_DOMAIN}/oauth2/v1/token`,
-  };
-
-  const params = new URLSearchParams({
-    code,
-    redirect_uri: `${process.env.NEXT_PUBLIC_BASE_URL}/api/sso/oauth/callback`,
-    grant_type: "authorization_code",
-    client_id: process.env[`${provider.toUpperCase()}_CLIENT_ID`]!,
-    client_secret: process.env[`${provider.toUpperCase()}_CLIENT_SECRET`]!,
-  });
-
-  const res = await fetch(endpoints[provider], {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: params,
-  });
-
-  return await res.json();
-}
-
-export async function GET(req: Request) {
+export async function GET(request: NextRequest, context: any) {
+  req: Request,
+  context: { params: {} }
+) {
   try {
     const url = new URL(req.url);
-    const code = url.searchParams.get("code");
-    const provider = url.searchParams.get("provider");
 
-    if (!code || !provider) {
-      return NextResponse.json({ error: "Missing code or provider" });
-    }
+  const params = await (context as any).params;
+    const documentId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.documentId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.grantId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.id ||
+      url.searchParams.get("documentId");
 
-    const token = await fetchToken(provider, code);
+    const workspaceId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.workspaceId ||
+      url.searchParams.get("workspaceId");
 
-    const idToken = JSON.parse(
-      Buffer.from(token.id_token.split(".")[1], "base64").toString()
-    );
+    // TODO: implement real GET logic here
 
-    const email = idToken.email;
-
-    let user = await prisma.user.findUnique({ where: { email } });
-
-    if (!user) {
-      user = await prisma.user.create({
-        data: {
-          email,
-          name: idToken.name ?? email.split("@")[0],
-          role: "member",
-        },
-      });
-    }
-
-    return NextResponse.json({ success: true, user });
+    return NextResponse.json({
+      success: true,
+      method: "GET",
+      documentId,
+      workspaceId,
+    });
   } catch (err: any) {
-    console.error("OAuth callback error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error("GET ROUTE ERROR:", err);
+    return NextResponse.json(
+      { error: err?.message ?? "Unexpected error" },
+      { status: 500 }
+    );
   }
 }
+
+export async function POST(request: NextRequest, context: any) {
+  req: Request,
+  context: { params: {} }
+) {
+  try {
+    const body = await req.json().catch(() => ({} as any));
+    const url = new URL(req.url);
+
+  const params = await (context as any).params;
+    const documentId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.documentId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.grantId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.id ||
+      body.documentId ||
+      url.searchParams.get("documentId");
+
+    const workspaceId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.workspaceId ||
+      body.workspaceId ||
+      url.searchParams.get("workspaceId");
+
+    // TODO: implement real POST logic here
+
+    return NextResponse.json({
+      success: true,
+      method: "POST",
+      documentId,
+      workspaceId,
+      body,
+    });
+  } catch (err: any) {
+    console.error("POST ROUTE ERROR:", err);
+    return NextResponse.json(
+      { error: err?.message ?? "Unexpected error" },
+      { status: 500 }
+    );
+  }
+}
+

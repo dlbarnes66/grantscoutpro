@@ -1,14 +1,13 @@
-// next.config.js
 const path = require("path");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
 
-  // ⭐ Force Webpack instead of Turbopack
-  // Next.js 16 requires this flag to disable Turbopack
+  // Enable Turbopack safely
+  turbopack: {},
+
   webpack: (config, { nextRuntime }) => {
-    // Prevent Turbopack from taking over
     if (nextRuntime === "edge") return config;
 
     const existingAlias =
@@ -16,22 +15,23 @@ const nextConfig = {
         ? config.resolve.alias
         : {};
 
-    config.resolve.alias = Object.assign({}, existingAlias, {
-      "@": path.resolve(__dirname, "src"),
-      "@/app": path.resolve(__dirname, "src/app"),
-      "@/components": path.resolve(__dirname, "src/components"),
-      "@/hooks": path.resolve(__dirname, "src/hooks"),
+    config.resolve.alias = {
+      ...existingAlias,
+
+      "@": path.resolve(__dirname),
+
+      // Correct alias: components live in /components, NOT /src/components
+      "@/components": path.resolve(__dirname, "components"),
+      "@/hooks": path.resolve(__dirname, "hooks"),
+
+      // lib *is* inside src/lib
       "@/lib": path.resolve(__dirname, "src/lib"),
-      "@/auth": path.resolve(__dirname, "src/auth.ts")
-    });
+
+      // nextauth lives inside src/lib/auth
+      "@/auth": path.resolve(__dirname, "src/lib/auth/nextauth.ts")
+    };
 
     return config;
-  },
-
-  // ⭐ Explicitly disable Turbopack
-  // This is the key — without this, Turbopack ignores your aliases
-  experimental: {
-    turbo: false
   }
 };
 

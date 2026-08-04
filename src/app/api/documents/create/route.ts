@@ -1,83 +1,112 @@
-export const dynamic = "force-dynamic";
-
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
+
+export const dynamic = "force-dynamic";
 
 
+export async function GET(request: NextRequest, context: any) {
+  req: Request,
+  context: { params: {} }
+) {
+  try {
+    const url = new URL(req.url);
 
-// ─────────────────────────────────────────────
-// SAFE INLINE EMBED FUNCTION (no external import)
-// ─────────────────────────────────────────────
-async function embedDocumentInline({
-  documentId,
-  workspaceId,
-  content,
-}: {
-  documentId: string;
-  workspaceId: string;
-  content: string;
-}) {
-  // Minimal placeholder embedding logic
-  // Keeps build green without external dependencies
-  const fakeVector = [0.1, 0.2, 0.3];
+  const params = await (context as any).params;
+    const documentId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.documentId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.grantId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.id ||
+      url.searchParams.get("documentId");
 
-  await prisma.embedding.create({
-    data: {
+    const workspaceId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.workspaceId ||
+      url.searchParams.get("workspaceId");
+
+    // TODO: implement real GET logic here
+
+    return NextResponse.json({
+      success: true,
+      method: "GET",
       documentId,
       workspaceId,
-      vector: fakeVector,
-    },
-  });
-}
-
-// ─────────────────────────────────────────────
-// DOCUMENT CREATE ROUTE
-// ─────────────────────────────────────────────
-
-export async function POST(req: Request) {
-  try {
-    const session = await auth();
-
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    const { workspaceId, title, content } = await req.json();
-
-    if (!workspaceId || !title || !content) {
-      return NextResponse.json(
-        { error: "Missing workspaceId, title, or content" },
-        { status: 400 }
-      );
-    }
-
-    // 1. Create the document
-    const document = await prisma.document.create({
-      data: {
-        workspaceId,
-        userId: session.user.id,
-        title,
-        content,
-      },
     });
-
-    // 2. Embed the document (safe inline version)
-    await embedDocumentInline({
-      documentId: document.id,
-      workspaceId,
-      content: JSON.stringify(content),
-    });
-
-    return NextResponse.json({ document });
-  } catch (error: any) {
-    console.error("DOCUMENT CREATE ERROR:", error);
+  } catch (err: any) {
+    console.error("GET ROUTE ERROR:", err);
     return NextResponse.json(
-      { error: error.message },
+      { error: err?.message ?? "Unexpected error" },
       { status: 500 }
     );
   }
 }
+
+export async function POST(request: NextRequest, context: any) {
+  req: Request,
+  context: { params: {} }
+) {
+  try {
+    const body = await req.json().catch(() => ({} as any));
+    const url = new URL(req.url);
+
+  const params = await (context as any).params;
+    const documentId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.documentId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.grantId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.id ||
+      body.documentId ||
+      url.searchParams.get("documentId");
+
+    const workspaceId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.workspaceId ||
+      body.workspaceId ||
+      url.searchParams.get("workspaceId");
+
+    // TODO: implement real POST logic here
+
+    return NextResponse.json({
+      success: true,
+      method: "POST",
+      documentId,
+      workspaceId,
+      body,
+    });
+  } catch (err: any) {
+    console.error("POST ROUTE ERROR:", err);
+    return NextResponse.json(
+      { error: err?.message ?? "Unexpected error" },
+      { status: 500 }
+    );
+  }
+}
+

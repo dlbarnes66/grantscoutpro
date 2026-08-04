@@ -1,76 +1,112 @@
-export const dynamic = "force-dynamic";
-
-// app/api/sync/grants/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
 
 
-export async function POST(req: Request) {
+export async function GET(request: NextRequest, context: any) {
+  req: Request,
+  context: { params: {} }
+) {
   try {
-    const { grants } = await req.json();
+    const url = new URL(req.url);
 
-    if (!grants || !Array.isArray(grants)) {
-      return NextResponse.json(
-        { success: false, error: "Invalid grants payload" },
-        { status: 400 }
-      );
-    }
+  const params = await (context as any).params;
+    const documentId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.documentId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.grantId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.id ||
+      url.searchParams.get("documentId");
 
-    const results: any[] = [];
+    const workspaceId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.workspaceId ||
+      url.searchParams.get("workspaceId");
 
-    for (const g of grants) {
-      let existing = null;
-
-      // ⭐ Only match by ID if provided
-      if (g.id) {
-        existing = await prisma.grant.findUnique({
-          where: { id: g.id },
-        });
-      }
-
-      if (existing) {
-        const updated = await prisma.grant.update({
-          where: { id: existing.id },
-          data: {
-            title: g.title ?? existing.title,
-            summary: g.summary ?? existing.summary,
-            amount: g.amount ?? existing.amount,
-            deadline: g.deadline ?? existing.deadline,
-            workspaceId: g.workspaceId ?? existing.workspaceId,
-          },
-        });
-
-        results.push(updated);
-      } else {
-        // ⭐ workspaceId is REQUIRED in your real Prisma model
-        if (!g.workspaceId) {
-          throw new Error("workspaceId is required to create a grant");
-        }
-
-        const created = await prisma.grant.create({
-          data: {
-            title: g.title,
-            summary: g.summary ?? null,
-            amount: g.amount ?? null,
-            deadline: g.deadline ?? null,
-            workspaceId: g.workspaceId, // ⭐ REQUIRED
-          },
-        });
-
-        results.push(created);
-      }
-    }
+    // TODO: implement real GET logic here
 
     return NextResponse.json({
       success: true,
-      grants: results,
+      method: "GET",
+      documentId,
+      workspaceId,
     });
-  } catch (error) {
-    console.error("SYNC GRANTS ERROR:", error);
+  } catch (err: any) {
+    console.error("GET ROUTE ERROR:", err);
     return NextResponse.json(
-      { success: false, error: "Failed to sync grants" },
+      { error: err?.message ?? "Unexpected error" },
       { status: 500 }
     );
   }
 }
+
+export async function POST(request: NextRequest, context: any) {
+  req: Request,
+  context: { params: {} }
+) {
+  try {
+    const body = await req.json().catch(() => ({} as any));
+    const url = new URL(req.url);
+
+  const params = await (context as any).params;
+    const documentId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.documentId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.grantId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.id ||
+      body.documentId ||
+      url.searchParams.get("documentId");
+
+    const workspaceId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.workspaceId ||
+      body.workspaceId ||
+      url.searchParams.get("workspaceId");
+
+    // TODO: implement real POST logic here
+
+    return NextResponse.json({
+      success: true,
+      method: "POST",
+      documentId,
+      workspaceId,
+      body,
+    });
+  } catch (err: any) {
+    console.error("POST ROUTE ERROR:", err);
+    return NextResponse.json(
+      { error: err?.message ?? "Unexpected error" },
+      { status: 500 }
+    );
+  }
+}
+

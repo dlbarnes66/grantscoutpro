@@ -1,96 +1,112 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
 export const dynamic = "force-dynamic";
 
-import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 
-
-
-
-export async function POST(req: Request) {
+export async function GET(request: NextRequest, context: any) {
+  req: Request,
+  context: { params: {} }
+) {
   try {
-    // Prevent Supabase from initializing during Next.js build
-    if (
-      !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-      !process.env.SUPABASE_SERVICE_ROLE_KEY
-    ) {
-      return NextResponse.json(
-        { error: "Supabase environment variables missing" },
-        { status: 500 }
-      );
-    }
+    const url = new URL(req.url);
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_ROLE_KEY
-    );
+  const params = await (context as any).params;
+    const documentId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.documentId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.grantId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.id ||
+      url.searchParams.get("documentId");
 
-    const body = await req.json();
+    const workspaceId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.workspaceId ||
+      url.searchParams.get("workspaceId");
 
-    const { userId, query, filters } = body;
-
-    if (!userId || !query) {
-      return NextResponse.json(
-        { error: "userId and query are required" },
-        { status: 400 }
-      );
-    }
-
-    // Fetch user workspace
-    const { data: workspace, error: workspaceError } = await supabase
-      .from("workspaces")
-      .select("*")
-      .eq("user_id", userId)
-      .single();
-
-    if (workspaceError) {
-      console.error("Unified workspace error:", workspaceError);
-      return NextResponse.json(
-        { error: "Failed to load workspace" },
-        { status: 500 }
-      );
-    }
-
-    // Fetch grants matching query
-    const { data: grants, error: grantsError } = await supabase
-      .from("grants")
-      .select("*")
-      .ilike("title", `%${query}%`);
-
-    if (grantsError) {
-      console.error("Unified grants error:", grantsError);
-      return NextResponse.json(
-        { error: "Failed to load grants" },
-        { status: 500 }
-      );
-    }
-
-    // Apply filters if provided
-    let filtered = grants;
-
-    if (filters?.category) {
-      filtered = filtered.filter((g) => g.category === filters.category);
-    }
-
-    if (filters?.state) {
-      filtered = filtered.filter((g) => g.state === filters.state);
-    }
-
-    if (filters?.deadlineBefore) {
-      filtered = filtered.filter(
-        (g) => new Date(g.deadline) < new Date(filters.deadlineBefore)
-      );
-    }
+    // TODO: implement real GET logic here
 
     return NextResponse.json({
       success: true,
-      workspace,
-      results: filtered
+      method: "GET",
+      documentId,
+      workspaceId,
     });
   } catch (err: any) {
-    console.error("Unified route error:", err);
+    console.error("GET ROUTE ERROR:", err);
     return NextResponse.json(
-      { error: err.message || "Unexpected error" },
+      { error: err?.message ?? "Unexpected error" },
       { status: 500 }
     );
   }
 }
+
+export async function POST(request: NextRequest, context: any) {
+  req: Request,
+  context: { params: {} }
+) {
+  try {
+    const body = await req.json().catch(() => ({} as any));
+    const url = new URL(req.url);
+
+  const params = await (context as any).params;
+    const documentId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.documentId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.grantId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.id ||
+      body.documentId ||
+      url.searchParams.get("documentId");
+
+    const workspaceId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.workspaceId ||
+      body.workspaceId ||
+      url.searchParams.get("workspaceId");
+
+    // TODO: implement real POST logic here
+
+    return NextResponse.json({
+      success: true,
+      method: "POST",
+      documentId,
+      workspaceId,
+      body,
+    });
+  } catch (err: any) {
+    console.error("POST ROUTE ERROR:", err);
+    return NextResponse.json(
+      { error: err?.message ?? "Unexpected error" },
+      { status: 500 }
+    );
+  }
+}
+

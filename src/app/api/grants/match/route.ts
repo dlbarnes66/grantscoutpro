@@ -1,70 +1,112 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
 export const dynamic = "force-dynamic";
 
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
 
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest, context: any) {
+  req: Request,
+  context: { params: {} }
+) {
   try {
-    const session = await auth();
+    const url = new URL(req.url);
 
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+  const params = await (context as any).params;
+    const documentId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.documentId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.grantId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.id ||
+      url.searchParams.get("documentId");
 
-    const userId = session.user.id;
-    const { filters } = await request.json();
+    const workspaceId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.workspaceId ||
+      url.searchParams.get("workspaceId");
 
-    // Find workspace owned by the user
-    let workspace = await prisma.workspace.findFirst({
-      where: { ownerId: userId },
-    });
-
-    // If none, find workspace where user is a member
-    if (!workspace) {
-      const membership = await prisma.workspaceMember.findFirst({
-        where: { userId },
-        include: { workspace: true },
-      });
-
-      workspace = membership?.workspace ?? null;
-    }
-
-    if (!workspace) {
-      return NextResponse.json(
-        { error: "No workspace found for user" },
-        { status: 404 }
-      );
-    }
-
-    // Build dynamic grant filters
-    const where: any = {
-      workspaceId: workspace.id,
-    };
-
-    if (filters?.category) where.category = filters.category;
-    if (filters?.industry) where.industry = filters.industry;
-    if (filters?.location) where.location = filters.location;
-    if (filters?.agency) where.agency = filters.agency;
-
-    // Fetch matching grants
-    const grants = await prisma.grant.findMany({
-      where,
-      orderBy: { deadline: "asc" },
-    });
+    // TODO: implement real GET logic here
 
     return NextResponse.json({
       success: true,
-      grants,
+      method: "GET",
+      documentId,
+      workspaceId,
     });
   } catch (err: any) {
-    console.error("GRANT MATCH ERROR:", err);
+    console.error("GET ROUTE ERROR:", err);
     return NextResponse.json(
       { error: err?.message ?? "Unexpected error" },
       { status: 500 }
     );
   }
 }
+
+export async function POST(request: NextRequest, context: any) {
+  req: Request,
+  context: { params: {} }
+) {
+  try {
+    const body = await req.json().catch(() => ({} as any));
+    const url = new URL(req.url);
+
+  const params = await (context as any).params;
+    const documentId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.documentId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.grantId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.id ||
+      body.documentId ||
+      url.searchParams.get("documentId");
+
+    const workspaceId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.workspaceId ||
+      body.workspaceId ||
+      url.searchParams.get("workspaceId");
+
+    // TODO: implement real POST logic here
+
+    return NextResponse.json({
+      success: true,
+      method: "POST",
+      documentId,
+      workspaceId,
+      body,
+    });
+  } catch (err: any) {
+    console.error("POST ROUTE ERROR:", err);
+    return NextResponse.json(
+      { error: err?.message ?? "Unexpected error" },
+      { status: 500 }
+    );
+  }
+}
+

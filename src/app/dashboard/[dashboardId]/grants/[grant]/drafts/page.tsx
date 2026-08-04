@@ -55,7 +55,7 @@ export default function GrantDraftsPage({
         <h1 className="text-2xl font-bold text-gray-900">Grant Drafts</h1>
 
         <Link
-          href={`/dashboard/${workspaceId}/grant/${grantId}/drafts/new`}
+          href={`/dashboard/${params.workspaceId}/grant/${grantId}/drafts/new`}
           className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition"
         >
           + New Draft
@@ -70,7 +70,7 @@ export default function GrantDraftsPage({
           {drafts.map((draft) => (
             <Link
               key={draft.id}
-              href={`/dashboard/${workspaceId}/grant/${grantId}/drafts/${draft.id}`}
+              href={`/dashboard/${params.workspaceId}/grant/${grantId}/drafts/${draft.id}`}
               className="block rounded border border-gray-200 bg-white p-4 hover:bg-gray-50 transition"
             >
               <div className="text-gray-900 font-semibold">

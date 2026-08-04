@@ -1,0 +1,52 @@
+{
+  "root": true,
+  "extends": [
+    "next/core-web-vitals",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:import/recommended",
+    "plugin:import/typescript"
+  ],
+
+  "plugins": ["@typescript-eslint", "import"],
+
+  "parser": "@typescript-eslint/parser",
+
+  "parserOptions": {
+    "project": "./tsconfig.json",
+    "tsconfigRootDir": "."
+  },
+
+  "settings": {
+    "import/resolver": {
+      "typescript": {
+        "project": "./tsconfig.json"
+      },
+      "alias": {
+        "map": [
+          ["@", "./src"],
+          ["@/app", "./src/app"],
+          ["@/components", "./src/components"],
+          ["@/hooks", "./src/hooks"],
+          ["@/lib", "./src/lib"]
+        ],
+        "extensions": [".ts", ".tsx", ".js", ".jsx"]
+      }
+    }
+  },
+
+  "rules": {
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": "off",
+
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/ban-ts-comment": "off",
+
+    "import/no-unresolved": "off",
+    "import/no-named-as-default-member": "off",
+    "import/no-named-as-default": "off",
+
+    "react-hooks/exhaustive-deps": "off",
+
+    "no-console": "off"
+  }
+}

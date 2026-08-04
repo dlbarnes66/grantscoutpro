@@ -5,14 +5,14 @@ import { WorkspaceContext } from "./context/WorkspaceContext";
 export default async function WorkspaceLayout(
   props: {
     children: ReactNode;
-    params: Promise<{ dashboardId: string }>;
+    params: Promise<{ workspaceId: string }>;
   }
 ) {
   const { children } = props;
-  const { dashboardId } = await props.params;
+  const { workspaceId } = await props.params;
 
   const workspace = await prisma.workspace.findUnique({
-    where: { id: dashboardId },
+    where: { id: workspaceId },
     include: {
       aiUsage: true,
     },

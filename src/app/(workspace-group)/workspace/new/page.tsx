@@ -13,7 +13,7 @@ export default function NewWorkspacePage() {
   const router = useRouter();
 
   async function createWorkspace() {
-    const res = await fetch("/api/workspaces/create", {
+    const res = await fetch("/api/workspace/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name })

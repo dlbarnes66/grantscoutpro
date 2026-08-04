@@ -16,7 +16,7 @@ export default function NewApplicationPage({ params }: any) {
     });
 
     const data = await res.json();
-    router.push(`/dashboard/${workspaceId}/grant/${grantId}/application/${data.id}`);
+    router.push(`/dashboard/${params.workspaceId}/grant/${grantId}/application/${data.id}`);
   }
 
   return (

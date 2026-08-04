@@ -15,19 +15,19 @@ export function GrantSidebar({
   const links = [
     {
       label: "Overview",
-      href: `/dashboard/${workspaceId}/grant/${grantId}`,
+      href: `/dashboard/${params.workspaceId}/grant/${grantId}`,
     },
     {
       label: "AI Analysis",
-      href: `/dashboard/${workspaceId}/grant/${grantId}/ai`,
+      href: `/dashboard/${params.workspaceId}/grant/${grantId}/ai`,
     },
     {
       label: "Drafts",
-      href: `/dashboard/${workspaceId}/grant/${grantId}/drafts`,
+      href: `/dashboard/${params.workspaceId}/grant/${grantId}/drafts`,
     },
     {
       label: "History",
-      href: `/dashboard/${workspaceId}/grant/${grantId}/history`,
+      href: `/dashboard/${params.workspaceId}/grant/${grantId}/history`,
     },
   ];
 

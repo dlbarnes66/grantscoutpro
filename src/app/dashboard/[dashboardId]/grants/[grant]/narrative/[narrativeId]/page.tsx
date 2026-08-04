@@ -31,7 +31,7 @@ export default function NarrativeEditorPage({ params }: any) {
       method: "DELETE",
     });
 
-    window.location.href = `/dashboard/${workspaceId}/grant/${grantId}/narrative`;
+    window.location.href = `/dashboard/${params.workspaceId}/grant/${grantId}/narrative`;
   }
 
   if (loading) {

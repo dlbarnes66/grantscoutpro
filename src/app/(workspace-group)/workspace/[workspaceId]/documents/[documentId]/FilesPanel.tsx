@@ -10,7 +10,7 @@ export default function FilesPanel({ workspaceId, documentId, userId }) {
   async function fetchFiles() {
     try {
       const res = await fetch(
-        `/api/workspaces/${workspaceId}/documents/${documentId}/files`
+        `/api/workspace/${workspaceId}/documents/${documentId}/files`
       );
       const data = await res.json();
       setFiles(data.files || []);
@@ -33,7 +33,7 @@ export default function FilesPanel({ workspaceId, documentId, userId }) {
 
     try {
       await fetch(
-        `/api/workspaces/${workspaceId}/documents/${documentId}/files/upload`,
+        `/api/workspace/${workspaceId}/documents/${documentId}/files/upload`,
         {
           method: "POST",
           body: formData
@@ -51,7 +51,7 @@ export default function FilesPanel({ workspaceId, documentId, userId }) {
   async function deleteFile(fileId) {
     try {
       await fetch(
-        `/api/workspaces/${workspaceId}/documents/${documentId}/files/${fileId}`,
+        `/api/workspace/${workspaceId}/documents/${documentId}/files/${fileId}`,
         {
           method: "DELETE"
         }
@@ -101,7 +101,7 @@ export default function FilesPanel({ workspaceId, documentId, userId }) {
 
               <div className="flex gap-2">
                 <a
-                  href={`/api/workspaces/${workspaceId}/documents/${documentId}/files/${f.id}`}
+                  href={`/api/workspace/${workspaceId}/documents/${documentId}/files/${f.id}`}
                   target="_blank"
                   className="px-3 py-1 bg-gray-300 rounded-md text-sm hover:bg-gray-400"
                 >

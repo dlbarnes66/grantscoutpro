@@ -13,14 +13,19 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
 
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@/app/*": ["./src/app/*"],
-      "@/components/*": ["./src/components/*"],
-      "@/hooks/*": ["./src/hooks/*"],
-      "@/lib/*": ["./src/lib/*"],
-      "@/auth": ["./src/auth.ts"]
+      "@/*": ["src/*"],
+      "@/app/*": ["src/app/*"],
+
+      "@/components/*": ["components/*"],
+      "@/hooks/*": ["hooks/*"],
+
+      "@/lib/*": ["src/lib/*"],
+      "@/auth": ["src/lib/auth/nextauth.ts"]
     },
+
+    "ignoreDeprecations": "5.0",
 
     "plugins": [
       {
@@ -29,19 +34,18 @@
     ],
 
     "incremental": true,
-    "ignoreDeprecations": "6.0"
+
+    "typeRoots": ["./src/types", "./node_modules/@types"]
   },
 
   "include": [
     "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/types/**/*.d.ts",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
 
-  "exclude": [
-    "node_modules",
-    "grantscout-pro-mobile"
-  ]
+  "exclude": ["node_modules", "grantscout-pro-mobile"]
 }

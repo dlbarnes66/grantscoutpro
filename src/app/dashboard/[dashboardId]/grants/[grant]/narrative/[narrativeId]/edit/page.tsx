@@ -63,7 +63,7 @@ export default function EditNarrativeEntryPage({
       }
 
       router.push(
-        `/dashboard/${workspaceId}/grant/${grantId}/narrative/${entryId}`
+        `/dashboard/${params.workspaceId}/grant/${grantId}/narrative/${entryId}`
       );
     } catch (err: any) {
       setError(err.message || "Error saving narrative entry");
@@ -108,7 +108,7 @@ export default function EditNarrativeEntryPage({
       <button
         onClick={() =>
           router.push(
-            `/dashboard/${workspaceId}/grant/${grantId}/narrative/${entryId}`
+            `/dashboard/${params.workspaceId}/grant/${grantId}/narrative/${entryId}`
           )
         }
         className="px-4 py-2 rounded border border-gray-300 text-gray-700 hover:bg-gray-100"

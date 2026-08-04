@@ -1,67 +1,112 @@
-export const dynamic = "force-dynamic";
-
-// app/api/sync/application/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
 
 
-export async function POST(req: Request) {
+export async function GET(request: NextRequest, context: any) {
+  req: Request,
+  context: { params: {} }
+) {
   try {
-    const { applications } = await req.json();
+    const url = new URL(req.url);
 
-    if (!applications || !Array.isArray(applications)) {
-      return NextResponse.json(
-        { success: false, error: "Invalid applications payload" },
-        { status: 400 }
-      );
-    }
+  const params = await (context as any).params;
+    const documentId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.documentId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.grantId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.id ||
+      url.searchParams.get("documentId");
 
-    const results: any[] = [];
+    const workspaceId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.workspaceId ||
+      url.searchParams.get("workspaceId");
 
-    for (const app of applications) {
-      // ⭐ Since externalId does NOT exist in your model,
-      // we must match on fields that DO exist.
-      const existing = await prisma.application.findFirst({
-        where: {
-          userId: app.userId,
-          grantId: app.grantId,
-        },
-      });
-
-      if (existing) {
-        const updated = await prisma.application.update({
-          where: { id: existing.id },
-          data: {
-            content: app.content ?? existing.content,
-            userId: app.userId ?? existing.userId,
-            grantId: app.grantId ?? existing.grantId,
-          },
-        });
-
-        results.push(updated);
-      } else {
-        const created = await prisma.application.create({
-          data: {
-            content: app.content ?? "",
-            userId: app.userId,
-            grantId: app.grantId,
-          },
-        });
-
-        results.push(created);
-      }
-    }
+    // TODO: implement real GET logic here
 
     return NextResponse.json({
       success: true,
-      applications: results,
+      method: "GET",
+      documentId,
+      workspaceId,
     });
-  } catch (error) {
-    console.error("SYNC APPLICATION ERROR:", error);
+  } catch (err: any) {
+    console.error("GET ROUTE ERROR:", err);
     return NextResponse.json(
-      { success: false, error: "Failed to sync applications" },
+      { error: err?.message ?? "Unexpected error" },
       { status: 500 }
     );
   }
 }
+
+export async function POST(request: NextRequest, context: any) {
+  req: Request,
+  context: { params: {} }
+) {
+  try {
+    const body = await req.json().catch(() => ({} as any));
+    const url = new URL(req.url);
+
+  const params = await (context as any).params;
+    const documentId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.documentId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.grantId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.id ||
+      body.documentId ||
+      url.searchParams.get("documentId");
+
+    const workspaceId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.workspaceId ||
+      body.workspaceId ||
+      url.searchParams.get("workspaceId");
+
+    // TODO: implement real POST logic here
+
+    return NextResponse.json({
+      success: true,
+      method: "POST",
+      documentId,
+      workspaceId,
+      body,
+    });
+  } catch (err: any) {
+    console.error("POST ROUTE ERROR:", err);
+    return NextResponse.json(
+      { error: err?.message ?? "Unexpected error" },
+      { status: 500 }
+    );
+  }
+}
+

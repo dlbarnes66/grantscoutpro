@@ -1,10 +1,10 @@
 import React from "react";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { auth } from "next-auth";
 import { generateGrantEnhancement } from "./actions";
 
 export default async function EnhancementPage() {
-  const session = await getServerSession();
+  const session = await auth();
   const userId = session?.user?.id ?? null;
 
   if (!userId) {

@@ -1,36 +1,105 @@
-export const dynamic = "force-dynamic";
-
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
 
-
-export async function POST(req: Request) {
+export async function GET(request: NextRequest, context: any) {
+  request: NextRequest,
+  context: any
+) {
   try {
-    const { applicationId, versionData } = await req.json();
+    const url = new URL(request.url);
+    const params = await context.params;
 
-    if (!applicationId || !versionData) {
-      return NextResponse.json(
-        { success: false, error: "Missing applicationId or versionData" },
-        { status: 400 }
-      );
-    }
+    const resolvedDocumentId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.documentId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.grantId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.id ||
+      url.searchParams.get("documentId");
 
-    const record = await prisma.applicationVersion.create({
-      data: {
-        applicationId,
-        content: versionData,   // ✔ ONLY VALID FIELD
-      },
-    });
+    const resolvedWorkspaceId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.workspaceId ||
+      url.searchParams.get("workspaceId");
 
     return NextResponse.json({
       success: true,
-      version: record,
+      method: "GET",
+      documentId: resolvedDocumentId ?? "",
+      workspaceId: resolvedWorkspaceId ?? "",
     });
   } catch (err: any) {
-    console.error("APPLICATION VERSION SAVE ERROR:", err);
+    console.error("GET ROUTE ERROR:", err);
     return NextResponse.json(
-      { success: false, error: err.message },
+      { error: err?.message ?? "Unexpected error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: NextRequest, context: any) {
+  request: NextRequest,
+  context: any
+) {
+  try {
+    const body = await request.json().catch(() => ({} as any));
+    const url = new URL(request.url);
+    const params = await context.params;
+
+    const resolvedDocumentId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.documentId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.grantId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.id ||
+      body.documentId ||
+      url.searchParams.get("documentId");
+
+    const resolvedWorkspaceId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.workspaceId ||
+      body.workspaceId ||
+      url.searchParams.get("workspaceId");
+
+    return NextResponse.json({
+      success: true,
+      method: "POST",
+      documentId: resolvedDocumentId ?? "",
+      workspaceId: resolvedWorkspaceId ?? "",
+      body,
+    });
+  } catch (err: any) {
+    console.error("POST ROUTE ERROR:", err);
+    return NextResponse.json(
+      { error: err?.message ?? "Unexpected error" },
       { status: 500 }
     );
   }

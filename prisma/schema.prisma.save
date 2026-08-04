@@ -1,6 +1,13 @@
 generator client {
   provider = "prisma-client-js"
 }
+await prisma.document.update({
+  where: { id: documentId },
+  data: {
+    // remove aiInsights entirely
+    updatedAt: new Date()
+  }
+});
 
 datasource db {
   provider = "postgresql"

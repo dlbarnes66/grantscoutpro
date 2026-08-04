@@ -16,13 +16,13 @@ export default function RiskAssessmentPanel({
 
     try {
       const res = await fetch(
-        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/risk`,
+        `/api/workspace/${workspaceId}/documents/${documentId}/ai/risk`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             userId,
-            content: JSON.parse(content)
+            content // ← FIXED: no JSON.parse()
           })
         }
       );
@@ -57,14 +57,16 @@ export default function RiskAssessmentPanel({
 
       {riskReport && (
         <div className="space-y-4 overflow-y-auto flex-1">
+          {/* Overall Risk */}
           <div className="border rounded-md p-3 bg-red-50">
             <div className="text-sm font-medium">Overall Risk Level</div>
             <div className="text-2xl font-bold text-red-600">
-              {riskReport.overallRisk}
+              {riskReport.overallRisk || "Unknown"}
             </div>
           </div>
 
-          {riskReport.redFlags &&
+          {/* Red Flags */}
+          {Array.isArray(riskReport.redFlags) &&
             riskReport.redFlags.length > 0 && (
               <div className="border rounded-md p-3 bg-red-50 space-y-2">
                 <div className="text-sm font-medium text-red-700">
@@ -79,7 +81,8 @@ export default function RiskAssessmentPanel({
               </div>
             )}
 
-          {riskReport.warnings &&
+          {/* Warnings */}
+          {Array.isArray(riskReport.warnings) &&
             riskReport.warnings.length > 0 && (
               <div className="border rounded-md p-3 bg-yellow-50 space-y-2">
                 <div className="text-sm font-medium text-yellow-700">
@@ -94,7 +97,8 @@ export default function RiskAssessmentPanel({
               </div>
             )}
 
-          {riskReport.recommendations &&
+          {/* Recommendations */}
+          {Array.isArray(riskReport.recommendations) &&
             riskReport.recommendations.length > 0 && (
               <div className="border rounded-md p-3 bg-green-50 space-y-2">
                 <div className="text-sm font-medium text-green-700">

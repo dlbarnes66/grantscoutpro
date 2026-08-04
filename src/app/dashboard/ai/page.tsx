@@ -1,10 +1,10 @@
 import React from "react";
-import { getServerSession } from "next-auth";
+import { auth } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 
 export default async function AiHomePage() {
-  const session = await getServerSession();
+  const session = await auth();
   const userId = session?.user?.id ?? null;
 
   // Load workspace

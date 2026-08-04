@@ -17,7 +17,7 @@ export default function GrantImpactProjectionPanel({
 
     try {
       const res = await fetch(
-        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/impact`,
+        `/api/workspace/${workspaceId}/documents/${documentId}/ai/impact`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

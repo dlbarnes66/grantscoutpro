@@ -19,7 +19,7 @@ export default function UsagePage({
 
   useEffect(() => {
     const load = async () => {
-      const res = await fetch(`/api/workspaces/${workspaceId}/usage`);
+      const res = await fetch(`/api/workspace/${workspaceId}/usage`);
       const json = await res.json();
       setUsage(json.usage);
       setLoading(false);

@@ -8,7 +8,7 @@ import { redirect } from "next/navigation";
 import { isSuperAdmin } from "@/lib/security/super-admin";
 
 import BillingCockpit from "@/components/superadmin/BillingCockpit";
-import AiUsageMonitor from "@/components/superadmin/AiUsageMonitor";
+import AiUsageMonitor from "@/components/superadmin/AIUsageMonitor";
 import WorkspaceRepairConsole from "@/components/superadmin/WorkspaceRepairConsole";
 import RecoveryToolsPanel from "@/components/superadmin/RecoveryToolsPanel";
 import PlatformAnalyticsDashboard from "@/components/superadmin/PlatformAnalyticsDashboard";

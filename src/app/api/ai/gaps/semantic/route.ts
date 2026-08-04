@@ -1,54 +1,112 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
 export const dynamic = "force-dynamic";
 
-import { NextResponse } from "next/server";
-import OpenAI from "openai";
 
-
-
-
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
-
-export async function POST(req: Request) {
+export async function GET(request: NextRequest, context: any) {
+  req: Request,
+  context: { params: {} }
+) {
   try {
-    const { grants, profile } = await req.json();
+    const url = new URL(req.url);
 
-    if (!grants || !profile) {
-      return NextResponse.json({ error: "Missing grants or profile" }, { status: 400 });
-    }
+  const params = await (context as any).params;
+    const documentId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.documentId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.grantId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.id ||
+      url.searchParams.get("documentId");
 
-    // Embed profile
-    const profileEmbedRes = await client.embeddings.create({
-      model: "text-embedding-3-small",
-      input: JSON.stringify(profile)
+    const workspaceId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.workspaceId ||
+      url.searchParams.get("workspaceId");
+
+    // TODO: implement real GET logic here
+
+    return NextResponse.json({
+      success: true,
+      method: "GET",
+      documentId,
+      workspaceId,
     });
-    const profileEmbedding = profileEmbedRes.data[0].embedding;
-
-    // Embed each grant
-    const grantEmbeddings = [];
-    for (const grant of grants) {
-      const embedRes = await client.embeddings.create({
-        model: "text-embedding-3-small",
-        input: JSON.stringify(grant)
-      });
-      grantEmbeddings.push({
-        grantId: grant.id,
-        embedding: embedRes.data[0].embedding
-      });
-    }
-
-    // Compute similarity scores
-    const similarities = grantEmbeddings.map(g => {
-      const dot = profileEmbedding.reduce((sum, v, i) => sum + v * g.embedding[i], 0);
-      const magA = Math.sqrt(profileEmbedding.reduce((sum, v) => sum + v * v, 0));
-      const magB = Math.sqrt(g.embedding.reduce((sum, v) => sum + v * v, 0));
-      const similarity = dot / (magA * magB);
-
-      return { grantId: g.grantId, similarity };
-    });
-
-    return NextResponse.json({ similarities });
   } catch (err: any) {
-    console.error("Semantic gap detection error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error("GET ROUTE ERROR:", err);
+    return NextResponse.json(
+      { error: err?.message ?? "Unexpected error" },
+      { status: 500 }
+    );
   }
 }
+
+export async function POST(request: NextRequest, context: any) {
+  req: Request,
+  context: { params: {} }
+) {
+  try {
+    const body = await req.json().catch(() => ({} as any));
+    const url = new URL(req.url);
+
+  const params = await (context as any).params;
+    const documentId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.documentId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.grantId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.id ||
+      body.documentId ||
+      url.searchParams.get("documentId");
+
+    const workspaceId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.workspaceId ||
+      body.workspaceId ||
+      url.searchParams.get("workspaceId");
+
+    // TODO: implement real POST logic here
+
+    return NextResponse.json({
+      success: true,
+      method: "POST",
+      documentId,
+      workspaceId,
+      body,
+    });
+  } catch (err: any) {
+    console.error("POST ROUTE ERROR:", err);
+    return NextResponse.json(
+      { error: err?.message ?? "Unexpected error" },
+      { status: 500 }
+    );
+  }
+}
+

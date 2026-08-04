@@ -1,29 +1,25 @@
 "use client";
 
-import { MatchResultItem } from "./types";
-
-export function MatchResults({ results }: { results: MatchResultItem[] }) {
+export function MatchResults({ results }: { results: any[] }) {
   if (!results || results.length === 0) {
-    return <div className="text-slate-400">No results yet.</div>;
+    return (
+      <div className="p-4 text-gray-500">
+        No matches found. Try adjusting your criteria.
+      </div>
+    );
   }
 
   return (
     <div className="space-y-4">
-      {results.map((r) => (
+      {results.map((r, i) => (
         <div
-          key={r.grant.id}
-          className="rounded-xl border border-slate-800 bg-slate-900 p-6 space-y-2"
+          key={i}
+          className="border rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition"
         >
-          <div className="text-lg font-semibold text-slate-100">
-            {r.grant.title}
-          </div>
-
-          <div className="text-sm text-blue-400 font-semibold">
-            Score: {r.score}/100
-          </div>
-
-          <div className="text-sm text-slate-300">
-            {r.explanation}
+          <h3 className="text-lg font-semibold">{r.title}</h3>
+          <p className="text-sm text-gray-600">{r.description}</p>
+          <div className="mt-2 text-blue-600 font-medium">
+            Score: {Math.round(r.score * 100)}%
           </div>
         </div>
       ))}

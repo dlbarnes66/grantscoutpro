@@ -2,150 +2,83 @@
 
 import { useState } from "react";
 
-export default function MultiYearImpactForecasterPanel({
+export default function GrantMultiYearImpactForecasterPanel({
   workspaceId,
   documentId,
-  userId,
-  content,
-  setContent
+  content
 }) {
   const [loading, setLoading] = useState(false);
-  const [forecast, setForecast] = useState(null);
+  const [impact, setImpact] = useState(null);
 
-  async function analyzeForecast() {
+  async function runForecast() {
     setLoading(true);
 
     try {
       const res = await fetch(
-        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/multi-year-impact`,
+        `/api/workspace/${workspaceId}/documents/${documentId}/ai/multi-year-impact`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userId,
-            content: JSON.parse(content)
-          })
+          body: JSON.stringify({ content })
         }
       );
 
       const data = await res.json();
-      setForecast(data.forecast || null);
-
-      if (data.output) {
-        setContent(JSON.stringify(data.output, null, 2));
-      }
+      setImpact(data.multiYearImpact || null);
     } catch (err) {
-      console.error("Multi-year impact forecasting failed:", err);
+      console.error("Impact forecast failed:", err);
     }
 
     setLoading(false);
   }
 
-  function getColor(score) {
-    if (score >= 85) return "bg-green-200";     // strong long-term impact
-    if (score >= 65) return "bg-blue-200";      // good long-term impact
-    if (score >= 45) return "bg-yellow-200";    // limited long-term impact
-    return "bg-red-300";                        // weak long-term impact
-  }
-
   return (
     <div className="w-96 h-full border-l bg-white p-4 flex flex-col">
-      <h2 className="text-lg font-semibold mb-4">Multi‑Year Impact Forecaster</h2>
+      <h2 className="text-lg font-semibold mb-4">
+        AI Multi‑Year Impact Forecast
+      </h2>
 
       <button
-        onClick={analyzeForecast}
-        className="mb-4 px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700"
+        onClick={runForecast}
+        className="mb-4 px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700"
       >
-        {loading ? "Forecasting…" : "Generate Multi‑Year Forecast"}
+        {loading ? "Forecasting…" : "Run Impact Forecast"}
       </button>
 
-      {!forecast && !loading && (
-        <div className="text-gray-500">No multi‑year forecast yet.</div>
+      {!impact && !loading && (
+        <div className="text-gray-500">No impact forecast yet.</div>
       )}
 
       {loading && (
-        <div className="text-gray-500">AI projecting long‑term impact…</div>
+        <div className="text-gray-500">AI forecasting multi‑year impact…</div>
       )}
 
-      {forecast && (
+      {impact && (
         <div className="space-y-4 overflow-y-auto flex-1">
-          <div className="border rounded-md p-3 bg-teal-50">
-            <div className="text-sm font-medium">Overall Long‑Term Impact Score</div>
-            <div className="text-3xl font-bold text-teal-700">
-              {forecast.overallScore}%
-            </div>
-          </div>
-
-          {forecast.years.map((year, i) => (
-            <div
-              key={i}
-              className={`border rounded-md p-3 ${getColor(year.score)} space-y-2`}
-            >
-              <div className="text-sm font-medium">
-                Year {year.year}
-              </div>
-
-              <div className="text-sm font-semibold">
-                Impact Score: {year.score}%
-              </div>
-
-              <div className="text-xs text-gray-700">
-                {year.text}
-              </div>
-
-              {year.metrics && (
-                <div>
-                  <div className="text-xs font-medium text-blue-700">
-                    Growth Metrics
-                  </div>
-                  <ul className="text-xs text-blue-700 list-disc ml-4">
-                    {year.metrics.map((m, idx) => (
-                      <li key={idx}>{m}</li>
-                    ))}
-                  </ul>
+          {Array.isArray(impact.years) &&
+            impact.years.length > 0 &&
+            impact.years.map((yearData, idx) => (
+              <div
+                key={idx}
+                className="border p-3 rounded bg-emerald-50 space-y-2"
+              >
+                <div className="text-sm font-medium text-emerald-700">
+                  Year {yearData.year}
                 </div>
-              )}
 
-              {year.risks && (
-                <div>
-                  <div className="text-xs font-medium text-red-700">
-                    Growth Risks
-                  </div>
-                  <ul className="text-xs text-red-700 list-disc ml-4">
-                    {year.risks.map((r, idx) => (
-                      <li key={idx}>{r}</li>
-                    ))}
-                  </ul>
+                <div className="text-xs text-gray-700">
+                  <span className="font-semibold">Impact Summary:</span>{" "}
+                  {yearData.impactSummary}
                 </div>
-              )}
 
-              {year.recommendations && (
-                <div>
-                  <div className="text-xs font-medium text-green-700">
-                    Recommendations
-                  </div>
-                  <ul className="text-xs text-green-700 list-disc ml-4">
-                    {year.recommendations.map((rec, idx) => (
-                      <li key={idx}>{rec}</li>
-                    ))}
-                  </ul>
+                <div className="text-xs text-red-700">
+                  <span className="font-semibold">Risks:</span>{" "}
+                  {Array.isArray(yearData.risks)
+                    ? yearData.risks.join(", ")
+                    : "None listed"}
                 </div>
-              )}
-            </div>
-          ))}
-
-          {forecast.globalRecommendations && (
-            <div className="border rounded-md p-3 bg-green-50 space-y-2">
-              <div className="text-sm font-medium text-green-700">
-                Global Long‑Term Impact Improvements
               </div>
-              <ul className="text-xs text-green-700 list-disc ml-4">
-                {forecast.globalRecommendations.map((r, idx) => (
-                  <li key={idx}>{r}</li>
-                ))}
-              </ul>
-            </div>
-          )}
+            ))}
         </div>
       )}
     </div>

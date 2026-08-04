@@ -1,10 +1,10 @@
 import React from "react";
-import { prisma } from "@/lib/prisma.ts";
-import { getServerSession } from "next-auth";
+import { prisma } from "@/lib/prisma";
+import { auth } from "next-auth";
 import { loadWorkspaceIntelligence } from "./_lib/loadWorkspaceIntelligence";
 
 export default async function WorkspaceIntelligencePage() {
-  const session = await getServerSession();
+  const session = await auth();
   const userId = session?.user?.id ?? null;
 
   if (!userId) {

@@ -13,7 +13,7 @@ export function WorkspaceSidebar({ workspaceId }: { workspaceId: string }) {
     },
     {
       label: "Grants",
-      href: `/dashboard/${workspaceId}/grants`,
+      href: `/dashboard/${params.workspaceId}/grants`,
     },
     {
       label: "Saved Grants",

@@ -72,7 +72,7 @@ export default function AIPage({ params }: any) {
 
       {/* HISTORY LINK */}
       <a
-        href={`/dashboard/${workspaceId}/grant/${grantId}/ai/history`}
+        href={`/dashboard/${params.workspaceId}/grant/${grantId}/ai/history`}
         className="block rounded border border-slate-800 bg-slate-900/60 p-4 hover:bg-slate-800 transition text-slate-100"
       >
         View AI History →

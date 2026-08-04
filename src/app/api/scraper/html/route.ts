@@ -1,107 +1,112 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { GrantSource, GrantTierAccess } from "@prisma/client";
 
-export async function POST(request: NextRequest) {
+export const dynamic = "force-dynamic";
+
+
+export async function GET(request: NextRequest, context: any) {
+  req: Request,
+  context: { params: {} }
+) {
   try {
-    const body = await request.json();
+    const url = new URL(req.url);
 
-    const html = body.html;
-    const workspaceId = body.workspaceId;
+  const params = await (context as any).params;
+    const documentId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.documentId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.grantId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.id ||
+      url.searchParams.get("documentId");
 
-    if (!html) {
-      return NextResponse.json(
-        { error: "Missing HTML content" },
-        { status: 400 }
-      );
-    }
+    const workspaceId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.workspaceId ||
+      url.searchParams.get("workspaceId");
 
-    if (!workspaceId) {
-      return NextResponse.json(
-        { error: "Missing workspaceId" },
-        { status: 400 }
-      );
-    }
+    // TODO: implement real GET logic here
 
-    // Example parsed grant (your actual parsing logic may differ)
-    const grant = {
-      id: body.id,
-      title: body.title ?? "",
-      summary: body.summary ?? "",
-      description: body.description ?? "",
-      category: body.category ?? "",
-      agency: body.agency ?? "",
-      amount: body.amount ?? null,
-      amountMin: body.amountMin ?? null,
-      amountMax: body.amountMax ?? null,
-      totalFunding: body.totalFunding ?? null,
-      deadline: body.deadline ?? null,
-      industry: body.industry ?? "",
-      location: body.location ?? "",
-      raw: { html }
-    };
-
-    const upserted = await prisma.grant.upsert({
-      where: { id: grant.id },
-      update: {
-        title: grant.title,
-        summary: grant.summary,
-        description: grant.description,
-        category: grant.category,
-        agency: grant.agency,
-
-        amount: grant.amount,
-        amountMin: grant.amountMin,
-        amountMax: grant.amountMax,
-        totalFunding: grant.totalFunding,
-
-        deadline: grant.deadline,
-        industry: grant.industry,
-        location: grant.location,
-
-        // fundingRange removed — not in Prisma model
-
-        status: "open",
-        embedding: [],
-
-        raw: grant.raw
-      },
-      create: {
-        id: grant.id,
-        workspaceId,
-        source: GrantSource.STATE,
-        tierAccess: GrantTierAccess.PRO,
-
-        title: grant.title,
-        summary: grant.summary,
-        description: grant.description,
-        category: grant.category,
-        agency: grant.agency,
-
-        amount: grant.amount,
-        amountMin: grant.amountMin,
-        amountMax: grant.amountMax,
-        totalFunding: grant.totalFunding,
-
-        deadline: grant.deadline,
-        industry: grant.industry,
-        location: grant.location,
-
-        // fundingRange removed — not in Prisma model
-
-        status: "open",
-        embedding: [],
-
-        raw: grant.raw
-      }
+    return NextResponse.json({
+      success: true,
+      method: "GET",
+      documentId,
+      workspaceId,
     });
-
-    return NextResponse.json({ success: true, grant: upserted });
   } catch (err: any) {
-    console.error("HTML SCRAPER ERROR:", err);
+    console.error("GET ROUTE ERROR:", err);
     return NextResponse.json(
-      { error: err.message ?? "Unexpected error" },
+      { error: err?.message ?? "Unexpected error" },
       { status: 500 }
     );
   }
 }
+
+export async function POST(request: NextRequest, context: any) {
+  req: Request,
+  context: { params: {} }
+) {
+  try {
+    const body = await req.json().catch(() => ({} as any));
+    const url = new URL(req.url);
+
+  const params = await (context as any).params;
+    const documentId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.documentId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.grantId ||
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.id ||
+      body.documentId ||
+      url.searchParams.get("documentId");
+
+    const workspaceId =
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+  const params = await (context as any).params;
+      params.workspaceId ||
+      body.workspaceId ||
+      url.searchParams.get("workspaceId");
+
+    // TODO: implement real POST logic here
+
+    return NextResponse.json({
+      success: true,
+      method: "POST",
+      documentId,
+      workspaceId,
+      body,
+    });
+  } catch (err: any) {
+    console.error("POST ROUTE ERROR:", err);
+    return NextResponse.json(
+      { error: err?.message ?? "Unexpected error" },
+      { status: 500 }
+    );
+  }
+}
+

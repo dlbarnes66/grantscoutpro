@@ -1,6 +1,6 @@
 import React from "react";
 import { auth } from "@/auth";
-import { prisma } from "@/lib/prisma.ts";
+import { prisma } from "@/lib/prisma";
 
 import { TrialBanner } from "./TrialBanner";
 import { QuickActions } from "./QuickActions";
@@ -102,7 +102,7 @@ export default async function DashboardHomePage() {
                 {grants.map((grant) => (
                   <a
                     key={grant.id}
-                    href={`/dashboard/${workspace?.id}/grant/${grant.id}`}
+                    href={`/dashboard/${params.workspaceId}/grant/${grant.id}`}
                     className="block rounded border border-slate-800 bg-slate-900/40 px-4 py-3 hover:bg-slate-800 transition"
                   >
                     <div className="text-slate-100 font-medium">

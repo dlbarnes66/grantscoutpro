@@ -1,5 +1,5 @@
 import React from "react";
-import { prisma } from "@/lib/prisma.ts";
+import { prisma } from "@/lib/prisma";
 import { useWorkspace } from "../_context/WorkspaceContext";
 
 export default async function ActivityPage() {

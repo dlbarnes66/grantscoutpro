@@ -14,7 +14,7 @@ export default function NewDocumentPage({ params }) {
   const router = useRouter();
 
   async function createDocument() {
-    const res = await fetch(`/api/workspaces/${workspaceId}/documents/create`, {
+    const res = await fetch(`/api/workspace/${workspaceId}/documents/create`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title })

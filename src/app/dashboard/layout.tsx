@@ -2,14 +2,14 @@ import React from "react";
 import Link from "next/link";
 import { WorkspaceProvider } from "./_context/WorkspaceContext";
 import { loadWorkspace } from "./_lib/loadWorkspace";
-import { getServerSession } from "next-auth";
+import { auth } from "next-auth";
 
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession();
+  const session = await auth();
   const userId = session?.user?.id ?? null;
 
   const workspace = userId ? await loadWorkspace(userId) : null;

@@ -3,7 +3,7 @@
 import useSWR from "swr";
 
 export function TrialBanner({ workspaceId }: { workspaceId: string }) {
-  const { data } = useSWR(`/api/workspaces/${workspaceId}/trial/status`);
+  const { data } = useSWR(`/api/workspace/${workspaceId}/trial/status`);
 
   if (!data || !data.trialActive) return null;
 

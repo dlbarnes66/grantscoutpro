@@ -21,7 +21,7 @@ export default function SectionCard({
       <p className="text-gray-700">{section.purpose}</p>
 
       <a
-        href={`/dashboard/workspace/${workspaceId}/grant/${grantId}/sections/${section.id}`}
+        href={`/dashboard/${params.workspaceId}/grant/${grantId}/sections/${section.id}`}
         className="inline-block px-4 py-2 bg-purple-600 text-white rounded-md text-sm font-semibold"
       >
         Open Section

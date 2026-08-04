@@ -1,8 +1,10 @@
 "use client";
 
+import React from "react"; // ⭐ Required for JSX.Element / React.ReactNode
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+
 import {
   XMarkIcon,
   HomeIcon,
@@ -17,7 +19,7 @@ import {
 interface SidebarLink {
   label: string;
   href: string;
-  icon: (props: React.ComponentProps<"svg">) => JSX.Element;
+  icon: (props: React.ComponentProps<"svg">) => React.ReactNode; // ⭐ FIXED
 }
 
 export default function MobileSidebar() {

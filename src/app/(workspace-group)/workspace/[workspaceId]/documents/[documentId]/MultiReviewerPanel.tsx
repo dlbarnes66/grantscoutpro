@@ -16,7 +16,7 @@ export default function MultiReviewerPanel({
 
     try {
       const res = await fetch(
-        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/reviewers`,
+        `/api/workspace/${workspaceId}/documents/${documentId}/ai/reviewers`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

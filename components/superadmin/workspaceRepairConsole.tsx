@@ -24,9 +24,9 @@ export default function WorkspaceRepairConsole() {
       const res = await fetch("/api/superadmin/workspace-repair", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
-        body: JSON.stringify({ workspaceId }),
+        body: JSON.stringify({ workspaceId })
       });
 
       if (!res.ok) {

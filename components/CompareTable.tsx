@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
+import Badge from "@/components/ui/Badge";     // ⭐ FIXED
+import Button from "@/components/ui/Button";   // ⭐ FIXED
 import { XMarkIcon } from "@heroicons/react/24/outline";
 
 interface Grant {

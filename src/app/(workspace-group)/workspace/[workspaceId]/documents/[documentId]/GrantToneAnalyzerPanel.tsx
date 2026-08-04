@@ -17,7 +17,7 @@ export default function GrantToneAnalyzerPanel({
 
     try {
       const res = await fetch(
-        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/tone`,
+        `/api/workspace/${workspaceId}/documents/${documentId}/ai/tone`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

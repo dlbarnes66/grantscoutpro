@@ -19,7 +19,7 @@ export default function SearchAnalyticsPage({
 
   useEffect(() => {
     const load = async () => {
-      const res = await fetch(`/api/workspaces/${workspaceId}/analytics/search`);
+      const res = await fetch(`/api/workspace/${workspaceId}/analytics/search`);
       const json = await res.json();
       setAnalytics(json.analytics || []);
       setLoading(false);

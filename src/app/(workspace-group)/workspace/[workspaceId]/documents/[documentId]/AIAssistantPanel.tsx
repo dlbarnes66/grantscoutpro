@@ -12,7 +12,7 @@ export default function AIAssistantPanel({ workspaceId, documentId, userId, cont
 
     try {
       const res = await fetch(
-        `/api/workspaces/${workspaceId}/documents/${documentId}/ai`,
+        `/api/workspace/${workspaceId}/documents/${documentId}/ai`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -50,7 +50,7 @@ export default function AIAssistantPanel({ workspaceId, documentId, userId, cont
 
     try {
       const res = await fetch(
-        `/api/workspaces/${workspaceId}/documents/${documentId}/ai`,
+        `/api/workspace/${workspaceId}/documents/${documentId}/ai`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

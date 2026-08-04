@@ -17,7 +17,7 @@ export default function GrantRiskMitigationStrengthPanel({
 
     try {
       const res = await fetch(
-        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/risk-mitigation`,
+        `/api/workspace/${workspaceId}/documents/${documentId}/ai/risk-mitigation`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

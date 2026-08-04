@@ -1,26 +1,27 @@
 "use client";
 
-import { SparklesIcon } from "@heroicons/react/24/outline";
-
-export default function AIMonitoringInsights({
-  insights
-}: {
-  insights: string;
-}) {
-  return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 space-y-4">
-      <div className="flex items-center gap-2">
-        <SparklesIcon className="h-5 w-5 text-blue-400" />
-        <h2 className="text-sm font-semibold text-slate-100">
-          AI Monitoring Insights
-        </h2>
+export default function AIMonitoringInsights({ insights }: { insights: any }) {
+  if (!insights) {
+    return (
+      <div className="p-4 text-gray-500">
+        No AI insights available for this monitor yet.
       </div>
+    );
+  }
 
-      <p className="text-sm text-slate-300">{insights}</p>
+  return (
+    <div className="space-y-3">
+      <h2 className="text-xl font-semibold">AI Monitoring Insights</h2>
 
-      <button className="w-full rounded-md bg-slate-800 hover:bg-slate-700 transition px-3 py-2 text-sm font-medium">
-        Generate Full AI Monitoring Report
-      </button>
+      <div className="border rounded-lg p-4 bg-white shadow-sm">
+        <p className="text-gray-700">{insights.summary}</p>
+
+        <ul className="mt-3 list-disc list-inside text-gray-600">
+          {insights.points?.map((p: string, i: number) => (
+            <li key={i}>{p}</li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }

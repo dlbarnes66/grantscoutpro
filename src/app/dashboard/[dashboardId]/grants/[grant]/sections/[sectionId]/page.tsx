@@ -56,7 +56,7 @@ export default function GrantSectionDetailPage({
         <h1 className="text-3xl font-bold text-gray-900">{section.title}</h1>
 
         <Link
-          href={`/dashboard/${workspaceId}/grant/${grantId}/sections/${sectionId}/edit`}
+          href={`/dashboard/${params.workspaceId}/grant/${grantId}/sections/${sectionId}/edit`}
           className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition"
         >
           Edit Section
@@ -76,7 +76,7 @@ export default function GrantSectionDetailPage({
 
       {/* Back Link */}
       <Link
-        href={`/dashboard/${workspaceId}/grant/${grantId}/sections`}
+        href={`/dashboard/${params.workspaceId}/grant/${grantId}/sections`}
         className="text-blue-600 hover:underline text-sm"
       >
         ← Back to Sections

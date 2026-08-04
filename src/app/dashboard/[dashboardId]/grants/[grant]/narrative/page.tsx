@@ -55,7 +55,7 @@ export default function NarrativePage({
         <h1 className="text-2xl font-bold text-gray-900">Narrative</h1>
 
         <Link
-          href={`/dashboard/${workspaceId}/grant/${grantId}/narrative/new`}
+          href={`/dashboard/${params.workspaceId}/grant/${grantId}/narrative/new`}
           className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition"
         >
           + New Narrative Entry
@@ -70,7 +70,7 @@ export default function NarrativePage({
           {narratives.map((entry) => (
             <Link
               key={entry.id}
-              href={`/dashboard/${workspaceId}/grant/${grantId}/narrative/${entry.id}`}
+              href={`/dashboard/${params.workspaceId}/grant/${grantId}/narrative/${entry.id}`}
               className="block rounded border border-gray-200 bg-white p-4 hover:bg-gray-50 transition"
             >
               <div className="text-gray-900 font-semibold">

@@ -36,7 +36,7 @@ export default function NewDraftPage({
       }
 
       router.push(
-        `/dashboard/${workspaceId}/grant/${grantId}/drafts/${data.id}`
+        `/dashboard/${params.workspaceId}/grant/${grantId}/drafts/${data.id}`
       );
     } catch (err: any) {
       setError(err.message || "Error creating draft");
@@ -91,7 +91,7 @@ export default function NewDraftPage({
         {/* Cancel */}
         <button
           onClick={() =>
-            router.push(`/dashboard/${workspaceId}/grant/${grantId}/drafts`)
+            router.push(`/dashboard/${params.workspaceId}/grant/${grantId}/drafts`)
           }
           className="px-4 py-2 rounded border border-gray-300 text-gray-700 hover:bg-gray-100"
         >

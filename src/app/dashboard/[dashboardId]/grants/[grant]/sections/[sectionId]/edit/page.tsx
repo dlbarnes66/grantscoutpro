@@ -65,7 +65,7 @@ export default function EditSectionPage({
       }
 
       router.push(
-        `/dashboard/${workspaceId}/grant/${grantId}/sections/${sectionId}`
+        `/dashboard/${params.workspaceId}/grant/${grantId}/sections/${sectionId}`
       );
     } catch (err: any) {
       setError(err.message || "Error saving section");
@@ -125,7 +125,7 @@ export default function EditSectionPage({
         <button
           onClick={() =>
             router.push(
-              `/dashboard/${workspaceId}/grant/${grantId}/sections/${sectionId}`
+              `/dashboard/${params.workspaceId}/grant/${grantId}/sections/${sectionId}`
             )
           }
           className="px-4 py-2 rounded border border-gray-300 text-gray-700 hover:bg-gray-100"
