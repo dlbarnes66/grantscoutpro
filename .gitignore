@@ -1,12 +1,51 @@
-node_modules
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Next.js
+.next/
+out/
+dist/
+
+# Environment
 .env
-.next
+.env.local
+.env.production
+.env.development
+.env.sentry-build-plugin
 
-/app/generated/prisma
+# Prisma generated files
+app/generated/prisma/
 
-# clerk configuration (can include secrets)
+# Clerk configuration (may contain secrets)
 /.clerk/
 
-# Sentry Config File
-.env.sentry-build-plugin
+# TypeScript build info
 tsconfig.tsbuildinfo
+
+# Logs
+logs/
+*.log
+*.log.*
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Backups
+*.tar.gz
+*.zip
+*.bak
+*.backup
+
+# Git LFS large files (prevent accidental commits)
+*.bin
+*.dat
+*.sqlite
+*.db
