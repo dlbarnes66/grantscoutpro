@@ -6,12 +6,12 @@ import { GrantACL } from "./types";
 export default function GrantAIButton({
   workspaceId,
   grantId,
-  onClick,
+  onClickAction,
   children
 }: {
   workspaceId: string;
   grantId: string;
-  onClick: () => void;
+  onClickAction: () => void;
   children: React.ReactNode;
 }) {
   const acl: GrantACL = useGrantACL(workspaceId, grantId);
@@ -31,7 +31,7 @@ export default function GrantAIButton({
 
   return (
     <button
-      onClick={onClick}
+      onClick={onClickAction}
       className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
     >
       {children}

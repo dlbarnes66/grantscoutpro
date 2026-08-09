@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth/nextauth";
 import { redirect } from "next/navigation";
 import { isSuperAdmin } from "@/lib/security/super-admin";
 

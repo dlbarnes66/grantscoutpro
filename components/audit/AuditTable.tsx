@@ -5,10 +5,10 @@ import { SeverityBadge } from "./SeverityBadge";
 
 export function AuditTable({
   logs,
-  onSelect
+  onSelectAction
 }: {
   logs: AuditLog[];
-  onSelect: (l: AuditLog) => void;
+  onSelectAction: (l: AuditLog) => void;
 }) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6">
@@ -36,7 +36,7 @@ export function AuditTable({
               <td className="py-2">{log.timestamp}</td>
               <td className="py-2">
                 <button
-                  onClick={() => onSelect(log)}
+                  onClick={() => onSelectAction(log)}
                   className="text-blue-400 hover:text-blue-300"
                 >
                   View

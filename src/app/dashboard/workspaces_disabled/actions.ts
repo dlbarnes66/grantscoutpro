@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth/nextauth";
 
 export async function getUserWorkspaces() {
   const session = await auth();

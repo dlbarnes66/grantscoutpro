@@ -5,10 +5,10 @@ import { BudgetItem } from "./types";
 
 export function BudgetOptimizer({
   items,
-  onOptimize
+  onOptimizeAction
 }: {
   items: BudgetItem[];
-  onOptimize: (optimized: BudgetItem[]) => void;
+  onOptimizeAction: (optimized: BudgetItem[]) => void;
 }) {
   const [loading, setLoading] = useState(false);
 
@@ -22,7 +22,7 @@ export function BudgetOptimizer({
       amount: Math.round(item.amount * 0.95)
     }));
 
-    onOptimize(optimized);
+    onOptimizeAction(optimized);
     setLoading(false);
   }
 

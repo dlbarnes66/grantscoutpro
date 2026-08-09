@@ -6,10 +6,10 @@ import { NarrativeSection } from "./types";
 
 export default function AIDraftingPanel({
   section,
-  onDraft
+  onDraftAction
 }: {
   section: NarrativeSection;
-  onDraft: (draft: string) => void;
+  onDraftAction: (draft: string) => void;
 }) {
   const [loading, setLoading] = useState(false);
 
@@ -20,7 +20,7 @@ export default function AIDraftingPanel({
 
     const draft = `This is an AI-generated draft for the ${section.title}. It provides a structured, compelling narrative aligned with funder expectations.`;
 
-    onDraft(draft);
+    onDraftAction(draft);
     setLoading(false);
   }
 

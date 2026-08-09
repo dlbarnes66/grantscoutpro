@@ -11,7 +11,7 @@ function cosineSimilarity(a: number[], b: number[]) {
   return dot / (magA * magB);
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest, context: { params: Record<string, string> }) {
   try {
     const { k = 5 } = await req.json();
 

@@ -49,3 +49,12 @@ Thumbs.db
 *.dat
 *.sqlite
 *.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Build artifacts
+coverage/
+.cache/

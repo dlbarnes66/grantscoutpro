@@ -1,70 +1,45 @@
-"use client";
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
+import React from "react";
+import { prisma } from "@/lib/prisma";
 
-import { useEffect, useState } from "react";
-import MonitoringKPIs from "@/components/monitoring/MonitoringKPIs";
-import MonitoringAlerts from "@/components/monitoring/MonitoringAlerts";
-import MonitoringForecast from "@/components/monitoring/MonitoringForecast";
-import ProgramHealthScore from "@/components/monitoring/ProgramHealthScore";
-import AIMonitoringInsights from "@/components/monitoring/AIMonitoringInsights";
+export default async function MonitoringPage({
+  params
+}: {
+  params: { monitorId: string };
+}) {
+  const monitorId = params.monitorId;
 
-export default function MonitoringDashboardPage({ params }: { params: { id: string } }) {
-  const [monitorData, setMonitorData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function load() {
-      setLoading(true);
-
-      // Placeholder — real AI integration comes later
-      await new Promise((r) => setTimeout(r, 600));
-
-      setMonitorData({
-        kpis: [
-          { label: "Youth Served", current: 220, target: 300 },
-          { label: "Workshops Delivered", current: 14, target: 20 },
-          { label: "Volunteer Hours", current: 410, target: 500 },
-          { label: "Community Events", current: 6, target: 10 }
-        ],
-        alerts: [
-          { id: "1", type: "warning", message: "Workshop delivery pace below target" },
-          { id: "2", type: "critical", message: "Outcome evidence overdue" }
-        ],
-        forecast: {
-          projectedImpact: 88,
-          projectedCompletion: "2026-12-20",
-          notes: "Program is on track but requires increased workshop frequency."
-        },
-        health: 74,
-        aiInsights:
-          "Increasing workshop frequency by 15% over the next 60 days will significantly improve program health and reduce risk."
-      });
-
-      setLoading(false);
-    }
-
-    load();
-  }, [params.id]);
-
-  if (loading)
-    return <div className="text-slate-400">Loading monitoring dashboard...</div>;
+  const insights = await prisma.monitoringHistory.findMany({
+    where: { grantId: monitorId },
+    orderBy: { createdAt: "desc" }
+  });
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-xl font-semibold text-slate-100">
-        Monitoring & KPI Dashboard
-      </h1>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">Monitoring Insights</h1>
 
-      <MonitoringKPIs kpis={monitorData.kpis} />
+      <InsightsList insights={insights} />
+    </div>
+  );
+}
 
-      <MonitoringAlerts alerts={monitorData.alerts} />
+function InsightsList({ insights }: { insights: any[] }) {
+  return (
+    <div className="space-y-4">
+      {insights.map((item) => (
+        <InsightCard key={item.id} insights={item} />
+      ))}
+    </div>
+  );
+}
 
-      <MonitoringForecast forecast={monitorData.forecast} />
-
-      <ProgramHealthScore score={monitorData.health} />
-
-      <AIMonitoringInsights insights={monitorData.aiInsights} />
+function InsightCard({ insights }: { insights: any }) {
+  return (
+    <div className="border p-4 rounded-md shadow-sm">
+      <h2 className="font-semibold">{insights.monitoring}</h2>
+      <p className="text-sm text-gray-600">{insights.notes}</p>
+      <p className="text-xs text-gray-400 mt-2">
+        {new Date(insights.createdAt).toLocaleString()}
+      </p>
     </div>
   );
 }

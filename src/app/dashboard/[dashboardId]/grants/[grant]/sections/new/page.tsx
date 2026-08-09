@@ -37,7 +37,7 @@ export default function NewSectionPage({
       }
 
       router.push(
-        `/dashboard/${params.workspaceId}/grant/${grantId}/sections/${data.id}`
+        `/dashboard/${workspaceId}/grant/${grantId}/sections/${data.id}`
       );
     } catch (err: any) {
       setError(err.message || "Error creating section");

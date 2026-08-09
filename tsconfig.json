@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ESNext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": false,
@@ -11,33 +15,40 @@
     "moduleResolution": "Bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "react-jsx",
-
+    "jsx": "preserve",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@/app/*": ["src/app/*"],
-
-      "@/components/*": ["components/*"],
-      "@/hooks/*": ["hooks/*"],
-
-      "@/lib/*": ["src/lib/*"],
-      "@/auth": ["src/lib/auth/nextauth.ts"]
+      "@/*": [
+        "src/*"
+      ],
+      "@/app/*": [
+        "src/app/*"
+      ],
+      "@/components/*": [
+        "src/components/*"
+      ],
+      "@/hooks/*": [
+        "src/hooks/*"
+      ],
+      "@/lib/*": [
+        "src/lib/*"
+      ]
     },
-
-    "ignoreDeprecations": "5.0",
-
+    "typeRoots": [
+      "./src/types",
+      "./node_modules/@types"
+    ],
+    "types": [
+      "next-auth",
+      "node"
+    ],
     "plugins": [
       {
         "name": "next"
       }
     ],
-
-    "incremental": true,
-
-    "typeRoots": ["./src/types", "./node_modules/@types"]
+    "incremental": true
   },
-
   "include": [
     "next-env.d.ts",
     "src/**/*.ts",
@@ -46,6 +57,8 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-
-  "exclude": ["node_modules", "grantscout-pro-mobile"]
+  "exclude": [
+    "node_modules",
+    ".next"
+  ]
 }

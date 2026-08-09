@@ -4,15 +4,15 @@ import { AdminUser } from "./types";
 
 export function UsersTable({
   users,
-  onSelect,
-  onUpdate
+  onSelectAction,
+  onUpdateAction
 }: {
   users: AdminUser[];
-  onSelect: (u: AdminUser) => void;
-  onUpdate: (u: AdminUser[]) => void;
+  onSelectAction: (u: AdminUser) => void;
+  onUpdateAction: (u: AdminUser[]) => void;
 }) {
   function removeUser(id: string) {
-    onUpdate(users.filter((u) => u.id !== id));
+    onUpdateAction(users.filter((u) => u.id !== id));
   }
 
   return (
@@ -43,7 +43,7 @@ export function UsersTable({
               <td className="py-2">{u.lastActive}</td>
               <td className="py-2 flex gap-3">
                 <button
-                  onClick={() => onSelect(u)}
+                  onClick={() => onSelectAction(u)}
                   className="text-blue-400 hover:text-blue-300"
                 >
                   Manage

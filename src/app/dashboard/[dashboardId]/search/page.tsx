@@ -1,35 +1,31 @@
-"use client";
+import React from "react";
+import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/nextauth";
 
-import React, { useState } from "react";
+export default async function DashboardSearchPage({
+  params,
+}: {
+  params: { dashboardId: string };
+}) {
+  const session = await getServerSession(authOptions);
+  const userId = session?.user?.id ?? null;
 
-export default function SearchPage({ params }: { params: { workspaceId: string } }) {
-  const [grants, setGrants] = useState([]);
+  if (!userId) {
+    return <div className="text-slate-300 text-sm">Not authenticated.</div>;
+  }
 
-  async function handleSearch(query: string) {
-    const res = await fetch(`/api/search/${params.workspaceId}?q=${query}`);
-    const data = await res.json();
-    setGrants(data);
+  const workspace = await prisma.workspace.findFirst({
+    where: { members: { some: { userId } } },
+  });
+
+  if (!workspace) {
+    return <div className="text-slate-300 text-sm">Workspace not found.</div>;
   }
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold text-slate-100 mb-4">Search Grants</h1>
-
-      <input
-        type="text"
-        placeholder="Search..."
-        className="rounded border border-slate-700 bg-slate-900 px-3 py-2 text-slate-200 w-full"
-        onChange={(e) => handleSearch(e.target.value)}
-      />
-
-      <div className="mt-6 space-y-3">
-        {grants.map((grant: any) => (
-          <div key={grant.id} className="rounded bg-slate-800 p-4">
-            <div className="text-slate-100 font-medium">{grant.title}</div>
-            <div className="text-slate-400 text-sm">{grant.agency}</div>
-          </div>
-        ))}
-      </div>
+    <div className="text-slate-200">
+      Search page for workspace: {workspace.name}
     </div>
   );
 }

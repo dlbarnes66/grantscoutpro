@@ -1,9 +1,17 @@
-import { auth } from "@/auth";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/nextauth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 
-export default async function GrantsPage() {
-  const { userId } = auth();
+interface GrantsPageProps {
+  params: {
+    dashboardId: string;
+  };
+}
+
+export default async function GrantsPage({ params }: GrantsPageProps) {
+  const session = await getServerSession(authOptions);
+  const userId = session?.user?.id;
 
   if (!userId) {
     return (
@@ -42,7 +50,7 @@ export default async function GrantsPage() {
         </div>
 
         <Link
-          href={`/dashboard/${params.workspaceId}/grant/new`}
+          href={`/dashboard/${params.dashboardId}/grant/new`}
           className="rounded bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
         >
           + Create Grant
@@ -59,7 +67,7 @@ export default async function GrantsPage() {
           {grants.map((grant) => (
             <Link
               key={grant.id}
-              href={`/dashboard/${params.workspaceId}/grant/${grant.id}`}
+              href={`/dashboard/${params.dashboardId}/grant/${grant.id}`}
               className="block rounded border border-slate-800 bg-slate-900/40 px-4 py-3 hover:bg-slate-800 transition"
             >
               <div className="text-slate-100 font-medium">{grant.title}</div>

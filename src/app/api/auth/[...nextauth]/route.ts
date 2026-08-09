@@ -1,112 +1,63 @@
-import { NextResponse } from "next/server";
+import NextAuth from "next-auth";
+import Credentials from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
 
-export const dynamic = "force-dynamic";
+export const auth = NextAuth({
+  providers: [
+    Credentials({
+      name: "Credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" }
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) return null;
 
+        const user = await prisma.user.findUnique({
+          where: { email: credentials.email }
+        });
 
-export async function GET(request: NextRequest, context: any) {
-  req: Request,
-  context: { params: {} }
-) {
-  try {
-    const url = new URL(req.url);
+        if (!user) return null;
 
-  const params = await (context as any).params;
-    const documentId =
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-      params.documentId ||
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-      params.grantId ||
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-      params.id ||
-      url.searchParams.get("documentId");
+        const valid = credentials.password === user.password;
+        if (!valid) return null;
 
-    const workspaceId =
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-      params.workspaceId ||
-      url.searchParams.get("workspaceId");
+        return {
+          id: user.id,
+          orgId: user.orgId ?? null,
+          role: user.role ?? null,
+          superAdmin: user.superAdmin ?? null,
+          name: user.name ?? null,
+          email: user.email ?? null,
+          image: user.image ?? null
+        };
+      }
+    })
+  ],
 
-    // TODO: implement real GET logic here
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.orgId = user.orgId;
+        token.role = user.role;
+        token.superAdmin = user.superAdmin;
+      }
+      return token;
+    },
 
-    return NextResponse.json({
-      success: true,
-      method: "GET",
-      documentId,
-      workspaceId,
-    });
-  } catch (err: any) {
-    console.error("GET ROUTE ERROR:", err);
-    return NextResponse.json(
-      { error: err?.message ?? "Unexpected error" },
-      { status: 500 }
-    );
+    async session({ session, token }) {
+      session.user.id = token.id;
+      session.user.orgId = token.orgId;
+      session.user.role = token.role;
+      session.user.superAdmin = token.superAdmin;
+      return session;
+    }
+  },
+
+  session: {
+    strategy: "jwt"
   }
-}
+});
 
-export async function POST(request: NextRequest, context: any) {
-  req: Request,
-  context: { params: {} }
-) {
-  try {
-    const body = await req.json().catch(() => ({} as any));
-    const url = new URL(req.url);
-
-  const params = await (context as any).params;
-    const documentId =
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-      params.documentId ||
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-      params.grantId ||
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-      params.id ||
-      body.documentId ||
-      url.searchParams.get("documentId");
-
-    const workspaceId =
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-      params.workspaceId ||
-      body.workspaceId ||
-      url.searchParams.get("workspaceId");
-
-    // TODO: implement real POST logic here
-
-    return NextResponse.json({
-      success: true,
-      method: "POST",
-      documentId,
-      workspaceId,
-      body,
-    });
-  } catch (err: any) {
-    console.error("POST ROUTE ERROR:", err);
-    return NextResponse.json(
-      { error: err?.message ?? "Unexpected error" },
-      { status: 500 }
-    );
-  }
-}
-
+export { auth as GET, auth as POST };

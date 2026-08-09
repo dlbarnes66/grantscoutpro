@@ -4,15 +4,15 @@ import { Invoice } from "./types";
 
 export function InvoiceDrawer({
   invoice,
-  onClose
+  onCloseAction
 }: {
   invoice: Invoice;
-  onClose: () => void;
+  onCloseAction: () => void;
 }) {
   return (
     <div className="fixed right-0 top-0 w-96 h-full bg-slate-900 border-l border-slate-800 p-6 space-y-4 shadow-xl">
       <button
-        onClick={onClose}
+        onClick={onCloseAction}
         className="text-slate-400 hover:text-slate-200 text-sm"
       >
         Close

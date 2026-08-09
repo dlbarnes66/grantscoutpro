@@ -13,7 +13,7 @@ export default function GrantAIPanel({
 }) {
   const [result, setResult] = useState<string>("");
 
-  async function runAI() {
+  async function runAIAction() {
     const res = await fetch(
       `/api/workspaces/${workspaceId}/grants/${grantId}/ai`,
       {
@@ -30,7 +30,11 @@ export default function GrantAIPanel({
     <div className="p-4 border rounded bg-white shadow space-y-4">
       <h2 className="text-xl font-bold">Grant AI Analysis</h2>
 
-      <GrantAIButton workspaceId={workspaceId} grantId={grantId} onClick={runAI}>
+      <GrantAIButton
+        workspaceId={workspaceId}
+        grantId={grantId}
+        onClickAction={runAIAction}
+      >
         Run Grant AI
       </GrantAIButton>
 

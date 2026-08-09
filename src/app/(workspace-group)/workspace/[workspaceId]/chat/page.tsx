@@ -11,7 +11,7 @@ import Textarea from "@/components/ui/Textarea";
 
 export default function WorkspaceChatPage({ params }: { params: { workspaceId: string } }) {
   const [message, setMessage] = useState("");
-  const { messages, loading, sendMessage } = useRagChat(params.workspaceId);
+  const { messages, loading, sendMessage } = useRagChat(workspaceId);
 
   const handleSend = () => {
     if (!message.trim()) return;

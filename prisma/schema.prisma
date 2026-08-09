@@ -1796,3 +1796,22 @@ model AutomationRun {
   workspace  Workspace  @relation(fields: [workspaceId], references: [id])
   automation Automation @relation(fields: [automationId], references: [id])
 }
+model WorkspaceDigest {
+  id        String   @id @default(cuid())
+  workspaceId String
+  digest     String
+  createdAt  DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+}
+model MonitoringHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  grantId   String
+  monitoring String?
+  notes      String?
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  grant Grant @relation(fields: [grantId], references: [id])
+}

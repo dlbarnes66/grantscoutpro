@@ -1,12 +1,13 @@
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 // ===============================
 // GET /api/search-history
 // Returns the user's search history
 // ===============================
-export async function GET() {
+export async function GET(req: NextRequest, context: { params: Record<string, string> }) {
+  const { params } = context;
   const { userId } = await auth();
 
   if (!userId) {
@@ -25,7 +26,8 @@ export async function GET() {
 // POST /api/search-history
 // Saves a new search query
 // ===============================
-export async function POST(req: Request) {
+export async function POST(req: NextRequest, context: { params: Record<string, string> }) {
+  const { params } = context;
   const { userId } = await auth();
 
   if (!userId) {

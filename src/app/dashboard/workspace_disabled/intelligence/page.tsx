@@ -1,10 +1,11 @@
 import React from "react";
 import { prisma } from "@/lib/prisma";
-import { auth } from "next-auth";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/nextauth";
 import { loadWorkspaceIntelligence } from "./_lib/loadWorkspaceIntelligence";
 
 export default async function WorkspaceIntelligencePage() {
-  const session = await auth();
+  const session = await getServerSession(authOptions);
   const userId = session?.user?.id ?? null;
 
   if (!userId) {
@@ -107,7 +108,9 @@ export default async function WorkspaceIntelligencePage() {
               key={n.id}
               className="rounded border border-slate-800 bg-slate-900/60 p-4 text-xs"
             >
-              <div className="text-slate-200 font-medium">{n.style}</div>
+              <div className="text-slate-200 font-medium">
+                Narrative for grant {n.grantId}
+              </div>
               <pre className="text-[10px] text-blue-300">{n.content}</pre>
             </div>
           ))
@@ -128,7 +131,9 @@ export default async function WorkspaceIntelligencePage() {
               key={app.id}
               className="rounded border border-slate-800 bg-slate-900/60 p-4 text-xs"
             >
-              <div className="text-slate-200 font-medium">{app.title}</div>
+              <div className="text-slate-200 font-medium">
+                Proposal for grant {app.grantId}
+              </div>
               {app.versions.map((v) => (
                 <pre key={v.id} className="mt-2 text-[10px] text-blue-300">
                   {v.content}
@@ -182,7 +187,7 @@ export default async function WorkspaceIntelligencePage() {
         )}
       </div>
 
-      {/* AI Logs */}
+      {/* AI Actions */}
       <div className="space-y-4">
         <div className="text-lg font-semibold text-slate-100">
           AI Actions

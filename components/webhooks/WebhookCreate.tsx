@@ -4,9 +4,9 @@ import { useState } from "react";
 import { Webhook } from "./types";
 
 export default function WebhookCreate({
-  onCreate,
+  onCreateAction
 }: {
-  onCreate: (w: Webhook) => void;
+  onCreateAction: (w: Webhook) => void;
 }) {
   const [url, setUrl] = useState("");
   const [event, setEvent] = useState("grant.updated");
@@ -18,10 +18,10 @@ export default function WebhookCreate({
       id: crypto.randomUUID(),
       url,
       event,
-      created: new Date().toISOString(),
+      created: new Date().toISOString()
     };
 
-    onCreate(webhook);
+    onCreateAction(webhook);
     setUrl("");
   }
 

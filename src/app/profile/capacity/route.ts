@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const session = await auth();
     const userId = session?.user?.id;
@@ -16,19 +16,18 @@ export async function POST(req: Request) {
       );
     }
 
-    const { capacity } = await req.json();
+    const body = await req.json().catch(() => null);
 
-    if (capacity === undefined) {
+    if (!body) {
       return NextResponse.json(
-        { error: "Missing capacity value" },
+        { error: "Invalid request body" },
         { status: 400 }
       );
     }
 
-    // Now that User.capacity exists, we can update it safely
     const updated = await prisma.user.update({
       where: { id: userId },
-      data: { capacity },
+      data: body
     });
 
     return NextResponse.json(updated);

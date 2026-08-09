@@ -5,10 +5,10 @@ import { PaymentStatusBadge } from "./PaymentStatusBadge";
 
 export function InvoiceList({
   invoices,
-  onSelect
+  onSelectAction
 }: {
   invoices: Invoice[];
-  onSelect: (inv: Invoice) => void;
+  onSelectAction: (inv: Invoice) => void;
 }) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6">
@@ -36,7 +36,7 @@ export function InvoiceList({
               </td>
               <td className="py-2">
                 <button
-                  onClick={() => onSelect(inv)}
+                  onClick={() => onSelectAction(inv)}
                   className="text-blue-400 hover:text-blue-300"
                 >
                   View

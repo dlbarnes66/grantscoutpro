@@ -38,7 +38,7 @@ export default function ApplicationEditorPage({ params }: any) {
       method: "DELETE",
     });
 
-    window.location.href = `/dashboard/${params.workspaceId}/grant/${grantId}/application`;
+    window.location.href = `/dashboard/${workspaceId}/grant/${grantId}/application`;
   }
 
   if (loading) {

@@ -1,12 +1,11 @@
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { auth } from "next-auth";
 
-// Accepts either a single role or an array of roles
 export async function requireWorkspaceRole(
   workspaceId: string,
   requiredRoles: string | string[]
 ) {
-  const session = await getServerSession();
+  const session = await auth();
 
   if (!session?.user?.id) {
     throw new Error("Unauthorized");
@@ -25,7 +24,6 @@ export async function requireWorkspaceRole(
     throw new Error("User is not a member of this workspace");
   }
 
-  // Normalize to array
   const roles = Array.isArray(requiredRoles)
     ? requiredRoles
     : [requiredRoles];

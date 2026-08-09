@@ -4,9 +4,9 @@ import { useState } from "react";
 import { AdminUser } from "./types";
 
 export function InviteUserPanel({
-  onInvite
+  onInviteAction
 }: {
-  onInvite: (u: AdminUser) => void;
+  onInviteAction: (u: AdminUser) => void;
 }) {
   const [email, setEmail] = useState("");
 
@@ -22,7 +22,7 @@ export function InviteUserPanel({
       lastActive: "Never"
     };
 
-    onInvite(newUser);
+    onInviteAction(newUser);
     setEmail("");
   }
 

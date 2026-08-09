@@ -5,14 +5,14 @@ import { Notification } from "./types";
 export default function NotificationItem({
   notification,
   notifications,
-  onUpdate
+  onUpdateAction
 }: {
   notification: Notification;
   notifications: Notification[];
-  onUpdate: (n: Notification[]) => void;
+  onUpdateAction: (n: Notification[]) => void;
 }) {
   function markRead() {
-    onUpdate(
+    onUpdateAction(
       notifications.map((n) =>
         n.id === notification.id ? { ...n, read: true } : n
       )

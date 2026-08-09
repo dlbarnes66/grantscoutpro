@@ -4,14 +4,14 @@ import { BudgetItem } from "./types";
 
 export function LineItemEditor({
   items,
-  onUpdate,
-  onAdd,
-  onRemove
+  onUpdateAction,
+  onAddAction,
+  onRemoveAction
 }: {
   items: BudgetItem[];
-  onUpdate: (id: string, field: keyof BudgetItem, value: string | number) => void;
-  onAdd: () => void;
-  onRemove: (id: string) => void;
+  onUpdateAction: (id: string, field: keyof BudgetItem, value: string | number) => void;
+  onAddAction: () => void;
+  onRemoveAction: (id: string) => void;
 }) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 space-y-4">
@@ -21,7 +21,7 @@ export function LineItemEditor({
         </h2>
 
         <button
-          onClick={onAdd}
+          onClick={onAddAction}
           className="rounded-md bg-blue-600 hover:bg-blue-700 transition px-3 py-2 text-sm font-medium"
         >
           Add Item
@@ -37,14 +37,14 @@ export function LineItemEditor({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <input
                 value={item.category}
-                onChange={(e) => onUpdate(item.id, "category", e.target.value)}
+                onChange={(e) => onUpdateAction(item.id, "category", e.target.value)}
                 placeholder="Category"
                 className="rounded-md bg-slate-900 border border-slate-700 px-3 py-2 text-sm"
               />
 
               <input
                 value={item.description}
-                onChange={(e) => onUpdate(item.id, "description", e.target.value)}
+                onChange={(e) => onUpdateAction(item.id, "description", e.target.value)}
                 placeholder="Description"
                 className="rounded-md bg-slate-900 border border-slate-700 px-3 py-2 text-sm"
               />
@@ -52,14 +52,14 @@ export function LineItemEditor({
               <input
                 type="number"
                 value={item.amount}
-                onChange={(e) => onUpdate(item.id, "amount", Number(e.target.value))}
+                onChange={(e) => onUpdateAction(item.id, "amount", Number(e.target.value))}
                 placeholder="Amount"
                 className="rounded-md bg-slate-900 border border-slate-700 px-3 py-2 text-sm"
               />
             </div>
 
             <button
-              onClick={() => onRemove(item.id)}
+              onClick={() => onRemoveAction(item.id)}
               className="text-xs text-red-400 hover:text-red-300"
             >
               Remove Item

@@ -5,15 +5,15 @@ import { AdminUser } from "./types";
 
 export function RoleEditor({
   user,
-  onUpdate
+  onUpdateAction
 }: {
   user: AdminUser;
-  onUpdate: (u: AdminUser) => void;
+  onUpdateAction: (u: AdminUser) => void;
 }) {
   const [role, setRole] = useState<AdminUser["role"]>(user.role);
 
   function save() {
-    onUpdate({ ...user, role });
+    onUpdateAction({ ...user, role });
   }
 
   return (

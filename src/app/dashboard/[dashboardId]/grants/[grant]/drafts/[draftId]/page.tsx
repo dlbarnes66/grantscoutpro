@@ -59,7 +59,7 @@ export default function DraftDetailPage({
         throw new Error(data.error || "Failed to save draft");
       }
 
-      router.push(`/dashboard/${params.workspaceId}/grant/${grantId}/drafts`);
+      router.push(`/dashboard/${workspaceId}/grant/${grantId}/drafts`);
     } catch (err: any) {
       setError(err.message || "Error saving draft");
     } finally {
@@ -117,7 +117,7 @@ export default function DraftDetailPage({
         {/* Cancel */}
         <button
           onClick={() =>
-            router.push(`/dashboard/${params.workspaceId}/grant/${grantId}/drafts`)
+            router.push(`/dashboard/${workspaceId}/grant/${grantId}/drafts`)
           }
           className="px-4 py-2 rounded border border-gray-300 text-gray-700 hover:bg-gray-100"
         >

@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const userId = "test-user-id"; // Replace with real auth later
 
   const profile = await prisma.userProfile.findUnique({
@@ -13,7 +13,12 @@ export async function GET() {
       basics: { name: "", type: "", website: "", ein: "" },
       location: { state: "", county: "" },
       mission: { category: "", focusAreas: [] },
-      capacity: { staffSize: "", annualBudget: "", readiness: "", pastGrants: "" },
+      details: {
+        staffSize: "",
+        annualBudget: "",
+        readiness: "",
+        pastGrants: ""
+      },
       funding: { amount: "", purpose: "", timeline: "", urgency: "" },
       eligibility: {
         populations: [],
@@ -39,7 +44,7 @@ export async function GET() {
       category: profile.strategicGoals || "",
       focusAreas: profile.focusAreas || [],
     },
-    capacity: {
+    details: {
       staffSize: profile.staffSize?.toString() || "",
       annualBudget: profile.annualBudget?.toString() || "",
       readiness: profile.grantExperience || "",

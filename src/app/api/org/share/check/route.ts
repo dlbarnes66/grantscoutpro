@@ -1,112 +1,51 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-
-export async function GET(request: NextRequest, context: any) {
-  req: Request,
-  context: { params: {} }
-) {
+export async function GET(req: Request) {
   try {
+    const session = await auth();
+    const userId = session?.user?.id as string | undefined;
+    const orgId = session?.user?.orgId as string | undefined;
+
+    if (!session || !userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    if (!orgId) {
+      return NextResponse.json({ error: "User is not assigned to an org" }, { status: 403 });
+    }
+
     const url = new URL(req.url);
+    const sharedId = url.searchParams.get("sharedId");
 
-  const params = await (context as any).params;
-    const documentId =
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-      params.documentId ||
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-      params.grantId ||
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-      params.id ||
-      url.searchParams.get("documentId");
+    if (!sharedId) {
+      return NextResponse.json({ error: "sharedId is required" }, { status: 400 });
+    }
 
-    const workspaceId =
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-      params.workspaceId ||
-      url.searchParams.get("workspaceId");
+    const shared = await prisma.sharedResource.findUnique({
+      where: { id: sharedId },
+      include: { accesses: true },
+    });
 
-    // TODO: implement real GET logic here
+    if (!shared) {
+      return NextResponse.json({ error: "Shared resource not found" }, { status: 404 });
+    }
+
+    const hasAccess =
+      shared.ownerOrgId === orgId ||
+      shared.sharedWithId === orgId ||
+      shared.accesses.some((a) => a.orgId === orgId);
 
     return NextResponse.json({
       success: true,
-      method: "GET",
-      documentId,
-      workspaceId,
+      hasAccess,
+      shared,
     });
   } catch (err: any) {
-    console.error("GET ROUTE ERROR:", err);
-    return NextResponse.json(
-      { error: err?.message ?? "Unexpected error" },
-      { status: 500 }
-    );
+    console.error("ORG SHARE CHECK ERROR:", err);
+    return NextResponse.json({ error: err.message ?? "Internal error" }, { status: 500 });
   }
 }
-
-export async function POST(request: NextRequest, context: any) {
-  req: Request,
-  context: { params: {} }
-) {
-  try {
-    const body = await req.json().catch(() => ({} as any));
-    const url = new URL(req.url);
-
-  const params = await (context as any).params;
-    const documentId =
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-      params.documentId ||
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-      params.grantId ||
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-      params.id ||
-      body.documentId ||
-      url.searchParams.get("documentId");
-
-    const workspaceId =
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-      params.workspaceId ||
-      body.workspaceId ||
-      url.searchParams.get("workspaceId");
-
-    // TODO: implement real POST logic here
-
-    return NextResponse.json({
-      success: true,
-      method: "POST",
-      documentId,
-      workspaceId,
-      body,
-    });
-  } catch (err: any) {
-    console.error("POST ROUTE ERROR:", err);
-    return NextResponse.json(
-      { error: err?.message ?? "Unexpected error" },
-      { status: 500 }
-    );
-  }
-}
-

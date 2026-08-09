@@ -9,12 +9,12 @@ export default function ComparePage({ params }: { params: { workspaceId: string 
   useEffect(() => {
     async function load() {
       // ⭐ Correct param name
-      const res = await fetch(`/api/compare/${params.workspaceId}`);
+      const res = await fetch(`/api/compare/${workspaceId}`);
       const json = await res.json();
       setData(json);
     }
     load();
-  }, [params.workspaceId]);
+  }, [workspaceId]);
 
   if (!data) {
     return <p className="p-6">Loading comparison...</p>;
@@ -24,7 +24,7 @@ export default function ComparePage({ params }: { params: { workspaceId: string 
     <div>
       <button
         onClick={async () => {
-          await fetch(`/api/compare/clear/${params.workspaceId}`, { method: "POST" });
+          await fetch(`/api/compare/clear/${workspaceId}`, { method: "POST" });
           location.reload();
         }}
         className="ml-6 mt-4 px-4 py-2 bg-red-600 text-white rounded"

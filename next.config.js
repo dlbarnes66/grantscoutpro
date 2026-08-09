@@ -4,7 +4,6 @@ const path = require("path");
 const nextConfig = {
   reactStrictMode: true,
 
-  // Enable Turbopack safely
   turbopack: {},
 
   webpack: (config, { nextRuntime }) => {
@@ -20,18 +19,17 @@ const nextConfig = {
 
       "@": path.resolve(__dirname),
 
-      // Correct alias: components live in /components, NOT /src/components
       "@/components": path.resolve(__dirname, "components"),
       "@/hooks": path.resolve(__dirname, "hooks"),
-
-      // lib *is* inside src/lib
-      "@/lib": path.resolve(__dirname, "src/lib"),
-
-      // nextauth lives inside src/lib/auth
-      "@/auth": path.resolve(__dirname, "src/lib/auth/nextauth.ts")
+      "@/lib": path.resolve(__dirname, "src/lib")
     };
 
     return config;
+  },
+
+  // Prevent Next.js from rewriting tsconfig.json
+  typescript: {
+    tsconfigPath: "./tsconfig.json"
   }
 };
 

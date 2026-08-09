@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { APILogEntry, APIResponse } from "./types";
 
-export function APIPlayground({ onLog }: { onLog: (entry: APILogEntry) => void }) {
+export function APIPlayground({
+  onLogAction
+}: {
+  onLogAction: (entry: APILogEntry) => void;
+}) {
   const [method, setMethod] = useState("GET");
   const [endpoint, setEndpoint] = useState("/v1/grants");
   const [body, setBody] = useState("");
@@ -18,7 +22,7 @@ export function APIPlayground({ onLog }: { onLog: (entry: APILogEntry) => void }
 
     setResponse(fakeResponse);
 
-    onLog({
+    onLogAction({
       method,
       endpoint,
       body,

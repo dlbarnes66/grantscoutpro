@@ -41,7 +41,7 @@ export default function GrantCreateForm({
         <p className="mt-2">Your grant has been created.</p>
 
         <a
-          href={`/dashboard/${params.workspaceId}/grant/${createdGrantId}`}
+          href={`/dashboard/${workspaceId}/grant/${createdGrantId}`}
           className="inline-block mt-4 px-4 py-2 bg-blue-600 text-white rounded-md"
         >
           Open Grant Dashboard

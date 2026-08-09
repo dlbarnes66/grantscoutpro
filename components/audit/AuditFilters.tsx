@@ -4,10 +4,10 @@ export type AuditFilter = "all" | "info" | "warning" | "system";
 
 export function AuditFilters({
   filter,
-  onChange
+  onChangeAction
 }: {
   filter: AuditFilter;
-  onChange: (f: AuditFilter) => void;
+  onChangeAction: (f: AuditFilter) => void;
 }) {
   const filters: { id: AuditFilter; label: string }[] = [
     { id: "all", label: "All" },
@@ -21,7 +21,7 @@ export function AuditFilters({
       {filters.map((f) => (
         <button
           key={f.id}
-          onClick={() => onChange(f.id)}
+          onClick={() => onChangeAction(f.id)}
           className={[
             "px-3 py-2 rounded-md text-sm transition",
             filter === f.id

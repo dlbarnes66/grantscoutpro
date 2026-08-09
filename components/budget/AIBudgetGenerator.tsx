@@ -5,9 +5,9 @@ import { useState } from "react";
 import { BudgetItem } from "./types";
 
 export function AIBudgetGenerator({
-  onGenerate
+  onGenerateAction
 }: {
-  onGenerate: (items: BudgetItem[]) => void;
+  onGenerateAction: (items: BudgetItem[]) => void;
 }) {
   const [loading, setLoading] = useState(false);
 
@@ -22,7 +22,7 @@ export function AIBudgetGenerator({
       { id: crypto.randomUUID(), category: "Travel", description: "Community outreach travel", amount: 5000 }
     ];
 
-    onGenerate(items);
+    onGenerateAction(items);
     setLoading(false);
   }
 

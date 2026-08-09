@@ -29,7 +29,7 @@ export default function ApplicationPage({ params }: any) {
         <h1 className="text-2xl font-bold text-slate-100">Applications</h1>
 
         <Link
-          href={`/dashboard/${params.workspaceId}/grant/${grantId}/application/new`}
+          href={`/dashboard/${workspaceId}/grant/${grantId}/application/new`}
           className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
         >
           + New Application
@@ -43,7 +43,7 @@ export default function ApplicationPage({ params }: any) {
           {apps.map((app) => (
             <Link
               key={app.id}
-              href={`/dashboard/${params.workspaceId}/grant/${grantId}/application/${app.id}`}
+              href={`/dashboard/${workspaceId}/grant/${grantId}/application/${app.id}`}
               className="block rounded border border-slate-800 bg-slate-900/60 p-4 hover:bg-slate-800 transition"
             >
               <div className="text-slate-100 font-semibold">

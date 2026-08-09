@@ -1,112 +1,95 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-
-export async function GET(request: NextRequest, context: any) {
-  req: Request,
-  context: { params: {} }
-) {
+export async function GET(req: Request) {
   try {
-    const url = new URL(req.url);
+    const session = await auth();
+    const userId = session?.user?.id as string | undefined;
+    const orgId = session?.user?.orgId as string | undefined;
+    const superAdmin = session?.user?.superAdmin as boolean | undefined;
 
-  const params = await (context as any).params;
-    const documentId =
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-      params.documentId ||
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-      params.grantId ||
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-      params.id ||
-      url.searchParams.get("documentId");
+    if (!session || !userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    const workspaceId =
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-      params.workspaceId ||
-      url.searchParams.get("workspaceId");
+    if (!orgId) {
+      return NextResponse.json({ error: "User is not assigned to an org" }, { status: 403 });
+    }
 
-    // TODO: implement real GET logic here
-
-    return NextResponse.json({
-      success: true,
-      method: "GET",
-      documentId,
-      workspaceId,
+    const users = await prisma.user.findMany({
+      where: { orgId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        superAdmin: true,
+        orgId: true,
+      },
     });
+
+    return NextResponse.json({ success: true, users, orgId, superAdmin: !!superAdmin });
   } catch (err: any) {
-    console.error("GET ROUTE ERROR:", err);
-    return NextResponse.json(
-      { error: err?.message ?? "Unexpected error" },
-      { status: 500 }
-    );
+    console.error("ORG USER LIST ERROR:", err);
+    return NextResponse.json({ error: err.message ?? "Internal error" }, { status: 500 });
   }
 }
 
-export async function POST(request: NextRequest, context: any) {
-  req: Request,
-  context: { params: {} }
-) {
+export async function POST(req: Request) {
   try {
-    const body = await req.json().catch(() => ({} as any));
-    const url = new URL(req.url);
+    const session = await auth();
+    const userId = session?.user?.id as string | undefined;
+    const orgId = session?.user?.orgId as string | undefined;
+    const role = session?.user?.role as string | undefined;
+    const superAdmin = session?.user?.superAdmin as boolean | undefined;
 
-  const params = await (context as any).params;
-    const documentId =
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-      params.documentId ||
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-      params.grantId ||
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-      params.id ||
-      body.documentId ||
-      url.searchParams.get("documentId");
+    if (!session || !userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    const workspaceId =
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-      params.workspaceId ||
-      body.workspaceId ||
-      url.searchParams.get("workspaceId");
+    if (!orgId) {
+      return NextResponse.json({ error: "User is not assigned to an org" }, { status: 403 });
+    }
 
-    // TODO: implement real POST logic here
+    if (role !== "org_admin" && !superAdmin) {
+      return NextResponse.json({ error: "Forbidden: org admin required" }, { status: 403 });
+    }
 
-    return NextResponse.json({
-      success: true,
-      method: "POST",
-      documentId,
-      workspaceId,
-      body,
+    const body = await req.json().catch(() => ({}));
+    const { targetUserId, newRole } = body as { targetUserId?: string; newRole?: string };
+
+    if (!targetUserId || !newRole) {
+      return NextResponse.json({ error: "targetUserId and newRole are required" }, { status: 400 });
+    }
+
+    const target = await prisma.user.findUnique({
+      where: { id: targetUserId },
     });
+
+    if (!target || target.orgId !== orgId) {
+      return NextResponse.json({ error: "User not found in this org" }, { status: 404 });
+    }
+
+    const updated = await prisma.user.update({
+      where: { id: targetUserId },
+      data: { role: newRole },
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        orgId,
+        userId,
+        action: "org_user_role_update",
+        metadata: { targetUserId, newRole },
+      },
+    });
+
+    return NextResponse.json({ success: true, user: updated });
   } catch (err: any) {
-    console.error("POST ROUTE ERROR:", err);
-    return NextResponse.json(
-      { error: err?.message ?? "Unexpected error" },
-      { status: 500 }
-    );
+    console.error("ORG USER UPDATE ERROR:", err);
+    return NextResponse.json({ error: err.message ?? "Internal error" }, { status: 500 });
   }
 }
-

@@ -5,10 +5,10 @@ import { NarrativeSection } from "./types";
 
 export default function SectionEditor({
   section,
-  onChange
+  onChangeAction
 }: {
   section: NarrativeSection;
-  onChange: (content: string) => void;
+  onChangeAction: (content: string) => void;
 }) {
   const [value, setValue] = useState(section.content);
   const [saving, setSaving] = useState(false);
@@ -20,7 +20,7 @@ export default function SectionEditor({
   useEffect(() => {
     const timeout = setTimeout(() => {
       setSaving(true);
-      onChange(value);
+      onChangeAction(value);
       setTimeout(() => setSaving(false), 400);
     }, 500);
 

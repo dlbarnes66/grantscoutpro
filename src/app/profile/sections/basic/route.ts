@@ -1,10 +1,11 @@
-import { NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth/nextauth";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(req: NextRequest, context: { params: Record<string, string> }) {
+  const { params } = context;
   try {
     const session = await auth();
     const userId = session?.user?.id;
@@ -33,7 +34,8 @@ export async function GET() {
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest, context: { params: Record<string, string> }) {
+  const { params } = context;
   try {
     const session = await auth();
     const userId = session?.user?.id;

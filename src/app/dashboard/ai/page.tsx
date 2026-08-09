@@ -1,20 +1,20 @@
 import React from "react";
-import { auth } from "next-auth";
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/nextauth";
 import Link from "next/link";
 
 export default async function AiHomePage() {
-  const session = await auth();
+  const session = await getServerSession(authOptions);
   const userId = session?.user?.id ?? null;
 
-  // Load workspace
   const workspace = userId
     ? await prisma.workspace.findFirst({
         where: { members: { some: { userId } } },
         include: {
           aiUsage: true,
-          activities: true
-        }
+          activities: true,
+        },
       })
     : null;
 
@@ -26,13 +26,11 @@ export default async function AiHomePage() {
     );
   }
 
-  // Safe fallback: compute AI usage directly from Prisma
   const tokensUsed = workspace.aiUsage.reduce((sum, u) => sum + u.tokens, 0);
   const cost = workspace.aiUsage.reduce((sum, u) => sum + u.cost, 0);
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
         <div className="text-xl font-semibold text-slate-100">
           AI Workspace Console
@@ -42,7 +40,6 @@ export default async function AiHomePage() {
         </div>
       </div>
 
-      {/* Usage Summary */}
       <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
         <div className="text-sm font-semibold text-slate-100 mb-2">
           AI Usage Summary
@@ -69,7 +66,6 @@ export default async function AiHomePage() {
         </div>
       </div>
 
-      {/* AI Tools */}
       <div className="grid md:grid-cols-3 gap-4 text-xs">
         {[
           { label: "Analyzer", href: "/dashboard/ai/analyzer" },
@@ -84,7 +80,7 @@ export default async function AiHomePage() {
           { label: "Automations", href: "/dashboard/ai/automations" },
           { label: "History", href: "/dashboard/ai/history" },
           { label: "Usage", href: "/dashboard/ai/usage" },
-          { label: "Writer", href: "/dashboard/ai/writer" }
+          { label: "Writer", href: "/dashboard/ai/writer" },
         ].map((tool) => (
           <Link
             key={tool.href}
@@ -99,7 +95,6 @@ export default async function AiHomePage() {
         ))}
       </div>
 
-      {/* Recent AI Logs */}
       <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
         <div className="text-sm font-semibold text-slate-100 mb-2">
           Recent AI Actions

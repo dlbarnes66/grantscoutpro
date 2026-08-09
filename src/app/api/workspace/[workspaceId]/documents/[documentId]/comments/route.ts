@@ -1,50 +1,41 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-
-export async function GET(request: NextRequest, context: any) {
-  req: Request,
-  context: { params: {} }
+// ----------------------
+// GET COMMENTS
+// ----------------------
+export async function GET(
+  req: NextRequest,
+  context: { params: Promise<Record<string, string>> }
 ) {
   try {
+    const params = await context.params;
     const url = new URL(req.url);
 
-  const params = await (context as any).params;
     const documentId =
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
       params.documentId ||
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-      params.grantId ||
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
       params.id ||
       url.searchParams.get("documentId");
 
     const workspaceId =
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
       params.workspaceId ||
       url.searchParams.get("workspaceId");
 
-    // TODO: implement real GET logic here
+    // ⭐ PLACEHOLDER: your original GET logic goes here
+    // Example:
+    // const comments = await prisma.documentComment.findMany({
+    //   where: { documentId },
+    //   orderBy: { createdAt: "asc" }
+    // });
 
     return NextResponse.json({
       success: true,
       method: "GET",
       documentId,
       workspaceId,
+      // comments,
     });
   } catch (err: any) {
     console.error("GET ROUTE ERROR:", err);
@@ -55,44 +46,39 @@ export async function GET(request: NextRequest, context: any) {
   }
 }
 
-export async function POST(request: NextRequest, context: any) {
-  req: Request,
-  context: { params: {} }
+// ----------------------
+// POST COMMENT
+// ----------------------
+export async function POST(
+  req: NextRequest,
+  context: { params: Promise<Record<string, string>> }
 ) {
   try {
-    const body = await req.json().catch(() => ({} as any));
+    const params = await context.params;
     const url = new URL(req.url);
+    const body = await req.json().catch(() => ({}));
 
-  const params = await (context as any).params;
     const documentId =
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
       params.documentId ||
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-      params.grantId ||
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
       params.id ||
       body.documentId ||
       url.searchParams.get("documentId");
 
     const workspaceId =
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
-  const params = await (context as any).params;
       params.workspaceId ||
       body.workspaceId ||
       url.searchParams.get("workspaceId");
 
-    // TODO: implement real POST logic here
+    // ⭐ PLACEHOLDER: your original POST logic goes here
+    // Example:
+    // const newComment = await prisma.documentComment.create({
+    //   data: {
+    //     documentId,
+    //     userId: body.userId,
+    //     text: body.text,
+    //     selection: body.selection
+    //   }
+    // });
 
     return NextResponse.json({
       success: true,
@@ -100,6 +86,7 @@ export async function POST(request: NextRequest, context: any) {
       documentId,
       workspaceId,
       body,
+      // newComment,
     });
   } catch (err: any) {
     console.error("POST ROUTE ERROR:", err);
@@ -109,4 +96,3 @@ export async function POST(request: NextRequest, context: any) {
     );
   }
 }
-

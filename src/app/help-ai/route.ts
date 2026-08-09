@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import manual from "@/app/dashboard/help/manual/manual.json";
 
@@ -6,7 +6,8 @@ const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest, context: { params: Record<string, string> }) {
+  const { params } = context;
   const { question } = await req.json();
 
   if (!question) {

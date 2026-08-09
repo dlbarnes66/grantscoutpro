@@ -1,9 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { vectorSearch } from "@/lib/search/vectorSearch";
 import { keywordSearch } from "@/lib/search/keywordSearch";
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest, context: { params: Record<string, string> }) {
+  const { params } = context;
   const { searchParams } = new URL(req.url);
 
   const q = searchParams.get("q") || "";

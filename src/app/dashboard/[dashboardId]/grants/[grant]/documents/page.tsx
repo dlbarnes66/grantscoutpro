@@ -28,7 +28,7 @@ export default function GrantDocumentsPage({ params }: any) {
         <h1 className="text-2xl font-bold text-slate-100">Documents</h1>
 
         <a
-          href={`/dashboard/${params.workspaceId}/grant/${grantId}/documents/upload`}
+          href={`/dashboard/${workspaceId}/grant/${grantId}/documents/upload`}
           className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
         >
           + Upload Document

@@ -5,17 +5,17 @@ import { Notification } from "./types";
 
 export default function NotificationList({
   notifications,
-  onUpdate
+  onUpdateAction
 }: {
   notifications: Notification[];
-  onUpdate: (n: Notification[]) => void;
+  onUpdateAction: (n: Notification[]) => void;
 }) {
   function markAllRead() {
-    onUpdate(notifications.map((n) => ({ ...n, read: true })));
+    onUpdateAction(notifications.map((n) => ({ ...n, read: true })));
   }
 
   function clearAll() {
-    onUpdate([]);
+    onUpdateAction([]);
   }
 
   return (
@@ -46,7 +46,7 @@ export default function NotificationList({
             key={n.id}
             notification={n}
             notifications={notifications}
-            onUpdate={onUpdate}
+            onUpdateAction={onUpdateAction}
           />
         ))}
       </ul>

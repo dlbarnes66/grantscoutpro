@@ -14,18 +14,16 @@ const PLAN_LIMITS: Record<string, any> = {
   trial: {
     grants: 10,
     files: 20,
-    aiInsights: 50,
     structuredExtractions: 20,
   },
   paid: {
     grants: 500,
     files: 2000,
-    aiInsights: 5000,
     structuredExtractions: 2000,
   },
 };
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest, context: { params: Record<string, string> }) {
   try {
     const { workspaceId } = await req.json();
 
@@ -77,7 +75,6 @@ export async function POST(req: Request) {
     const overLimit = {
       grants: u.grants > limits.grants,
       files: u.files > limits.files,
-      aiInsights: u.aiInsights > limits.aiInsights,
       structuredExtractions: u.structuredExtractions > limits.structuredExtractions,
     };
 

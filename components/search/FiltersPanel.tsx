@@ -4,10 +4,10 @@ import { SearchFilters } from "./types";
 
 export default function FiltersPanel({
   filters,
-  onChange
+  onChangeAction
 }: {
   filters: SearchFilters;
-  onChange: (v: SearchFilters) => void;
+  onChangeAction: (v: SearchFilters) => void;
 }) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-4 space-y-4">
@@ -20,7 +20,7 @@ export default function FiltersPanel({
             type="number"
             className="mt-1 w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 text-sm"
             onChange={(e) =>
-              onChange({ ...filters, minAmount: Number(e.target.value) })
+              onChangeAction({ ...filters, minAmount: Number(e.target.value) })
             }
           />
         </div>
@@ -31,7 +31,7 @@ export default function FiltersPanel({
             type="date"
             className="mt-1 w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 text-sm"
             onChange={(e) =>
-              onChange({ ...filters, deadline: e.target.value })
+              onChangeAction({ ...filters, deadline: e.target.value })
             }
           />
         </div>
@@ -41,7 +41,7 @@ export default function FiltersPanel({
           <select
             className="mt-1 w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 text-sm"
             onChange={(e) =>
-              onChange({ ...filters, category: e.target.value })
+              onChangeAction({ ...filters, category: e.target.value })
             }
           >
             <option value="">Any</option>

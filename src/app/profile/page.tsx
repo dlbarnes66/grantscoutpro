@@ -14,7 +14,6 @@ export default function ProfilePage() {
     basics: { name: "", type: "", website: "", ein: "" },
     location: { state: "", county: "" },
     mission: { category: "", focusAreas: [] as string[] },
-    capacity: { staffSize: "", annualBudget: "", readiness: "", pastGrants: "" },
     funding: { amount: "", purpose: "", timeline: "", urgency: "" },
     eligibility: {
       populations: [] as string[],
@@ -212,11 +211,9 @@ export default function ProfilePage() {
               <input
                 className="w-full border rounded-lg px-3 py-2"
                 placeholder="Staff Size"
-                value={profile.capacity.staffSize}
                 onChange={(e) =>
                   setProfile({
                     ...profile,
-                    capacity: { ...profile.capacity, staffSize: e.target.value }
                   })
                 }
               />
@@ -224,11 +221,9 @@ export default function ProfilePage() {
               <input
                 className="w-full border rounded-lg px-3 py-2"
                 placeholder="Annual Budget"
-                value={profile.capacity.annualBudget}
                 onChange={(e) =>
                   setProfile({
                     ...profile,
-                    capacity: { ...profile.capacity, annualBudget: e.target.value }
                   })
                 }
               />
@@ -236,11 +231,9 @@ export default function ProfilePage() {
               <input
                 className="w-full border rounded-lg px-3 py-2"
                 placeholder="Readiness Level"
-                value={profile.capacity.readiness}
                 onChange={(e) =>
                   setProfile({
                     ...profile,
-                    capacity: { ...profile.capacity, readiness: e.target.value }
                   })
                 }
               />
@@ -248,18 +241,15 @@ export default function ProfilePage() {
               <input
                 className="w-full border rounded-lg px-3 py-2"
                 placeholder="Past Grant Experience"
-                value={profile.capacity.pastGrants}
                 onChange={(e) =>
                   setProfile({
                     ...profile,
-                    capacity: { ...profile.capacity, pastGrants: e.target.value }
                   })
                 }
               />
             </div>
 
             <button
-              onClick={() => saveSection("capacity", profile.capacity)}
               className="mt-6 px-6 py-2 rounded-lg border border-yellow-400 text-yellow-600 bg-white hover:bg-yellow-50 transition"
             >
               Save Capacity

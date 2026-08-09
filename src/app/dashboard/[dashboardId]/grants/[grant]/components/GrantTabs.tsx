@@ -15,13 +15,13 @@ export function GrantTabs({
   const pathname = usePathname();
 
   const tabs = [
-    { key: "overview", label: "Overview", href: `/dashboard/${params.workspaceId}/grant/${grantId}` },
-    { key: "ai", label: "AI Analysis", href: `/dashboard/${params.workspaceId}/grant/${grantId}/ai` },
-    { key: "eligibility", label: "Eligibility", href: `/dashboard/${params.workspaceId}/grant/${grantId}#eligibility` },
-    { key: "funding", label: "Funding", href: `/dashboard/${params.workspaceId}/grant/${grantId}#funding` },
-    { key: "documents", label: "Documents", href: `/dashboard/${params.workspaceId}/grant/${grantId}#documents` },
-    { key: "drafts", label: "Drafts", href: `/dashboard/${params.workspaceId}/grant/${grantId}/drafts` },
-    { key: "history", label: "History", href: `/dashboard/${params.workspaceId}/grant/${grantId}/history` },
+    { key: "overview", label: "Overview", href: `/dashboard/${workspaceId}/grant/${grantId}` },
+    { key: "ai", label: "AI Analysis", href: `/dashboard/${workspaceId}/grant/${grantId}/ai` },
+    { key: "eligibility", label: "Eligibility", href: `/dashboard/${workspaceId}/grant/${grantId}#eligibility` },
+    { key: "funding", label: "Funding", href: `/dashboard/${workspaceId}/grant/${grantId}#funding` },
+    { key: "documents", label: "Documents", href: `/dashboard/${workspaceId}/grant/${grantId}#documents` },
+    { key: "drafts", label: "Drafts", href: `/dashboard/${workspaceId}/grant/${grantId}/drafts` },
+    { key: "history", label: "History", href: `/dashboard/${workspaceId}/grant/${grantId}/history` },
   ];
 
   return (

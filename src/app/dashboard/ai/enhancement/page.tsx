@@ -1,10 +1,11 @@
 import React from "react";
 import { prisma } from "@/lib/prisma";
-import { auth } from "next-auth";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/nextauth";
 import { generateGrantEnhancement } from "./actions";
 
 export default async function EnhancementPage() {
-  const session = await auth();
+  const session = await getServerSession(authOptions);
   const userId = session?.user?.id ?? null;
 
   if (!userId) {
@@ -100,13 +101,6 @@ export default async function EnhancementPage() {
                 </div>
 
                 <pre className="mt-2 text-[10px] text-blue-300">{h.analysis}</pre>
-                <pre className="mt-2 text-[10px] text-green-300">Narrative: {h.narrativeFactors}</pre>
-                <pre className="mt-2 text-[10px] text-yellow-300">Structural: {h.structuralFactors}</pre>
-                <pre className="mt-2 text-[10px] text-purple-300">Persuasive: {h.persuasiveFactors}</pre>
-                <pre className="mt-2 text-[10px] text-pink-300">Compliance: {h.complianceFactors}</pre>
-                <pre className="mt-2 text-[10px] text-orange-300">Evidence: {h.evidenceFactors}</pre>
-                <pre className="mt-2 text-[10px] text-indigo-300">Strategic: {h.strategicFactors}</pre>
-                <pre className="mt-2 text-[10px] text-red-200">Strategy: {h.strategy}</pre>
               </div>
             ))}
           </div>

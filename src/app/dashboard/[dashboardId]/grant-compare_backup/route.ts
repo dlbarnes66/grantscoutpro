@@ -1,11 +1,12 @@
+import { NextRequest, NextResponse } from "next/server";
 // app/dashboard/grant-compare/route.ts
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth/nextauth";
 
 export const runtime = "nodejs";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest, context: { params: Record<string, string> }) {
+  const { params } = context;
   try {
     const session = await auth();
     const userId = session?.user?.id;

@@ -1,5 +1,6 @@
+// worker/jobs/worker.ts
 import { Worker } from "bullmq";
-import { getRedisConnection } from "../../lib/redis";
+import { getRedisConnection } from "../../src/lib/redis";
 
 // Prevent worker from running during Next.js build
 if (process.env.NEXT_PHASE !== "phase-production-build") {

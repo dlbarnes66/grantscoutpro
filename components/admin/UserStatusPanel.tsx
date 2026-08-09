@@ -4,17 +4,17 @@ import { AdminUser } from "./types";
 
 export function UserStatusPanel({
   user,
-  onUpdate
+  onUpdateAction
 }: {
   user: AdminUser;
-  onUpdate: (u: AdminUser) => void;
+  onUpdateAction: (u: AdminUser) => void;
 }) {
   function suspend() {
-    onUpdate({ ...user, status: "suspended" });
+    onUpdateAction({ ...user, status: "suspended" });
   }
 
   function activate() {
-    onUpdate({ ...user, status: "active" });
+    onUpdateAction({ ...user, status: "active" });
   }
 
   return (

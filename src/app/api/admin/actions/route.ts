@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
 export const runtime = "nodejs";
@@ -9,7 +9,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const { action, workspaceId, userId } = await req.json();
 
@@ -20,7 +20,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Example: reset trial
+    // reset trial
     if (action === "reset-trial") {
       if (!workspaceId) {
         return NextResponse.json(
@@ -54,7 +54,7 @@ export async function POST(req: Request) {
       });
     }
 
-    // Example: reset user limits
+    // reset user limits
     if (action === "reset-user-limits") {
       if (!userId) {
         return NextResponse.json(

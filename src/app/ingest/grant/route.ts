@@ -1,11 +1,12 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { normalizeGrant } from "@/lib/ingest/normalizeGrant";
 import { dedupeGrant } from "@/lib/ingest/dedupeGrant";
 import { runGrantAI } from "@/lib/ingest/runGrantAI";
 import { generateGrantEmbedding } from "@/lib/ingest/generateGrantEmbedding";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest, context: { params: Record<string, string> }) {
+  const { params } = context;
   try {
     const body = await req.json();
 
@@ -18,7 +19,6 @@ export async function POST(req: Request) {
       data: {
         ...deduped,
         aiSummary: ai.aiSummary,
-        aiInsights: ai.aiRecommendations ?? [],
         embedding,
       },
     });
