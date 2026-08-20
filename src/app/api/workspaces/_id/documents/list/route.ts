@@ -1,40 +1,40 @@
-import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: NextRequest, context: { params: Record<string, string> }) {
-  try {
-    const { params } = context;
-    const url = new URL(req.url);
+type Params = { id: string };
 
-    return NextResponse.json({
-      success: true,
-      method: "GET",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
+export async function GET(
+  _req: Request,
+  { params }: { params: Params }
+) {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  try {
+    const workspace = await prisma.workspace.findUnique({
+      where: { id: params.id },
+      include: { members: true },
     });
+
+    if (!workspace) return NextResponse.json({ error: "Workspace not found" }, { status: 404 });
+
+    const isMember =
+      workspace.ownerId === userId ||
+      workspace.members.some((m) => m.userId === userId);
+
+    if (!isMember) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+    const documents = await prisma.workspaceDocument.findMany({
+      where: { workspaceId: params.id },
+      orderBy: { updatedAt: "desc" },
+    });
+
+    return NextResponse.json({ success: true, documents });
   } catch (err: any) {
-    console.error("GET ERROR:", err);
+    console.error("DOCUMENT LIST ERROR:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
-
-export async function POST(req: NextRequest, context: { params: Record<string, string> }) {
-  try {
-    const { params } = context;
-    const url = new URL(req.url);
-    const body = await req.json().catch(() => ({}));
-
-    return NextResponse.json({
-      success: true,
-      method: "POST",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
-      body,
-    });
-  } catch (err: any) {
-    console.error("POST ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
-  }
-}
-

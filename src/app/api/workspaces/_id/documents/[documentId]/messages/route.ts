@@ -1,26 +1,46 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { Models } from "@/lib/models";
+import { guardDocumentAccess, guardWorkspaceMember } from "@/lib/route-guard";
 
-export const dynamic = "force-dynamic";
-
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string; documentId: string } }
-) {
+export async function GET(req, { params }) {
   try {
-    const body = await req.json().catch(() => ({}));
-    const url = new URL(req.url);
+    const { workspaceId, documentId } = params;
 
-    return NextResponse.json({
-      success: true,
-      method: "POST",
-      workspaceId: params.id,
-      documentId: params.documentId,
-      messages: "placeholder",
-      body,
-      query: Object.fromEntries(url.searchParams.entries()),
+    await guardDocumentAccess(workspaceId, documentId);
+
+    const messages = await Models.DocumentMessage.findMany({
+      where: { documentId },
+      orderBy: { createdAt: "asc" },
     });
-  } catch (err: any) {
-    console.error("MESSAGES ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+
+    return NextResponse.json(messages);
+  } catch (err) {
+    console.error("Messages error:", err);
+    return NextResponse.json({ error: "Failed to load messages." }, { status: 500 });
+  }
+}
+
+export async function POST(req, { params }) {
+  try {
+    const { workspaceId, documentId } = params;
+
+    const member = await guardWorkspaceMember(workspaceId);
+    await guardDocumentAccess(workspaceId, documentId);
+
+    const body = await req.json();
+    const { message } = body;
+
+    const msg = await Models.DocumentMessage.create({
+      data: {
+        documentId,
+        userId: member.userId,
+        message,
+      },
+    });
+
+    return NextResponse.json(msg);
+  } catch (err) {
+    console.error("Message create error:", err);
+    return NextResponse.json({ error: "Failed to send message." }, { status: 500 });
   }
 }
