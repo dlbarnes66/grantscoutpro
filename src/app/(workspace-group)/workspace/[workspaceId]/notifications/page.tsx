@@ -1,26 +1,27 @@
 "use client";
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
 
 import WorkspaceShell from "@/components/workspace/WorkspaceShell";
 import Card from "@/components/ui/Card";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 
-export default function WorkspaceNotificationsPage() {
+export default function WorkspaceNotificationsPage({
+  params,
+}: {
+  params: { workspaceId: string };
+}) {
+  const { workspaceId } = params;
+
   return (
-    <WorkspaceShell title="Workspace Notifications">
+    <WorkspaceShell title="Workspace Notifications" workspaceId={workspaceId}>
       <Breadcrumbs
         items={[
-          { label: "Dashboard", href: "/dashboard" },
-          { label: "Workspace", href: "../" },
+          { label: "Dashboard", href: `/workspace/${workspaceId}` },
           { label: "Notifications" },
         ]}
       />
 
-      <Card>
-        <p className="text-slate-300">
-          Workspace notifications will appear here.
-        </p>
+      <Card className="p-6">
+        <p className="text-slate-300">Workspace notifications will appear here.</p>
       </Card>
     </WorkspaceShell>
   );

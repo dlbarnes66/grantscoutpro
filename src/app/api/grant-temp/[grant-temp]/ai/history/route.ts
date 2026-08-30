@@ -1,40 +1,24 @@
-import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
+// src/app/api/grant-temp/[grant-temp]/history/route.ts
 
-export const dynamic = "force-dynamic";
-
-export async function GET(req: NextRequest, { params }: any) {
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+export async function POST(req: Request) {
+  const { userId, sessionClaims } = await await auth();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
-    const { params } = context;
-    const url = new URL(req.url);
-
-    return NextResponse.json({
-      success: true,
-      method: "GET",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
+    const { workspaceId } = await req.json();
+    if (!workspaceId) {
+      return NextResponse.json({ error: "workspaceId required" }, { status: 400 });
+    }
+    const history = await prisma.aiUsage.findMany({
+      where: { workspaceId },
+      orderBy: { createdAt: "desc" },
+      take: 50,
     });
-  } catch (err: any) {
-    console.error("GET ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ workspaceId, history });
+  } catch (err) {
+    console.error("AI history route error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
-
-export async function POST(req: NextRequest, { params }: any) {
-  try {
-    const { params } = context;
-    const url = new URL(req.url);
-    const body = await req.json().catch(() => ({}));
-
-    return NextResponse.json({
-      success: true,
-      method: "POST",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
-      body,
-    });
-  } catch (err: any) {
-    console.error("POST ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
-  }
-}
-

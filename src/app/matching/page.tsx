@@ -1,12 +1,7 @@
 "use client";
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
-
-
-
 
 import { useState } from "react";
-import { MatchResults } from "@/components/matching/MatchResults";
+import MatchResults from "@/components/matching/MatchResults";
 
 export default function MatchingPage() {
   const [loading, setLoading] = useState(false);
@@ -19,7 +14,7 @@ export default function MatchingPage() {
       title: "Community Youth STEM Program",
       focus: "STEM education",
       population: "underserved youth",
-      location: "Alabama"
+      location: "Alabama",
     };
 
     const grants = [
@@ -27,24 +22,24 @@ export default function MatchingPage() {
         id: "g1",
         title: "STEM Education Expansion Grant",
         focus: "STEM education",
-        location: "USA"
+        location: "USA",
       },
       {
         id: "g2",
         title: "Youth Development Fund",
         focus: "youth programs",
-        location: "Southern states"
-      }
+        location: "Southern states",
+      },
     ];
 
     const res = await fetch("/api/ai/match", {
       method: "POST",
-      body: JSON.stringify({ project, grants })
+      body: JSON.stringify({ project, grants }),
     });
 
     const data = await res.json();
-    setResults(data.results);
 
+    setResults(data.results ?? []);
     setLoading(false);
   }
 
@@ -56,12 +51,16 @@ export default function MatchingPage() {
 
       <button
         onClick={runMatch}
-        className="rounded-md bg-blue-600 hover:bg-blue-700 transition px-4 py-2 text-sm font-medium"
+        className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium transition hover:bg-blue-700"
       >
         Run Matching
       </button>
 
-      {loading && <div className="text-slate-400">Matching grants...</div>}
+      {loading && (
+        <div className="text-slate-400">
+          Matching grants...
+        </div>
+      )}
 
       <MatchResults results={results} />
     </div>

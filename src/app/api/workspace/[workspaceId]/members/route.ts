@@ -1,32 +1,27 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { requireWorkspaceMember } from "@/lib/auth";
 
-export const dynamic = "force-dynamic";
-
-export async function GET(req: NextRequest, context: { params: Promise<Record<string,string>> }) {
+export async function GET(
+  req: Request,
+  { params }: { params: { workspaceId: string } }
+) {
   try {
-    const params = await context.params;
-    const url = new URL(req.url);
+    const { workspaceId } = params;
 
-    const workspaceId = params.workspaceId || url.searchParams.get("workspaceId");
+    await requireWorkspaceMember(workspaceId);
 
-    return NextResponse.json({ success: true, method: "GET", workspaceId });
-  } catch (err: any) {
-    console.error("GET MEMBERS ERROR:", err);
-    return NextResponse.json({ error: err?.message }, { status: 500 });
-  }
-}
+    const members = await prisma.workspaceMember.findMany({
+      where: { workspaceId },
+      include: { user: true },
+    });
 
-export async function POST(req: NextRequest, context: { params: Promise<Record<string,string>> }) {
-  try {
-    const params = await context.params;
-    const body = await req.json().catch(() => ({}));
-    const url = new URL(req.url);
-
-    const workspaceId = params.workspaceId || body.workspaceId || url.searchParams.get("workspaceId");
-
-    return NextResponse.json({ success: true, method: "POST", workspaceId, body });
-  } catch (err: any) {
-    console.error("POST MEMBERS ERROR:", err);
-    return NextResponse.json({ error: err?.message }, { status: 500 });
+    return NextResponse.json(members);
+  } catch (error) {
+    console.error("Members route error:", error);
+    return NextResponse.json(
+      { error: "Failed to load members." },
+      { status: 500 }
+    );
   }
 }

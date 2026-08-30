@@ -1,24 +1,43 @@
-import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
+type Params = { id: string; grantId: string };
 
 export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string; grantId: string } }
+  _req: Request,
+  { params }: { params: Params }
 ) {
-  try {
-    const url = new URL(req.url);
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    return NextResponse.json({
-      success: true,
-      method: "GET",
-      workspaceId: params.id,
-      grantId: params.grantId,
-      viewer: "placeholder",
-      query: Object.fromEntries(url.searchParams.entries()),
+  try {
+    const grant = await prisma.grant.findUnique({
+      where: { id: params.grantId },
+      include: {
+        viewerState: true,
+        workspace: { include: { members: true } },
+      },
     });
+
+    if (!grant || grant.workspaceId !== params.id) {
+      return NextResponse.json({ error: "Grant not found" }, { status: 404 });
+    }
+
+    const workspace = grant.workspace;
+
+    const isMember =
+      workspace.ownerId === userId ||
+      workspace.members.some((m) => m.userId === userId);
+
+    if (!isMember) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+    return NextResponse.json({ success: true, viewer: grant.viewerState });
   } catch (err: any) {
-    console.error("GRANT VIEWER ERROR:", err);
+    console.error("WORKSPACE GRANT VIEWER ERROR:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

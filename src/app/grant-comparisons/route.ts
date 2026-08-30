@@ -1,15 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
+import { headers } from "next/headers";
+import { NextResponse } from "next/server";
+
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-import { headers } from "next/headers";
-
-export async function GET(req: NextRequest, context: { params: Record<string, string> }) {
-  const { params } = context;
-  const h = headers();
+export async function GET() {
+  const h = await headers();
   const user = h.get("x-user-id") || "unknown";
 
-  return Response.json({
+  return NextResponse.json({
     ok: true,
     user,
     message: "Grant comparisons route is dynamic and safe.",

@@ -1,37 +1,29 @@
-import { NextRequest, NextResponse } from "next/server";
+"use server";
 
-export const dynamic = "force-dynamic";
+import { NextResponse } from "next/server";
+import { runWriter } from "@/lib/writer/run";
+import type { WriterTool } from "@/lib/writer/prompts";
 
-export async function GET(req: NextRequest, { params }: { params: Record<string, string> }) {
-  try {
-    const url = new URL(req.url);
-
-    return NextResponse.json({
-      success: true,
-      method: "GET",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
-    });
-  } catch (err: any) {
-    console.error("GET ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
-  }
+interface WriterRequest {
+  workspaceId: string;
+  documentId: string;
+  prompt: string;
 }
 
-export async function POST(req: NextRequest, { params }: { params: Record<string, string> }) {
+export async function POST(req: Request): Promise<Response> {
   try {
-    const url = new URL(req.url);
-    const body = await req.json().catch(() => ({}));
+    const { workspaceId, documentId, prompt }: WriterRequest = await req.json();
 
-    return NextResponse.json({
-      success: true,
-      method: "POST",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
-      body,
+    const output = await runWriter({
+      workspaceId,
+      documentId,
+      tool: "revision" as WriterTool,
+      prompt
     });
+
+    return NextResponse.json({ output });
   } catch (err: any) {
-    console.error("POST ERROR:", err);
+    console.error("Revision Error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

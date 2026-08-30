@@ -1,56 +1,14 @@
-"use client";
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
-
-import WorkspaceShell from "@/components/workspace/WorkspaceShell";
-import Tabs from "@/components/ui/Tabs";
-import Card from "@/components/ui/Card";
-import Breadcrumbs from "@/components/ui/Breadcrumbs";
-
-export default function WorkspaceOverviewPage() {
-  return (
-    <WorkspaceShell title="Workspace Overview">
-      <Breadcrumbs
-        items={[
-          { label: "Dashboard", href: "/dashboard" },
-          { label: "Workspace" },
-        ]}
-      />
-
-      <Tabs
-        tabs={[
-          {
-            label: "Activity",
-            content: (
-              <Card>
-                <p className="text-slate-300">
-                  Recent workspace activity will appear here.
-                </p>
-              </Card>
-            ),
-          },
-          {
-            label: "Grants",
-            content: (
-              <Card>
-                <p className="text-slate-300">
-                  Workspace grants overview will appear here.
-                </p>
-              </Card>
-            ),
-          },
-          {
-            label: "Analytics",
-            content: (
-              <Card>
-                <p className="text-slate-300">
-                  Workspace analytics will appear here.
-                </p>
-              </Card>
-            ),
-          },
-        ]}
-      />
-    </WorkspaceShell>
-  );
-}
+[{
+	"resource": "/Users/darrylbarnes/grantscoutpro/src/app/(workspace-group)/workspace/[workspaceId]/trial-banner.tsx",
+	"owner": "typescript",
+	"code": "2307",
+	"severity": 8,
+	"message": "Cannot find module 'swr' or its corresponding type declarations.",
+	"source": "ts",
+	"startLineNumber": 3,
+	"startColumn": 20,
+	"endLineNumber": 3,
+	"endColumn": 25,
+	"modelVersionId": 1,
+	"origin": "extHost2"
+}]

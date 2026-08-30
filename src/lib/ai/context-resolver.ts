@@ -1,33 +1,30 @@
-import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { auth } from "@clerk/nextjs/server";
+import { prisma } from "@/lib/db";
 
 export async function resolveContext() {
-  const session = await getServerSession();
+  const { userId } = await auth();
 
-  if (!session?.user?.id) {
-    return null;
-  }
+  if (!userId) return null;
 
   const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
+    where: { id: userId },
     include: {
       profile: true,
       workspaceMembers: {
-        include: {
-          workspace: true
-        }
-      }
-    }
+        include: { workspace: true },
+      },
+    },
   });
 
   if (!user) return null;
 
-  // Pick the user's primary workspace
-  const primaryWorkspace = user.workspaceMembers[0]?.workspace;
+  const primaryWorkspace = user.workspaceMembers[0]?.workspace ?? null;
 
   return {
     user,
+    profile: user.profile ?? null,
     workspace: primaryWorkspace,
-    workspaceId: primaryWorkspace?.id
+    workspaceId: primaryWorkspace?.id ?? null,
+    workspaces: user.workspaceMembers.map((m) => m.workspace),
   };
 }

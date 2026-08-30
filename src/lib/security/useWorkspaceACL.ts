@@ -12,15 +12,27 @@ export function useWorkspaceACL(workspaceId: string) {
 
   useEffect(() => {
     async function loadACL() {
-      const res = await fetch(`/api/workspaces/${workspaceId}/acl/self`);
-      const data = await res.json();
+      try {
+        const res = await fetch(`/api/workspaces/${workspaceId}/acl/self`);
+        const data = await res.json();
 
-      setACL({
-        role: data.role,
-        canManageMembers: data.role === "ADMIN" || data.role === "OWNER",
-        canManageWorkspace: data.role === "OWNER",
-        loading: false,
-      });
+        const role = (data.role ?? "member").toUpperCase();
+
+        setACL({
+          role,
+          canManageMembers: role === "ADMIN" || role === "OWNER",
+          canManageWorkspace: role === "OWNER",
+          loading: false,
+        });
+      } catch (err) {
+        console.error("Workspace ACL error:", err);
+        setACL({
+          role: "member",
+          canManageMembers: false,
+          canManageWorkspace: false,
+          loading: false,
+        });
+      }
     }
 
     loadACL();

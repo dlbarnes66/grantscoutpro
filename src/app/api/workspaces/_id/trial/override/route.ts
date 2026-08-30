@@ -1,40 +1,69 @@
+import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
-export async function GET(req: NextRequest, context: { params: Record<string, string> }) {
+type Params = { id: string };
+
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Params }
+) {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   try {
-    const { params } = context;
-    const url = new URL(req.url);
-
-    return NextResponse.json({
-      success: true,
-      method: "GET",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
+    const workspace = await prisma.workspace.findUnique({
+      where: { id: params.id },
+      include: { billing: true },
     });
+
+    if (!workspace || !workspace.billing) {
+      return NextResponse.json({ error: "Workspace or billing not found" }, { status: 404 });
+    }
+
+    if (workspace.ownerId !== userId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const body = await req.json().catch(() => null);
+    if (!body || !body.start || !body.end) {
+      return NextResponse.json({ error: "Missing start or end date" }, { status: 400 });
+    }
+
+    const start = new Date(body.start);
+    const end = new Date(body.end);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return NextResponse.json({ error: "Invalid date format" }, { status: 400 });
+    }
+
+    if (end <= start) {
+      return NextResponse.json({ error: "End date must be after start date" }, { status: 400 });
+    }
+
+    const updated = await prisma.workspaceBilling.update({
+      where: { workspaceId: params.id },
+      data: {
+        periodStart: start,
+        periodEnd: end,
+      },
+    });
+
+    await prisma.workspaceActivity.create({
+      data: {
+        workspaceId: params.id,
+        userId,
+        action: "trial-override",
+        metadata: { start, end },
+      },
+    });
+
+    return NextResponse.json({ success: true, updated });
   } catch (err: any) {
-    console.error("GET ERROR:", err);
+    console.error("WORKSPACE TRIAL OVERRIDE ERROR:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
-
-export async function POST(req: NextRequest, context: { params: Record<string, string> }) {
-  try {
-    const { params } = context;
-    const url = new URL(req.url);
-    const body = await req.json().catch(() => ({}));
-
-    return NextResponse.json({
-      success: true,
-      method: "POST",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
-      body,
-    });
-  } catch (err: any) {
-    console.error("POST ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
-  }
-}
-

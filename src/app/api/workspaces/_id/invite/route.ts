@@ -1,22 +1,27 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { requireUser, requireWorkspaceOwner } from "@/lib/auth";
 
-export const dynamic = "force-dynamic";
+export async function POST(req: Request, { params }: { params: { workspaceId: string } }) {
+  const admin = await requireUser();
+  const { workspaceId } = params;
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-  try {
-    const body = await req.json().catch(() => ({}));
-    const url = new URL(req.url);
+  await requireWorkspaceOwner(workspaceId);
 
-    return NextResponse.json({
-      success: true,
-      method: "POST",
-      workspaceId: params.id,
-      invite: "placeholder",
-      body,
-      query: Object.fromEntries(url.searchParams.entries()),
-    });
-  } catch (err: any) {
-    console.error("INVITE ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  const body = await req.json();
+
+  if (!body.email) {
+    return NextResponse.json({ error: "email is required." }, { status: 400 });
   }
+
+  const invite = await prisma.workspaceInvite.create({
+    data: {
+      workspaceId,
+      email: body.email,
+      invitedById: admin.id,
+      status: "pending"
+    }
+  });
+
+  return NextResponse.json(invite);
 }

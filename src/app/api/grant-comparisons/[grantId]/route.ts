@@ -1,40 +1,66 @@
+import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
-export async function GET(req: NextRequest, { params }: any) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { grantId: string } }
+) {
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
-    const { params } = context;
-    const url = new URL(req.url);
-
-    return NextResponse.json({
-      success: true,
-      method: "GET",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
+    const comparison = await prisma.grantComparison.findFirst({
+      where: {
+        grants: {
+          equals: params.grantId,
+        },
+      },
     });
+
+    if (!comparison) {
+      return NextResponse.json(
+        { error: "No comparison found for this grant" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ success: true, comparison });
   } catch (err: any) {
-    console.error("GET ERROR:", err);
+    console.error("GRANT COMPARISON GET ERROR:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
 
-export async function POST(req: NextRequest, { params }: any) {
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { grantId: string } }
+) {
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
-    const { params } = context;
-    const url = new URL(req.url);
     const body = await req.json().catch(() => ({}));
 
-    return NextResponse.json({
-      success: true,
-      method: "POST",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
-      body,
+    const updated = await prisma.grantComparison.updateMany({
+      where: {
+        grants: {
+          equals: params.grantId,
+        },
+      },
+      data: body,
     });
+
+    return NextResponse.json({ success: true, updated });
   } catch (err: any) {
-    console.error("POST ERROR:", err);
+    console.error("GRANT COMPARISON POST ERROR:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
-

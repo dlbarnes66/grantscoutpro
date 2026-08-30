@@ -2,24 +2,48 @@ import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
+
 export async function GET(
-  const { userId, sessionClaims } = await await auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   req: NextRequest,
-  { params }: { params: { id: string; documentId: string } }
+  {
+    params,
+  }: {
+    params: {
+      id: string;
+      documentId: string;
+    };
+  }
 ) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 }
+    );
+  }
+
   try {
     const url = new URL(req.url);
+
     return NextResponse.json({
       success: true,
-      method: "GET",
       workspaceId: params.id,
       documentId: params.documentId,
-      viewer: "placeholder",
-      query: Object.fromEntries(url.searchParams.entries()),
+      query: Object.fromEntries(
+        url.searchParams.entries()
+      ),
+      file: "placeholder",
     });
   } catch (err: any) {
-    console.error("VIEWER ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error(
+      "WORKSPACE DOCUMENT FILE ERROR:",
+      err
+    );
+
+    return NextResponse.json(
+      { error: err.message },
+      { status: 500 }
+    );
   }
 }

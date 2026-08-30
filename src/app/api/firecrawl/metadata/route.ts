@@ -2,39 +2,35 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: NextRequest, context: { params: Record<string, string> }) {
-  try {
-    const { params } = context;
-    const url = new URL(req.url);
+type CrawledDoc = {
+  id: string;
+  url: string;
+  title: string;
+  textSnippet: string;
+  createdAt: string;
+};
 
-    return NextResponse.json({
-      success: true,
-      method: "GET",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
-    });
-  } catch (err: any) {
-    console.error("GET ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+const crawlStore: CrawledDoc[] = [];
+
+export async function GET(req: NextRequest) {
+  const urlObj = new URL(req.url);
+  const id = urlObj.searchParams.get("id");
+
+  if (!id) {
+    return NextResponse.json({ error: "id is required" }, { status: 400 });
   }
-}
 
-export async function POST(req: NextRequest, context: { params: Record<string, string> }) {
-  try {
-    const { params } = context;
-    const url = new URL(req.url);
-    const body = await req.json().catch(() => ({}));
+  const doc = crawlStore.find((d) => d.id === id);
 
-    return NextResponse.json({
-      success: true,
-      method: "POST",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
-      body,
-    });
-  } catch (err: any) {
-    console.error("POST ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  if (!doc) {
+    return NextResponse.json({ error: "document not found" }, { status: 404 });
   }
-}
 
+  return NextResponse.json({
+    id: doc.id,
+    url: doc.url,
+    title: doc.title,
+    createdAt: doc.createdAt,
+    length: doc.textSnippet.length
+  });
+}

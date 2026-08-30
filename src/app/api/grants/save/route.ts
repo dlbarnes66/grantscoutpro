@@ -1,40 +1,35 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { requireUser, requireWorkspaceMember } from "@/lib/auth";
 
-export const dynamic = "force-dynamic";
+export async function POST(req: Request, { params }: { params: { workspaceId: string } }) {
+  const user = await requireUser();
+  const { workspaceId } = params;
 
-export async function GET(req: NextRequest, context: { params: Record<string, string> }) {
-  try {
-    const { params } = context;
-    const url = new URL(req.url);
+  await requireWorkspaceMember(workspaceId);
 
-    return NextResponse.json({
-      success: true,
-      method: "GET",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
-    });
-  } catch (err: any) {
-    console.error("GET ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  const body = await req.json();
+
+  if (!body.grantId) {
+    return NextResponse.json({ error: "grantId is required." }, { status: 400 });
   }
-}
 
-export async function POST(req: NextRequest, context: { params: Record<string, string> }) {
-  try {
-    const { params } = context;
-    const url = new URL(req.url);
-    const body = await req.json().catch(() => ({}));
+  // Ensure grant belongs to workspace
+  const grant = await prisma.grant.findUnique({
+    where: { id: body.grantId },
+    select: { workspaceId: true }
+  });
 
-    return NextResponse.json({
-      success: true,
-      method: "POST",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
-      body,
-    });
-  } catch (err: any) {
-    console.error("POST ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  if (!grant || grant.workspaceId !== workspaceId) {
+    return NextResponse.json({ error: "Grant does not belong to this workspace." }, { status: 403 });
   }
-}
 
+  const saved = await prisma.savedGrant.create({
+    data: {
+      userId: user.id,
+      grantId: body.grantId
+    }
+  });
+
+  return NextResponse.json(saved);
+}

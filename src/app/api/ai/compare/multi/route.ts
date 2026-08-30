@@ -1,40 +1,40 @@
+import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
+import { callUnifiedModel } from "@/app/api/ai/autoeditor/_lib/unifiedModel";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: NextRequest, context: { params: Record<string, string> }) {
-  try {
-    const { params } = context;
-    const url = new URL(req.url);
-
-    return NextResponse.json({
-      success: true,
-      method: "GET",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
-    });
-  } catch (err: any) {
-    console.error("GET ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+export async function POST(req: NextRequest) {
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-}
 
-export async function POST(req: NextRequest, context: { params: Record<string, string> }) {
-  try {
-    const { params } = context;
-    const url = new URL(req.url);
-    const body = await req.json().catch(() => ({}));
+  const { grants = [] } = await req.json().catch(() => ({}));
 
-    return NextResponse.json({
-      success: true,
-      method: "POST",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
-      body,
-    });
-  } catch (err: any) {
-    console.error("POST ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  if (!Array.isArray(grants) || grants.length < 2) {
+    return NextResponse.json(
+      { error: "Provide at least 2 grants to compare" },
+      { status: 400 }
+    );
   }
-}
 
+  const prompt = `
+Compare the following grants:
+
+${JSON.stringify(grants, null, 2)}
+
+Return JSON with:
+- comparisonMatrix
+- strengthsByGrant
+- weaknessesByGrant
+- bestFitRecommendations
+`;
+
+  const result = await callUnifiedModel(prompt);
+
+  return NextResponse.json({
+    success: true,
+    comparison: result,
+  });
+}

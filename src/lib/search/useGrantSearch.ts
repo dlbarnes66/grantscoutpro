@@ -9,25 +9,37 @@ export function useGrantSearch(initialQuery: string = "") {
 
   async function search(query?: string) {
     const term = query ?? q;
+
     if (!term.trim()) {
       setResults([]);
       return;
     }
 
     setLoading(true);
-    const res = await fetch(`/api/search/grants?q=${encodeURIComponent(term)}&mode=hybrid`);
-    const data = await res.json();
-    setResults(data.results);
+
+    try {
+      const res = await fetch(
+        `/api/search/grants?q=${encodeURIComponent(term)}&mode=hybrid`
+      );
+
+      const data = await res.json();
+      setResults(data.results ?? []);
+    } catch (err) {
+      console.error("Grant search error:", err);
+      setResults([]);
+    }
+
     setLoading(false);
   }
 
   useEffect(() => {
-    if (q.trim()) {
-      const id = setTimeout(() => search(), 300);
-      return () => clearTimeout(id);
-    } else {
+    if (!q.trim()) {
       setResults([]);
+      return;
     }
+
+    const id = setTimeout(() => search(), 300);
+    return () => clearTimeout(id);
   }, [q]);
 
   return { q, setQ, results, loading, search };

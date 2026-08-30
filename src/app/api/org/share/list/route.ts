@@ -1,40 +1,45 @@
-import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { auth } from "@clerk/nextjs/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest, context: any): Promise<Response> {
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
-    const session = await auth();
-    const userId = session?.user?.id as string | undefined;
-    const orgId = session?.user?.orgId as string | undefined;
-
-    if (!session || !userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    if (!orgId) {
-      return NextResponse.json({ error: "User is not assigned to an org" }, { status: 403 });
-    }
-
-    const owned = await prisma.sharedResource.findMany({
-      where: { ownerOrgId: orgId },
-      include: { accesses: true },
+    const url = new URL(req.url);
+    return NextResponse.json({
+      success: true,
+      method: "GET",
+      params: context?.params ?? {},
+      query: Object.fromEntries(url.searchParams.entries())
     });
+  } catch (err: any) {
+    console.error("GET ERROR:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
 
-    const sharedWith = await prisma.sharedResource.findMany({
-      where: { sharedWithId: orgId },
-      include: { accesses: true },
-    });
+export async function POST(req: NextRequest, context: any): Promise<Response> {
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const body = await req.json().catch(() => ({}));
 
     return NextResponse.json({
       success: true,
-      owned,
-      sharedWith,
+      method: "POST",
+      params: context?.params ?? {},
+      body
     });
   } catch (err: any) {
-    console.error("ORG SHARE LIST ERROR:", err);
-    return NextResponse.json({ error: err.message ?? "Internal error" }, { status: 500 });
+    console.error("POST ERROR:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

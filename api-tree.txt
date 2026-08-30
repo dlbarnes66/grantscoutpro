@@ -1,0 +1,1861 @@
+src/app/api
+├── .DS_Store
+├── access
+│   ├── document
+│   │   └── route.ts
+│   └── grant
+│       └── route.ts
+├── activity
+│   └── log
+│       └── route.ts
+├── addons
+│   ├── activate
+│   │   └── route.ts
+│   └── purchase
+│       └── route.ts
+├── admin
+│   ├── actions
+│   │   └── route.ts
+│   ├── analytics
+│   │   └── route.ts
+│   ├── archive
+│   │   ├── applications
+│   │   │   └── route.ts
+│   │   ├── audit
+│   │   │   └── route.ts
+│   │   └── grants
+│   │       └── route.ts
+│   ├── audit
+│   │   ├── detail
+│   │   │   └── route.ts
+│   │   ├── export
+│   │   │   └── route.ts
+│   │   └── search
+│   │       └── route.ts
+│   ├── billing
+│   │   ├── checklist
+│   │   │   └── route.ts
+│   │   ├── export
+│   │   │   └── route.ts
+│   │   ├── hard-delete-subscription
+│   │   │   └── route.ts
+│   │   ├── inspect
+│   │   │   └── route.ts
+│   │   ├── list
+│   │   │   └── route.ts
+│   │   ├── logs
+│   │   │   └── route.ts
+│   │   ├── reconcile-addons
+│   │   │   └── route.ts
+│   │   ├── recount-seats
+│   │   │   └── route.ts
+│   │   ├── reset-usage
+│   │   │   └── route.ts
+│   │   └── workspaces
+│   │       └── route.ts
+│   ├── compliance
+│   │   └── scan
+│   │       └── route.ts
+│   ├── dashboard
+│   │   ├── activity
+│   │   │   └── route.ts
+│   │   └── overview
+│   │       └── route.ts
+│   ├── delete-user
+│   │   └── route.ts
+│   ├── export
+│   │   ├── applications
+│   │   │   └── route.ts
+│   │   ├── grants
+│   │   │   └── route.ts
+│   │   ├── users
+│   │   │   └── route.ts
+│   │   └── warehouse
+│   │       └── route.ts
+│   ├── fraud
+│   │   └── route.ts
+│   ├── grants
+│   │   ├── delete
+│   │   │   └── route.ts
+│   │   ├── scrape
+│   │   │   └── route.ts
+│   │   └── update
+│   │       └── route.ts
+│   ├── logs
+│   │   └── route.ts
+│   ├── metrics
+│   │   └── route.ts
+│   ├── org
+│   │   ├── merge
+│   │   │   └── route.ts
+│   │   ├── move-applications
+│   │   │   └── route.ts
+│   │   ├── move-audit
+│   │   │   └── route.ts
+│   │   ├── move-members
+│   │   │   └── route.ts
+│   │   ├── split
+│   │   │   └── route.ts
+│   │   └── split-summary
+│   │       └── route.ts
+│   ├── purge
+│   │   ├── run-all
+│   │   │   └── route.ts
+│   │   └── users
+│   │       └── route.ts
+│   ├── ratelimit
+│   │   ├── endpoint
+│   │   │   └── route.ts
+│   │   ├── org
+│   │   │   └── route.ts
+│   │   ├── status
+│   │   │   └── route.ts
+│   │   └── user
+│   │       └── route.ts
+│   ├── rbac
+│   │   ├── check
+│   │   │   └── route.ts
+│   │   └── update-role
+│   │       └── route.ts
+│   ├── roles
+│   │   └── route
+│   ├── route.ts
+│   ├── settings
+│   │   └── route.ts
+│   ├── sso
+│   │   └── config
+│   │       └── route.ts
+│   ├── system-health
+│   │   └── route.ts
+│   ├── update-role
+│   │   └── route.ts
+│   ├── users
+│   │   └── route.ts
+│   ├── workspace
+│   │   ├── delete
+│   │   │   └── route.ts
+│   │   └── suspend
+│   │       └── route.ts
+│   └── workspaces
+│       └── route.ts
+├── ai
+│   ├── agent
+│   │   ├── draft
+│   │   │   └── route.ts
+│   │   ├── execute
+│   │   │   └── route.ts
+│   │   ├── history
+│   │   │   └── save
+│   │   │       └── route.ts
+│   │   ├── plan
+│   │   │   └── route.ts
+│   │   ├── research
+│   │   │   └── route.ts
+│   │   └── run
+│   │       └── route.ts
+│   ├── alignment-matrix
+│   │   └── route.ts
+│   ├── analyze-document
+│   │   └── route.ts
+│   ├── application-writer
+│   │   └── route.ts
+│   ├── autoeditor
+│   │   ├── _lib
+│   │   │   ├── grantIntelligence.ts
+│   │   │   └── unifiedModel.ts
+│   │   ├── clarity
+│   │   │   └── route.ts
+│   │   ├── coherence
+│   │   │   └── route.ts
+│   │   ├── constraints
+│   │   │   └── route.ts
+│   │   ├── history
+│   │   │   └── save
+│   │   │       └── route.ts
+│   │   ├── rewrite
+│   │   │   └── route.ts
+│   │   ├── route.ts
+│   │   └── tone
+│   │       └── route.ts
+│   ├── budget
+│   │   ├── compliance
+│   │   │   └── route.ts
+│   │   ├── create
+│   │   │   └── route.ts
+│   │   ├── history
+│   │   │   └── save
+│   │   │       └── route.ts
+│   │   ├── justify
+│   │   │   └── route.ts
+│   │   ├── optimize
+│   │   │   └── route.ts
+│   │   └── risk
+│   │       └── route.ts
+│   ├── budget-planner
+│   │   └── route.ts
+│   ├── budget-risk
+│   │   └── route.ts
+│   ├── calendar
+│   │   ├── balance
+│   │   │   └── route.ts
+│   │   ├── extract-deadline
+│   │   │   └── route.ts
+│   │   ├── priority
+│   │   │   └── route.ts
+│   │   ├── save
+│   │   │   └── route.ts
+│   │   └── timeline
+│   │       └── route.ts
+│   ├── clarity
+│   │   └── route.ts
+│   ├── closeout
+│   │   ├── assets
+│   │   │   └── route.ts
+│   │   ├── checklist
+│   │   │   └── route.ts
+│   │   ├── compliance
+│   │   │   └── route.ts
+│   │   ├── finance
+│   │   │   └── route.ts
+│   │   ├── history
+│   │   │   ├── route.ts
+│   │   │   └── save
+│   │   │       └── route.ts
+│   │   └── report
+│   │       └── route.ts
+│   ├── coherence
+│   │   └── route.ts
+│   ├── compare
+│   │   ├── history
+│   │   │   └── route.ts
+│   │   ├── multi
+│   │   │   └── route.ts
+│   │   ├── save
+│   │   │   └── route.ts
+│   │   ├── table
+│   │   │   └── route.ts
+│   │   └── two
+│   │       └── route.ts
+│   ├── compliance
+│   │   ├── fix
+│   │   │   └── route.ts
+│   │   ├── history
+│   │   │   ├── route.ts
+│   │   │   └── save
+│   │   │       └── route.ts
+│   │   ├── missing
+│   │   │   └── route.ts
+│   │   ├── route.ts
+│   │   ├── rules
+│   │   │   └── route.ts
+│   │   ├── scan
+│   │   │   └── route.ts
+│   │   └── score
+│   │       └── route
+│   ├── eligibility
+│   │   ├── breakdown
+│   │   │   └── route.ts
+│   │   ├── bulk
+│   │   │   └── route.ts
+│   │   ├── check
+│   │   │   └── route.ts
+│   │   └── risk
+│   │       └── route.ts
+│   ├── eligility-predictor
+│   │   └── route
+│   ├── forecast
+│   │   ├── history
+│   │   │   └── save
+│   │   │       └── route.ts
+│   │   ├── multi-year
+│   │   │   └── route.ts
+│   │   ├── probability-weighted
+│   │   │   └── route.ts
+│   │   ├── risk-adjusted
+│   │   │   └── route.ts
+│   │   ├── scenarios
+│   │   │   └── route.ts
+│   │   └── simulate
+│   │       └── route.ts
+│   ├── full-application
+│   │   └── route.ts
+│   ├── gaps
+│   │   ├── ecosystem
+│   │   │   └── route.ts
+│   │   ├── map
+│   │   │   └── route.ts
+│   │   ├── opportunities
+│   │   │   └── route.ts
+│   │   └── unmet-needs
+│   │       └── route.ts
+│   ├── generate
+│   │   └── route.ts
+│   ├── generate-grant
+│   │   └── route.ts
+│   ├── grant-scout-advisor
+│   │   └── route.ts
+│   ├── inline
+│   │   └── route.ts
+│   ├── match
+│   │   └── route.ts
+│   ├── matching
+│   │   ├── explain
+│   │   │   └── route.ts
+│   │   ├── history
+│   │   │   └── save
+│   │   │       └── route.ts
+│   │   ├── probability-weighted
+│   │   │   └── route.ts
+│   │   ├── recommend
+│   │   │   └── route.ts
+│   │   └── semantic
+│   │       └── route.ts
+│   ├── monitoring
+│   │   ├── alerts
+│   │   │   └── route.ts
+│   │   ├── dashboard
+│   │   │   └── route.ts
+│   │   ├── forecast
+│   │   │   └── route.ts
+│   │   ├── health
+│   │   │   └── route.ts
+│   │   └── kpis
+│   │       └── route.ts
+│   ├── narrative
+│   │   ├── Coherence
+│   │   │   └── route.ts
+│   │   ├── consistency
+│   │   │   └── route.ts
+│   │   ├── generate
+│   │   │   └── route.ts
+│   │   ├── reasoning
+│   │   │   └── route.ts
+│   │   └── storytelling
+│   │       └── route.ts
+│   ├── negotiation
+│   │   ├── budget
+│   │   │   └── route.ts
+│   │   ├── officer
+│   │   │   └── route.ts
+│   │   ├── rebuttal
+│   │   │   └── route.ts
+│   │   ├── scope
+│   │   │   └── route.ts
+│   │   └── strategy
+│   │       └── route.ts
+│   ├── opportunity
+│   │   ├── custom
+│   │   │   └── route
+│   │   ├── founder-style
+│   │   │   └── route.ts
+│   │   ├── gaps
+│   │   │   └── route.ts
+│   │   ├── map
+│   │   │   └── route.ts
+│   │   └── synthetic
+│   │       └── route.ts
+│   ├── outreach
+│   │   ├── email
+│   │   │   └── route.ts
+│   │   ├── followup
+│   │   │   └── route.ts
+│   │   ├── meeting
+│   │   │   └── route.ts
+│   │   ├── persona
+│   │   │   └── route.ts
+│   │   └── relationship
+│   │       └── route.ts
+│   ├── portfolio
+│   │   ├── breakdown
+│   │   │   └── route.ts
+│   │   ├── diversify
+│   │   │   └── route.ts
+│   │   ├── optimize
+│   │   │   └── route.ts
+│   │   ├── probability
+│   │   │   └── route.ts
+│   │   ├── rebalance
+│   │   │   └── route.ts
+│   │   └── score
+│   │       └── route.ts
+│   ├── rank-grants
+│   │   └── route.ts
+│   ├── readability
+│   │   └── route.ts
+│   ├── renewal
+│   │   ├── budget
+│   │   │   └── route.ts
+│   │   ├── eligibility
+│   │   │   └── route.ts
+│   │   ├── narrative
+│   │   │   └── route.ts
+│   │   ├── probability
+│   │   │   └── route.ts
+│   │   └── strategy
+│   │       └── route.ts
+│   ├── reviewer
+│   │   ├── compliance
+│   │   │   └── route.ts
+│   │   ├── evaluate
+│   │   │   └── route.ts
+│   │   ├── panel
+│   │   │   └── route.ts
+│   │   ├── revise
+│   │   │   └── route.ts
+│   │   ├── route.ts
+│   │   └── rubric
+│   │       └── route.ts
+│   ├── reviewer-pro
+│   │   └── route.ts
+│   ├── reviewer-sim
+│   │   └── route.ts
+│   ├── rewrite
+│   │   ├── executive
+│   │   │   └── route.ts
+│   │   ├── multi
+│   │   │   └── route.ts
+│   │   ├── reviewer
+│   │   │   └── route.ts
+│   │   ├── route.ts
+│   │   └── single
+│   │       └── route.ts
+│   ├── risk
+│   │   ├── compliance
+│   │   │   └── route.ts
+│   │   ├── funding
+│   │   │   └── route.ts
+│   │   ├── mitigation
+│   │   │   └── route.ts
+│   │   ├── operational
+│   │   │   └── route.ts
+│   │   ├── route.ts
+│   │   └── score
+│   │       └── route.ts
+│   ├── scalability-predictor
+│   │   └── route.ts
+│   ├── score-grant
+│   │   └── route.ts
+│   ├── semantic-search
+│   │   └── route.ts
+│   ├── submission
+│   │   ├── attachmants
+│   │   │   └── final-compliance
+│   │   │       └── route.ts
+│   │   ├── checklist
+│   │   │   └── route.ts
+│   │   ├── formatting
+│   │   │   └── route.ts
+│   │   ├── history
+│   │   │   └── save
+│   │   │       └── route.ts
+│   │   └── readiness
+│   │       └── route.ts
+│   ├── success-probability
+│   │   └── route.ts
+│   ├── summarize-opportunity
+│   │   └── route.ts
+│   ├── summary
+│   │   └── route.ts
+│   └── sustainability-analyzer
+│       └── route.ts
+├── ai-analysis
+│   └── [grantId]
+│       └── route.ts
+├── alerts
+│   ├── detect
+│   │   └── route.ts
+│   ├── generate
+│   │   └── route.ts
+│   ├── notify
+│   │   └── route.ts
+│   ├── rules
+│   │   └── route.ts
+│   └── unified
+│       └── route.ts
+├── applications
+│   ├── start
+│   │   └── route.ts
+│   ├── submit
+│   │   └── route.ts
+│   ├── update
+│   │   └── route.ts
+│   └── version
+│       ├── list
+│       │   └── route.ts
+│       ├── restore
+│       │   └── route.ts
+│       └── save
+│           └── route.ts
+├── assistant
+│   ├── coach
+│   │   └── route.ts
+│   ├── core
+│   │   └── route.ts
+│   ├── explain
+│   │   └── route.ts
+│   ├── strategy
+│   │   └── route.ts
+│   └── unified
+│       └── route.ts
+├── audit
+│   ├── list
+│   │   └── route.ts
+│   ├── replay
+│   │   └── route.ts
+│   └── write
+│       └── route.ts
+├── auth
+│   ├── check
+│   │   └── route.ts
+│   ├── me
+│   │   └── route.ts
+│   ├── org-role
+│   │   └── route.ts
+│   ├── role
+│   │   └── route.ts
+│   └── workspace-role
+│       └── route.ts
+├── billing
+│   ├── create-checkout
+│   │   └── route.ts
+│   ├── portal
+│   │   └── route.ts
+│   ├── seats
+│   │   └── route.ts
+│   ├── usage
+│   │   └── route.ts
+│   └── webhook
+│       └── route.ts
+├── billing-endpoint
+│   ├── cancel
+│   │   └── route.ts
+│   ├── checkout
+│   │   ├── addons
+│   │   │   └── route.ts
+│   │   ├── route.ts
+│   │   ├── seats
+│   │   │   └── route.ts
+│   │   └── simple
+│   │       └── route.ts
+│   ├── create-customer
+│   │   └── route.ts
+│   ├── create-session
+│   │   └── route.ts
+│   ├── events
+│   │   └── route.ts
+│   ├── history
+│   │   └── route.ts
+│   ├── invoices
+│   │   ├── [invoiceId]
+│   │   │   ├── pdf
+│   │   │   │   └── route.ts
+│   │   │   └── route.ts
+│   │   └── route.ts
+│   ├── limits
+│   │   └── route.ts
+│   ├── overview
+│   │   └── route.ts
+│   ├── owner
+│   │   └── route.ts
+│   ├── period
+│   │   └── route.ts
+│   ├── plan
+│   │   ├── route.ts
+│   │   └── update
+│   │       └── route.ts
+│   ├── portal
+│   │   └── route.ts
+│   ├── reactivate
+│   │   └── route.ts
+│   ├── remove-addon
+│   │   └── route.ts
+│   ├── renewal
+│   │   └── route.ts
+│   ├── route.ts
+│   ├── seats
+│   │   └── checkout
+│   │       └── route.ts
+│   ├── status
+│   │   └── route.ts
+│   ├── subscription-sync
+│   │   └── route.ts
+│   ├── summary
+│   │   └── route.ts
+│   ├── switch-tier
+│   │   └── route.ts
+│   ├── update
+│   │   └── route.ts
+│   ├── usage
+│   │   ├── enforce
+│   │   │   └── route.ts
+│   │   └── route.ts
+│   ├── usage-sync
+│   │   └── route.ts
+│   └── webhook
+│       └── route.ts
+├── budget
+│   ├── generate
+│   │   └── route.ts
+│   ├── justify
+│   │   └── route.ts
+│   ├── load
+│   │   └── route.ts
+│   ├── optimize
+│   │   └── route.ts
+│   ├── route.ts
+│   └── save
+│       └── route.ts
+├── closeout
+│   ├── assets
+│   │   └── route.ts
+│   ├── checklist
+│   │   └── route.ts
+│   ├── finacials
+│   │   └── route.ts
+│   ├── final-report
+│   │   └── route.ts
+│   └── summary
+│       └── route.ts
+├── clustering
+│   ├── cluster
+│   │   └── route.ts
+│   ├── compute
+│   │   └── route.ts
+│   ├── embeded
+│   │   └── route.ts
+│   └── overview
+│       └── route.ts
+├── collab
+│   ├── Stream
+│   │   └── route.ts
+│   └── edit
+│       └── route.ts
+├── compare
+│   ├── [workspaceId]
+│   │   └── route.ts
+│   ├── add
+│   │   └── [workspaceId]
+│   │       └── route.ts
+│   ├── clear
+│   │   └── [workspaceId]
+│   │       └── route.ts
+│   ├── remove
+│   │   └── [workspaceId]
+│   │       └── route.ts
+│   └── route.ts
+├── crawl
+│   └── grant-crawl
+│       └── route.ts
+├── crm
+│   ├── activity
+│   │   └── route.ts
+│   ├── contacts
+│   │   └── route.ts
+│   ├── deals
+│   │   └── route.ts
+│   ├── grant-activity
+│   │   └── route.ts
+│   ├── grant-leads
+│   │   └── route.ts
+│   ├── grant-notes
+│   │   └── route.ts
+│   ├── grant-opportunities
+│   │   └── route.ts
+│   ├── grant-pipeline
+│   │   └── route.ts
+│   ├── leads
+│   │   ├── create
+│   │   │   └── route.ts
+│   │   ├── route.ts
+│   │   └── update-status
+│   │       └── route.ts
+│   ├── notes
+│   │   └── route.ts
+│   ├── organizations
+│   │   └── route.ts
+│   └── pipeline
+│       └── route.ts
+├── cron
+│   └── upcoming-deadlines
+│       └── route.ts
+├── dashboard
+│   └── metrics
+│       └── route.ts
+├── dev
+│   ├── generate-key
+│   │   └── route.ts
+│   ├── playground
+│   │   └── route.ts
+│   └── validate-key
+│       └── route.ts
+├── developer
+│   ├── api-keys
+│   │   ├── create
+│   │   │   └── route.ts
+│   │   ├── list
+│   │   │   └── route.ts
+│   │   ├── revoke
+│   │   │   └── route.ts
+│   │   └── rotate
+│   │       └── route.ts
+│   ├── api-usage
+│   │   ├── list
+│   │   │   └── route.ts
+│   │   └── log
+│   │       └── route.ts
+│   └── summary
+│       └── route.ts
+├── docs
+│   ├── patch
+│   │   └── route.ts
+│   ├── snapshot
+│   │   └── route.ts
+│   └── stream
+│       └── route.ts
+├── documents
+│   ├── .DS_Store
+│   ├── [documentId]
+│   │   ├── messages
+│   │   │   └── route.ts
+│   │   ├── patch
+│   │   │   └── route.ts
+│   │   ├── presence
+│   │   │   └── route.ts
+│   │   └── version
+│   │       └── route.ts
+│   ├── comments
+│   │   ├── create
+│   │   │   └── route.ts
+│   │   └── list
+│   │       └── route.ts
+│   ├── create
+│   │   └── route.ts
+│   ├── events
+│   │   └── list
+│   │       └── route.ts
+│   ├── route.ts
+│   ├── tags
+│   │   ├── add
+│   │   │   └── route.ts
+│   │   └── remove
+│   │       └── route.ts
+│   ├── upload
+│   │   └── route.ts
+│   └── version
+│       ├── diff
+│       │   └── route.ts
+│       ├── get
+│       │   └── route.ts
+│       ├── history
+│       │   └── route.ts
+│       ├── meta
+│       │   └── route.ts
+│       ├── restore
+│       │   └── route.ts
+│       └── save
+│           └── route.ts
+├── embeddings
+│   ├── ingest
+│   │   └── route.ts
+│   └── route.ts
+├── export
+│   ├── docx
+│   │   └── route.ts
+│   └── pdf
+│       └── route.ts
+├── extract-grant
+│   └── route.ts
+├── feed
+│   └── grants
+│       └── route.ts
+├── files
+│   ├── get
+│   │   └── route.ts
+│   ├── route.ts
+│   └── upload
+│       └── route.ts
+├── firecrawl
+│   ├── crawl
+│   │   └── route.ts
+│   ├── extract
+│   │   └── route.ts
+│   ├── index
+│   │   └── route.ts
+│   ├── ingest
+│   │   └── route.ts
+│   ├── metadata
+│   │   └── route.ts
+│   ├── scrape
+│   │   └── route.ts
+│   └── search
+│       └── route.ts
+├── grant
+│   ├── [workspaceId]
+│   │   └── [grantId]
+│   │       └── route.ts
+│   ├── compare
+│   │   └── route.ts
+│   ├── delete
+│   │   └── route.ts
+│   ├── intelligence
+│   │   ├── eligibility
+│   │   │   └── route.ts
+│   │   ├── match
+│   │   │   └── route.ts
+│   │   ├── narrative
+│   │   │   └── route.ts
+│   │   ├── risk
+│   │   │   └── route.ts
+│   │   ├── route.ts
+│   │   └── score
+│   │       └── route.ts
+│   ├── save
+│   │   └── route.ts
+│   └── update
+│       └── route.ts
+├── grant-comparisons
+│   ├── .DS_Store
+│   ├── [grantId]
+│   │   └── route.ts
+│   └── route.ts
+├── grant-documents
+│   └── [grantId]
+│       ├── delete
+│       │   └── route.ts
+│       ├── route.ts
+│       └── upload
+│           └── route.ts
+├── grant-drafts
+│   └── [grantId]
+│       ├── route.ts
+│       ├── save
+│       │   └── route.ts
+│       └── update
+│           └── route.ts
+├── grant-history
+│   └── [grantId]
+│       └── route.ts
+├── grant-sections
+│   └── [grantId]
+│       └── route.ts
+├── grant-temp
+│   └── [grant-temp]
+│       ├── ai
+│       │   ├── history
+│       │   │   └── route.ts
+│       │   ├── route.ts
+│       │   └── run
+│       │       └── route.ts
+│       ├── application
+│       │   ├── [applicationId]
+│       │   │   ├── route.ts
+│       │   │   └── versions
+│       │   │       └── route.ts
+│       │   └── route.ts
+│       ├── documents
+│       │   ├── [docId]
+│       │   │   └── route.ts
+│       │   └── route.ts
+│       ├── history
+│       │   └── route.ts
+│       ├── narrative
+│       │   ├── [narrativeId]
+│       │   │   └── route.ts
+│       │   └── route.ts
+│       ├── route.ts
+│       └── sections
+│           └── [sectionId]
+│               └── route.ts
+├── grantcrawl
+│   └── route.ts
+├── grantradar
+│   └── unified
+│       └── route.ts
+├── grants
+│   ├── [grantId]
+│   │   ├── detail
+│   │   │   └── route.ts
+│   │   └── related
+│   │       └── route.ts
+│   ├── alerts
+│   │   └── route.ts
+│   ├── analyze
+│   │   └── route.ts
+│   ├── budget
+│   │   └── route.ts
+│   ├── create
+│   │   └── route.ts
+│   ├── delete
+│   │   └── route.ts
+│   ├── documents
+│   │   └── upload
+│   │       └── route.ts
+│   ├── export
+│   │   └── pdf
+│   │       └── route.ts
+│   ├── facets
+│   │   └── route.ts
+│   ├── federal
+│   │   └── ingest
+│   │       └── route.ts
+│   ├── foundations
+│   │   └── ingest
+│   │       └── route.ts
+│   ├── get
+│   │   └── route.ts
+│   ├── import
+│   │   ├── api
+│   │   │   └── route.ts
+│   │   └── csv
+│   │       └── route.ts
+│   ├── intelligence
+│   │   └── route.ts
+│   ├── lifecycle
+│   │   └── process
+│   │       └── route.ts
+│   ├── match
+│   │   └── route.ts
+│   ├── packet
+│   │   ├── pdf
+│   │   │   └── route.ts
+│   │   └── route.ts
+│   ├── recommend
+│   │   └── route.ts
+│   ├── recommendations
+│   │   └── route.ts
+│   ├── region
+│   │   └── route.ts
+│   ├── review
+│   │   └── route.ts
+│   ├── rewrite
+│   │   └── route.ts
+│   ├── route.ts
+│   ├── save
+│   │   └── route.ts
+│   ├── score
+│   │   └── route.ts
+│   ├── search
+│   │   └── route.ts
+│   ├── sections
+│   │   └── create
+│   │       └── route.ts
+│   ├── state
+│   │   └── ingest
+│   │       └── route.ts
+│   ├── status
+│   │   └── update
+│   │       └── route.ts
+│   ├── timeline
+│   │   └── route.ts
+│   ├── unsave
+│   │   └── route.ts
+│   ├── update
+│   │   └── route.ts
+│   └── write
+│       └── route.ts
+├── help-ai
+│   └── route.ts
+├── index
+│   └── route.ts
+├── ingest
+│   └── grant
+│       └── route.ts
+├── intelligence
+│   ├── eligibility
+│   │   └── route.ts
+│   ├── match-confidence
+│   │   └── route.ts
+│   ├── oportunity-insights
+│   │   └── route.ts
+│   ├── ranking
+│   │   └── route.ts
+│   ├── risk-flags
+│   │   └── route.ts
+│   ├── score
+│   │   └── route.ts
+│   └── strategic-recommendations
+│       └── route.ts
+├── internal
+│   ├── cleanup-orphans
+│   │   └── route.ts
+│   ├── reindex-document
+│   │   └── route.ts
+│   └── reindex-workspace
+│       └── route.ts
+├── jobs
+│   ├── .DS_Store
+│   ├── [jobId]
+│   │   ├── .DS_Store
+│   │   ├── cancel
+│   │   │   └── route.ts
+│   │   ├── delete
+│   │   │   └── route.ts
+│   │   ├── duplicate
+│   │   │   └── route.ts
+│   │   ├── logs
+│   │   │   └── route.ts
+│   │   ├── rerun
+│   │   │   └── route.ts
+│   │   ├── retry
+│   │   │   └── route.ts
+│   │   └── route.ts
+│   ├── create
+│   │   └── route.ts
+│   ├── process
+│   │   └── route.ts
+│   └── route.ts
+├── location
+│   └── intelligence
+│       └── route.ts
+├── match-grants
+│   ├── [documentId]
+│   │   └── route.ts
+│   └── route.ts
+├── messages
+│   ├── conversation
+│   │   └── route.ts
+│   └── send
+│       └── route.ts
+├── narrative
+│   └── [grantId]
+│       ├── route.ts
+│       ├── save
+│       │   └── route.ts
+│       └── update
+│           └── route.ts
+├── notifications
+│   ├── admin-broadcast
+│   │   └── route.ts
+│   ├── ai-extraction-complete
+│   │   └── route.ts
+│   ├── billing-failure
+│   │   └── route.ts
+│   ├── create
+│   │   └── route.ts
+│   ├── delete
+│   │   └── route.ts
+│   ├── email
+│   │   └── route.ts
+│   ├── list
+│   │   └── route.ts
+│   ├── read
+│   │   └── route.ts
+│   ├── stream
+│   │   └── route.ts
+│   ├── trial-expiration
+│   │   └── route.ts
+│   └── unread-count
+│       └── route.ts
+├── onboarding
+│   └── route.ts
+├── org
+│   ├── audit
+│   │   └── list
+│   │       └── route.ts
+│   ├── billing
+│   │   ├── consolidate
+│   │   │   └── route.ts
+│   │   └── route.ts
+│   ├── check-permission
+│   │   └── route.ts
+│   ├── custom-roles
+│   │   └── route.ts
+│   ├── invite
+│   │   └── route.ts
+│   ├── remove
+│   │   └── route.ts
+│   ├── share
+│   │   ├── check
+│   │   │   └── route.ts
+│   │   ├── create
+│   │   │   └── route.ts
+│   │   ├── grant
+│   │   │   └── route.ts
+│   │   ├── list
+│   │   │   └── route.ts
+│   │   └── revoke
+│   │       └── route.ts
+│   ├── strict
+│   │   └── check
+│   │       └── route.ts
+│   ├── update
+│   │   └── route.ts
+│   └── user
+│       └── route.ts
+├── packet
+│   ├── compliance
+│   │   └── route.ts
+│   ├── final
+│   │   └── route.ts
+│   ├── formatting
+│   │   └── route.ts
+│   ├── pdf
+│   │   └── route.ts
+│   └── required-documents
+│       └── route.ts
+├── public
+│   └── document
+│       ├── get
+│       │   └── route.ts
+│       ├── metadata
+│       │   └── route.ts
+│       └── search
+│           └── route.ts
+├── queue
+│   ├── add
+│   │   └── route.ts
+│   └── process
+│       └── route.ts
+├── rag
+│   └── answer
+│       └── route.ts
+├── realtime
+│   ├── chat
+│   │   └── send
+│   │       └── route.ts
+│   ├── comments
+│   │   └── add
+│   │       └── route.ts
+│   ├── cursor
+│   │   └── route.ts
+│   ├── edit
+│   │   ├── document
+│   │   │   └── route.ts
+│   │   ├── grant
+│   │   │   └── route.ts
+│   │   └── route.ts
+│   ├── events
+│   │   └── route.ts
+│   ├── presence
+│   │   └── route.ts
+│   └── socket
+│       └── route.ts
+├── recommendations
+│   └── route.ts
+├── region
+│   └── info
+│       └── route.ts
+├── reports
+│   ├── csv
+│   │   └── route.ts
+│   └── pdf
+│       └── route.ts
+├── saved
+│   └── route.ts
+├── saved-grant
+│   ├── [grantId]
+│   │   └── route.ts
+│   ├── delete
+│   │   └── route.ts
+│   └── route.ts
+├── saved-searches
+│   ├── [searchId]
+│   │   └── route.ts
+│   ├── delete
+│   │   └── route.ts
+│   ├── route.ts
+│   └── run
+│       └── route.ts
+├── score-grant
+│   ├── ingest
+│   │   └── route.ts
+│   └── route.ts
+├── scraper
+│   ├── extract
+│   │   └── route.ts
+│   ├── html
+│   │   └── route.ts
+│   ├── import
+│   │   └── route.ts
+│   ├── json
+│   │   └── route.ts
+│   ├── rss
+│   │   └── route.ts
+│   └── run-all
+│       └── route.ts
+├── search
+│   ├── [workspaceId]
+│   │   └── route.ts
+│   ├── embed-grant
+│   │   └── route.ts
+│   ├── route.ts
+│   ├── semantic
+│   │   └── route.ts
+│   └── track
+│       └── route.ts
+├── search-grants
+│   └── route.ts
+├── search-history
+│   └── route.ts
+├── sentry-example-api
+│   └── route.ts
+├── settings
+│   ├── account
+│   │   └── delete
+│   │       └── route.ts
+│   ├── preferences
+│   │   └── update
+│   │       └── route.ts
+│   ├── profile
+│   │   └── update
+│   │       └── route.ts
+│   └── security
+│       ├── 2fa
+│       │   └── setup
+│       │       └── route.ts
+│       └── change-password
+│           └── route.ts
+├── sso
+│   ├── oauth
+│   │   ├── callback
+│   │   │   └── route.ts
+│   │   └── login
+│   │       └── route.ts
+│   ├── provision
+│   │   └── route.ts
+│   └── saml
+│       ├── acs
+│       │   └── route.ts
+│       └── metadata
+│           └── route.ts
+├── state
+│   ├── insights
+│   │   └── route.ts
+│   ├── intelligence
+│   │   └── route.ts
+│   ├── ranking
+│   │   └── route.ts
+│   ├── search
+│   │   └── route.ts
+│   └── structure
+│       └── route.ts
+├── stripe
+│   ├── create-checkout-session
+│   │   └── route.ts
+│   ├── create-customer
+│   │   └── route.ts
+│   ├── create-portal-session
+│   │   └── route.ts
+│   ├── create-subscription
+│   │   └── route.ts
+│   ├── customer
+│   │   ├── delete
+│   │   │   └── route.ts
+│   │   ├── route.ts
+│   │   └── sync
+│   │       └── route.ts
+│   ├── invoice
+│   │   └── list
+│   │       └── route.ts
+│   ├── payment-intent
+│   │   └── create
+│   │       └── route.ts
+│   ├── payment-method
+│   │   └── sync
+│   │       └── route.ts
+│   ├── portal
+│   │   └── route.ts
+│   ├── prices
+│   │   └── route.ts
+│   ├── products
+│   │   └── route.ts
+│   ├── subscription
+│   │   ├── cancel
+│   │   │   └── route.ts
+│   │   ├── create
+│   │   │   └── route.ts
+│   │   ├── resume
+│   │   │   └── route.ts
+│   │   └── sync
+│   │       └── route.ts
+│   ├── usage
+│   │   └── route.ts
+│   └── webhook
+│       └── route.ts
+├── sync
+│   ├── all
+│   │   └── route.ts
+│   ├── application
+│   │   └── route.ts
+│   ├── audit
+│   │   └── route.ts
+│   ├── grants
+│   │   └── route.ts
+│   └── users
+│       └── route.ts
+├── system
+│   ├── diagnostics
+│   │   └── route.ts
+│   └── health
+│       └── route.ts
+├── team
+│   ├── add
+│   │   └── route.ts
+│   └── remove
+│       └── route.ts
+├── trial
+│   ├── lock
+│   │   └── route.ts
+│   ├── notify
+│   │   └── route.ts
+│   └── status
+│       └── route.ts
+├── unsave-grant
+│   └── [grantId]
+│       └── route.ts
+├── usage
+│   ├── ai
+│   │   └── track
+│   │       └── route.ts
+│   ├── members
+│   │   └── track
+│   │       └── route.ts
+│   ├── report
+│   │   └── route.ts
+│   ├── reset
+│   │   └── route.ts
+│   └── uploads
+│       └── track
+│           └── route.ts
+├── user
+│   └── limits
+│       └── route.ts
+├── vault
+│   ├── delete
+│   │   └── route.ts
+│   ├── extract
+│   │   └── route.ts
+│   ├── index
+│   │   └── route.ts
+│   ├── list
+│   │   └── route.ts
+│   ├── metadata
+│   │   └── route.ts
+│   ├── structured
+│   │   └── route.ts
+│   └── upload
+│       └── route.ts
+├── webhook
+│   └── route.ts
+├── webhooks
+│   ├── ai-events
+│   │   └── route.ts
+│   ├── clerk
+│   │   └── route.ts
+│   └── stripe
+│       └── route.ts
+├── workspace
+│   ├── [workspaceId]
+│   │   ├── admin
+│   │   │   └── route.ts
+│   │   ├── billing
+│   │   │   └── route.ts
+│   │   ├── chat
+│   │   │   └── route.ts
+│   │   ├── dashboard
+│   │   │   └── route.ts
+│   │   ├── events
+│   │   │   └── list
+│   │   │       └── route.ts
+│   │   ├── grants
+│   │   │   └── route.ts
+│   │   ├── invite
+│   │   │   └── route.ts
+│   │   ├── locations
+│   │   │   └── route.ts
+│   │   ├── members
+│   │   │   └── route.ts
+│   │   ├── notifications
+│   │   │   └── route.ts
+│   │   ├── portfolio
+│   │   │   └── route.ts
+│   │   ├── presence
+│   │   │   └── route.ts
+│   │   ├── route.ts
+│   │   ├── search
+│   │   │   └── route.ts
+│   │   └── upload
+│   │       └── route.ts
+│   ├── activity
+│   │   └── list
+│   │       └── route.ts
+│   ├── addUser
+│   │   └── route.ts
+│   ├── create
+│   │   └── route.ts
+│   ├── dashboard-ai
+│   │   └── route.ts
+│   ├── dashboard-summary
+│   │   └── route.ts
+│   ├── delete
+│   │   └── route.ts
+│   ├── invite
+│   │   └── route.ts
+│   ├── lock
+│   │   └── route.ts
+│   ├── members
+│   │   └── route.ts
+│   ├── notifications
+│   │   └── list
+│   │       └── route.ts
+│   ├── permissions
+│   │   └── route.ts
+│   ├── removeUser
+│   │   └── route.ts
+│   ├── role
+│   │   └── route.ts
+│   ├── settings
+│   │   ├── name
+│   │   │   └── route.ts
+│   │   └── route.ts
+│   ├── status-sync
+│   │   └── route.ts
+│   ├── sync
+│   │   └── route.ts
+│   ├── trial-status
+│   │   └── route.ts
+│   ├── update
+│   │   └── route.ts
+│   └── usage
+│       └── route.ts
+├── workspaces
+│   ├── .DS_Store
+│   ├── _id
+│   │   ├── .DS_Store
+│   │   ├── acl 
+│   │   │   ├── check
+│   │   │   │   └── routes
+│   │   │   ├── get
+│   │   │   │   └── route.ts
+│   │   │   ├── route.ts
+│   │   │   ├── self
+│   │   │   │   └── route.ts
+│   │   │   └── update
+│   │   │       └── route.ts
+│   │   ├── activity
+│   │   │   └── route.ts
+│   │   ├── addons
+│   │   │   ├── activate
+│   │   │   │   └── route.ts
+│   │   │   ├── deactivate
+│   │   │   │   └── route.ts
+│   │   │   └── status
+│   │   │       └── route.ts
+│   │   ├── admin
+│   │   │   ├── members
+│   │   │   │   └── route.ts
+│   │   │   ├── permissions
+│   │   │   │   └── route.ts
+│   │   │   └── route.ts
+│   │   ├── ai
+│   │   │   ├── actions
+│   │   │   │   └── route.ts
+│   │   │   ├── alignment
+│   │   │   │   └── route.ts
+│   │   │   ├── answer
+│   │   │   │   └── route.ts
+│   │   │   ├── autoeditor
+│   │   │   │   └── route.ts
+│   │   │   ├── automation
+│   │   │   │   └── route.ts
+│   │   │   ├── capabilities
+│   │   │   │   └── route.ts
+│   │   │   ├── chat
+│   │   │   │   └── route.ts
+│   │   │   ├── clustering
+│   │   │   │   └── route.ts
+│   │   │   ├── compliance
+│   │   │   │   └── route.ts
+│   │   │   ├── diagnostics
+│   │   │   │   └── route.ts
+│   │   │   ├── duplication
+│   │   │   │   └── route.ts
+│   │   │   ├── embeddings
+│   │   │   │   └── route.ts
+│   │   │   ├── forecast
+│   │   │   │   └── route.ts
+│   │   │   ├── gap-analysis
+│   │   │   │   └── route.ts
+│   │   │   ├── health
+│   │   │   │   └── route.ts
+│   │   │   ├── knowledge-graph
+│   │   │   │   └── route.ts
+│   │   │   ├── meta
+│   │   │   │   └── route.ts
+│   │   │   ├── multi-year-forecast
+│   │   │   │   └── route.ts
+│   │   │   ├── opportunity-insights
+│   │   │   │   └── route.ts
+│   │   │   ├── orchestrate
+│   │   │   │   └── route.ts
+│   │   │   ├── piplines
+│   │   │   │   └── route.ts
+│   │   │   ├── probability
+│   │   │   │   └── route.ts
+│   │   │   ├── rag
+│   │   │   │   └── route.ts
+│   │   │   ├── ranking
+│   │   │   │   └── route.ts
+│   │   │   ├── readiness
+│   │   │   │   └── route.ts
+│   │   │   ├── reviewer-sim
+│   │   │   │   └── route.ts
+│   │   │   ├── risk-adjusted-forcast
+│   │   │   │   └── route.ts
+│   │   │   ├── risk-flags
+│   │   │   │   └── route.ts
+│   │   │   ├── scenario-simulation
+│   │   │   │   └── route.ts
+│   │   │   ├── scoring
+│   │   │   │   └── route.ts
+│   │   │   ├── scoring-advanced
+│   │   │   │   └── route.ts
+│   │   │   ├── semantic-grouping
+│   │   │   │   └── route.ts
+│   │   │   ├── semantic-index
+│   │   │   │   └── route.ts
+│   │   │   ├── semantic-search
+│   │   │   │   └── route.ts
+│   │   │   ├── strategic-recommendations
+│   │   │   │   └── route.ts
+│   │   │   ├── summaries
+│   │   │   │   └── route.ts
+│   │   │   ├── topic-modeling
+│   │   │   │   └── route.ts
+│   │   │   ├── triggers
+│   │   │   │   └── route.ts
+│   │   │   └── workflows
+│   │   │       └── route.ts
+│   │   ├── analytics
+│   │   │   ├── activity-log
+│   │   │   │   └── route.ts
+│   │   │   ├── overview
+│   │   │   │   └── route.ts
+│   │   │   ├── route.ts
+│   │   │   └── search
+│   │   │       └── route.ts
+│   │   ├── billing
+│   │   │   ├── overview
+│   │   │   │   └── route.ts
+│   │   │   ├── route.ts
+│   │   │   ├── update-plan
+│   │   │   │   └── route.ts
+│   │   │   └── usage
+│   │   │       └── route.ts
+│   │   ├── chat
+│   │   │   └── route.ts
+│   │   ├── detail
+│   │   │   └── route.ts
+│   │   ├── documents
+│   │   │   ├── .DS_Store
+│   │   │   ├── [documentId]
+│   │   │   │   ├── .DS_Store
+│   │   │   │   ├── ai 
+│   │   │   │   │   ├── aiUtils.ts
+│   │   │   │   │   ├── alignment
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── analyze
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── answer
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── application-intelligence
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── autoeditor
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── batch
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── batch-sections
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── budget-intelligence
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── budget-risk
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── chat
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── checklist
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── clarity
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── classify
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── coherence
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── coherence-advanced
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── comments
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── compliance
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── constraints
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── cross-document
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── efficiency
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── embeddings
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── evidence
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── extract
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── funders
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── grant-intelligence
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── grant-link
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── improve
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── inline
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── innovation
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── monitoring-intelligence
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── multi-year-impact
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── narrative
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── presence
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── rag
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── readability
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── readiness
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── renewal-intelligence
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── review
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── reviewer-sim
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── rewrite
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── risk
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── risk-heatmap
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── risk-mitigation
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── scalability
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── scoring
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── semantic-search
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── snapshots
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── stakeholders
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── suggest
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── summarize
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── summarizer
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── sustainability
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── timeline
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── tone
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── version
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── viewer
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   └── workspace-search
+│   │   │   │   │       └── route.ts
+│   │   │   │   ├── comments
+│   │   │   │   │   ├── create
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── delete
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── list
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── route.ts
+│   │   │   │   │   └── update
+│   │   │   │   │       └── route.ts
+│   │   │   │   ├── file
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── get
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── messages
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── patch
+│   │   │   │   │   ├── apply
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── create
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── list
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── presence
+│   │   │   │   │   ├── chat
+│   │   │   │   │   │   ├── delete
+│   │   │   │   │   │   │   └── route.ts
+│   │   │   │   │   │   ├── list
+│   │   │   │   │   │   │   └── route.ts
+│   │   │   │   │   │   ├── route.ts
+│   │   │   │   │   │   ├── send
+│   │   │   │   │   │   │   └── route.ts
+│   │   │   │   │   │   └── thread
+│   │   │   │   │   │       └── route.ts
+│   │   │   │   │   ├── leave
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── list
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── route.ts
+│   │   │   │   │   └── update
+│   │   │   │   │       └── route.ts
+│   │   │   │   ├── route.ts
+│   │   │   │   ├── search
+│   │   │   │   │   └── index
+│   │   │   │   │       └── route.ts
+│   │   │   │   ├── share
+│   │   │   │   │   ├── add
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── create
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── list
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── remove
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── revoke
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── snapshots
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── update
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── version
+│   │   │   │   │   ├── [versionId]
+│   │   │   │   │   │   └── restore
+│   │   │   │   │   │       └── route.ts
+│   │   │   │   │   ├── create
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── diff
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── list
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── restore
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   └── route.ts
+│   │   │   │   └── viewer
+│   │   │   │       └── route.ts
+│   │   │   ├── activity
+│   │   │   │   └── route.ts
+│   │   │   ├── create
+│   │   │   │   └── route.ts
+│   │   │   ├── delete
+│   │   │   │   └── route.ts
+│   │   │   ├── documents
+│   │   │   │   └── upload
+│   │   │   │       └── route.ts
+│   │   │   ├── list
+│   │   │   │   └── route.ts
+│   │   │   ├── update
+│   │   │   │   └── route.ts
+│   │   │   └── upload
+│   │   │       └── route.ts
+│   │   ├── grants
+│   │   │   ├── [grantId]
+│   │   │   │   ├── acl
+│   │   │   │   │   └── self
+│   │   │   │   │       └── route.ts
+│   │   │   │   ├── ai
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── detail
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── editor
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── intelligence
+│   │   │   │   │   └── route.ts
+│   │   │   │   └── viewer
+│   │   │   │       └── route.ts
+│   │   │   ├── compare
+│   │   │   │   └── route.ts
+│   │   │   ├── list
+│   │   │   │   └── route.ts
+│   │   │   └── search
+│   │   │       └── route.ts
+│   │   ├── insights
+│   │   │   └── route.ts
+│   │   ├── invite
+│   │   │   └── route.ts
+│   │   ├── invites
+│   │   │   ├── _inviteId
+│   │   │   │   └── route.ts
+│   │   │   └── route.ts
+│   │   ├── members
+│   │   │   ├── [memberId]
+│   │   │   │   └── route.ts
+│   │   │   ├── _userId
+│   │   │   │   └── route.ts
+│   │   │   ├── add
+│   │   │   │   └── route.ts
+│   │   │   ├── list
+│   │   │   │   └── route.ts
+│   │   │   ├── remove
+│   │   │   │   └── route.ts
+│   │   │   └── route.ts
+│   │   ├── notifications
+│   │   │   ├── create
+│   │   │   │   └── route.ts
+│   │   │   ├── delete
+│   │   │   │   └── route.ts
+│   │   │   ├── list
+│   │   │   │   └── route.ts
+│   │   │   ├── mark-read
+│   │   │   │   └── route.ts
+│   │   │   ├── read
+│   │   │   │   └── route.ts
+│   │   │   ├── route.ts
+│   │   │   └── unread-count
+│   │   │       └── route.ts
+│   │   ├── route.ts
+│   │   ├── search
+│   │   │   ├── query
+│   │   │   │   └── route.ts
+│   │   │   └── route.ts
+│   │   ├── trial
+│   │   │   ├── lock
+│   │   │   │   └── route.ts
+│   │   │   ├── override
+│   │   │   │   └── route.ts
+│   │   │   ├── route.ts
+│   │   │   ├── status
+│   │   │   │   └── route.ts
+│   │   │   └── unlock
+│   │   │       └── route.ts
+│   │   ├── update
+│   │   │   └── route.ts
+│   │   ├── upload
+│   │   │   └── route.ts
+│   │   └── usage
+│   │       └── route.ts
+│   ├── _utils.ts
+│   ├── create
+│   │   └── route.ts
+│   ├── list
+│   │   └── route.ts
+│   ├── route.ts
+│   └── switch
+│       └── route.ts
+└── writer
+    ├── budget-justification
+    │   └── route.ts
+    ├── compliance
+    │   └── route.ts
+    ├── full-proposal
+    │   └── route.ts
+    ├── narrative
+    │   └── route.ts
+    ├── revision
+    │   └── route.ts
+    ├── section
+    │   └── route.ts
+    └── tone-style
+        └── route.ts
+
+1002 directories, 857 files

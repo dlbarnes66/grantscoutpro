@@ -2,7 +2,6 @@ generator client {
   provider = "prisma-client-js"
 }
 
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -83,7 +82,6 @@ model User {
 
   notifications          Notification[]
   workspaceNotifications WorkspaceNotification[]
-  workspaceReports       WorkspaceReport[]
 
   DocumentPatch    DocumentPatch[]
   Document         Document[]
@@ -107,15 +105,29 @@ model User {
 
   jobs Job[] @relation("UserJobs")
 
-  // REQUIRED opposite relation for Automation.user
-  automations Automation[]
-
   Org                   Org?                    @relation(fields: [orgId], references: [id])
   orgId                 String?
   ApiKey                ApiKey?
   Report                Report[]
   AuditLog              AuditLog[]
   PortfolioOptimization PortfolioOptimization[]
+
+  emailLogs  EmailLog[]
+  Automation Automation[]
+
+  documentActivities      WorkspaceDocumentActivity[]
+  billingActivities       WorkspaceBillingActivity[]
+  internalActivities      InternalActivity[]
+  documentShares          DocumentShare[]
+  aiEventLogs             AiEventLog[]
+  workspaceSuspensionLogs WorkspaceSuspensionLog[]
+  billingLogs             BillingLog[]                @relation("UserBillingLogs")
+
+  chatMessages     ChatMessage[]     @relation("UserChatMessages")
+  commentsRealtime Comment[]         @relation("UserComments")
+  cursors          Cursor[]          @relation("UserCursors")
+  presence         Presence[]        @relation("UserPresence")
+  WorkspaceReport  WorkspaceReport[]
 }
 
 model Account {
@@ -263,8 +275,7 @@ model Workspace {
   org   Org?    @relation(fields: [orgId], references: [id])
 
   activities WorkspaceActivity[] @relation("WorkspaceToActivity")
-
-  aiUsage AiUsage[] @relation("WorkspaceToAiUsage")
+  aiUsage    AiUsage[]           @relation("WorkspaceToAiUsage")
 
   grantTruthfulnessHistory GrantTruthfulnessHistory[]
   grantEvidenceHistory     GrantEvidenceHistory[]
@@ -276,14 +287,27 @@ model Workspace {
   grantReviewerHistory     GrantReviewerHistory[]
   grantDecisionHistory     GrantDecisionHistory[]
 
-  // REQUIRED opposite relation for Automation.workspace
-  automations Automation[]
+  emailLogs       EmailLog[]
+  RiskHistory     RiskHistory[]
+  Automation      Automation[]
+  AutomationRun   AutomationRun[]
+  WorkspaceDigest WorkspaceDigest[]
 
-  // REQUIRED opposite relation for AutomationRun.workspace
-  automationRuns AutomationRun[]
+  suspended   Boolean   @default(false)
+  suspendedAt DateTime?
 
-  // REQUIRED opposite relation for RiskHistory.workspace
-  riskHistory RiskHistory[]
+  workspaceDocumentActivities WorkspaceDocumentActivity[]
+  workspaceBillingActivities  WorkspaceBillingActivity[]
+  aiEventLogs                 AiEventLog[]
+  workspaceSuspensionLogs     WorkspaceSuspensionLog[]
+  workspaceLocations          WorkspaceLocation[]
+  billingLogs                 BillingLog[]                @relation("WorkspaceBillingLogs")
+
+  queueJobs        QueueJob[]    @relation("WorkspaceQueueJobs")
+  chatMessages     ChatMessage[] @relation("WorkspaceChatMessages")
+  commentsRealtime Comment[]     @relation("WorkspaceComments")
+  cursors          Cursor[]      @relation("WorkspaceCursors")
+  presence         Presence[]    @relation("WorkspacePresence")
 }
 
 model WorkspaceMember {
@@ -291,6 +315,7 @@ model WorkspaceMember {
   workspaceId String
   userId      String
   role        String   @default("member")
+  status      String   @default("active")
   createdAt   DateTime @default(now())
 
   workspace Workspace @relation("WorkspaceToMember", fields: [workspaceId], references: [id])
@@ -380,10 +405,15 @@ model WorkspaceDocument {
   workspaceId String
   title       String
   content     String?
+  sizeBytes   Int?
 
   workspace Workspace @relation("WorkspaceToDocument", fields: [workspaceId], references: [id])
 
   accessList DocumentAccess[]
+
+  documentActivities WorkspaceDocumentActivity[]
+  documentShares     DocumentShare[]
+  aiEventLogs        AiEventLog[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -424,6 +454,12 @@ model WorkspaceBilling {
   usageAI              Int       @default(0)
   periodStart          DateTime  @default(now())
   periodEnd            DateTime?
+
+  seats           Int @default(1)
+  aiTokensMonthly Int @default(50000)
+  aiTokensUsed    Int @default(0)
+  documentLimit   Int @default(100)
+  storageLimitMb  Int @default(500)
 
   workspace Workspace @relation("WorkspaceToBilling", fields: [workspaceId], references: [id])
 }
@@ -554,6 +590,7 @@ model DocumentEmbedding {
   content     String
 
   embedding Bytes
+  vector    Float[]
 
   createdAt DateTime @default(now())
 
@@ -611,7 +648,7 @@ enum GrantTierAccess {
 }
 
 model Grant {
-  id          String   @id @default(cuid())
+  id          String @id @default(cuid())
   workspaceId String
 
   title       String
@@ -668,7 +705,7 @@ model Grant {
   embedding Float[] @default([])
   raw       Json?
 
-  url String?   // ⭐ Added field
+  url String?
 
   workspace Workspace @relation("WorkspaceToGrant", fields: [workspaceId], references: [id])
 
@@ -808,7 +845,7 @@ model RiskHistory {
   id          String   @id @default(cuid())
   userId      String
   grantId     String
-  workspaceId String? // REQUIRED
+  workspaceId String?
   riskLevel   String?
   notes       String?
   createdAt   DateTime @default(now())
@@ -1097,6 +1134,7 @@ model DocumentPresence {
   documentId String
   userId     String
   lastSeen   DateTime @default(now())
+  status     String   @default("online")
 
   document Document @relation(fields: [documentId], references: [id])
   user     User     @relation(fields: [userId], references: [id])
@@ -1130,6 +1168,7 @@ model DocumentComment {
 model Org {
   id        String   @id @default(cuid())
   name      String
+  tier      String?  @default("free")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -1141,6 +1180,11 @@ model Org {
 
   sharedAccess SharedAccess[]
   Workspace    Workspace[]
+
+  emailProviderConfigs EmailProviderConfig[]
+  emailLogs            EmailLog[]
+
+  billingLogs BillingLog[] @relation("OrgBillingLogs")
 }
 
 model SharedResource {
@@ -1351,6 +1395,15 @@ model BillingLog {
   type      String
   message   String?
   createdAt DateTime @default(now())
+
+  userId String?
+  user   User?   @relation("UserBillingLogs", fields: [userId], references: [id])
+
+  orgId String?
+  org   Org?    @relation("OrgBillingLogs", fields: [orgId], references: [id])
+
+  workspaceId String?
+  workspace   Workspace? @relation("WorkspaceBillingLogs", fields: [workspaceId], references: [id])
 }
 
 model GrantPage {
@@ -1796,22 +1849,234 @@ model AutomationRun {
   workspace  Workspace  @relation(fields: [workspaceId], references: [id])
   automation Automation @relation(fields: [automationId], references: [id])
 }
+
 model WorkspaceDigest {
-  id        String   @id @default(cuid())
+  id          String   @id @default(cuid())
   workspaceId String
-  digest     String
-  createdAt  DateTime @default(now())
+  digest      String
+  createdAt   DateTime @default(now())
 
   workspace Workspace @relation(fields: [workspaceId], references: [id])
 }
-model MonitoringHistory {
-  id        String   @id @default(cuid())
-  userId    String
-  grantId   String
-  monitoring String?
-  notes      String?
-  createdAt DateTime @default(now())
 
-  user  User  @relation(fields: [userId], references: [id])
-  grant Grant @relation(fields: [grantId], references: [id])
+model EmailProviderConfig {
+  id            String   @id @default(cuid())
+  orgId         String?
+  type          String
+  provider      String
+  apiKey        String
+  sendingDomain String?
+  dkimConfig    Json?
+  spfConfig     Json?
+  dedicatedIp   String?
+  createdAt     DateTime @default(now())
+
+  org Org? @relation(fields: [orgId], references: [id])
 }
+
+model EmailLog {
+  id          String   @id @default(cuid())
+  provider    String
+  messageId   String?
+  category    String
+  to          String
+  workspaceId String?
+  orgId       String?
+  userId      String?
+  payload     Json?
+  errorCode   String?
+  createdAt   DateTime @default(now())
+
+  workspace Workspace? @relation(fields: [workspaceId], references: [id])
+  org       Org?       @relation(fields: [orgId], references: [id])
+  user      User?      @relation(fields: [userId], references: [id])
+}
+
+model WorkspaceLocation {
+  id          String @id @default(cuid())
+  workspaceId String
+
+  city    String?
+  state   String?
+  zip     String?
+  county  String?
+  country String?
+
+  timezone String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+
+  intelligence LocationIntelligence?
+
+  @@index([workspaceId])
+}
+
+model LocationIntelligence {
+  id                  String @id @default(cuid())
+  workspaceLocationId String @unique
+
+  population       Int?
+  medianIncome     Int?
+  povertyRate      Float?
+  unemploymentRate Float?
+
+  ruralUrbanCode      String?
+  opportunityZone     Boolean?
+  distressedCommunity Boolean?
+
+  lastUpdated DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workspaceLocation WorkspaceLocation @relation(fields: [workspaceLocationId], references: [id])
+
+  @@index([workspaceLocationId])
+}
+
+model WorkspaceDocumentActivity {
+  id          String   @id @default(cuid())
+  workspaceId String
+  documentId  String
+  userId      String?
+  type        String
+  description String?
+  createdAt   DateTime @default(now())
+
+  workspace Workspace         @relation(fields: [workspaceId], references: [id])
+  document  WorkspaceDocument @relation(fields: [documentId], references: [id])
+  user      User?             @relation(fields: [userId], references: [id])
+
+  @@index([workspaceId])
+  @@index([documentId])
+}
+
+model WorkspaceBillingActivity {
+  id          String   @id @default(cuid())
+  workspaceId String
+  userId      String?
+  action      String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  user      User?     @relation(fields: [userId], references: [id])
+}
+
+model InternalActivity {
+  id          String   @id @default(cuid())
+  adminId     String
+  type        String
+  description String?
+  createdAt   DateTime @default(now())
+
+  admin User @relation(fields: [adminId], references: [id])
+}
+
+model DocumentShare {
+  id         String   @id @default(cuid())
+  documentId String
+  userId     String
+  role       String   @default("viewer")
+  createdAt  DateTime @default(now())
+
+  document WorkspaceDocument @relation(fields: [documentId], references: [id])
+  user     User              @relation(fields: [userId], references: [id])
+
+  @@unique([documentId, userId])
+}
+
+model AiEventLog {
+  id          String   @id @default(cuid())
+  workspaceId String
+  documentId  String?
+  userId      String?
+  type        String
+  tokensUsed  Int      @default(0)
+  latencyMs   Int      @default(0)
+  error       String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  workspace Workspace          @relation(fields: [workspaceId], references: [id])
+  document  WorkspaceDocument? @relation(fields: [documentId], references: [id])
+  user      User?              @relation(fields: [userId], references: [id])
+
+  @@index([workspaceId])
+}
+
+model WorkspaceSuspensionLog {
+  id          String   @id @default(cuid())
+  workspaceId String
+  adminId     String?
+  reason      String?
+  createdAt   DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  admin     User?     @relation(fields: [adminId], references: [id])
+
+  @@index([workspaceId])
+}
+
+model QueueJob {
+  id          String   @id @default(cuid())
+  workspaceId String
+  jobType     String
+  payload     Json
+  status      String   @default("pending")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace @relation("WorkspaceQueueJobs", fields: [workspaceId], references: [id])
+}
+
+model ChatMessage {
+  id          String   @id @default(cuid())
+  workspaceId String
+  senderId    String
+  message     String
+  createdAt   DateTime @default(now())
+
+  workspace Workspace @relation("WorkspaceChatMessages", fields: [workspaceId], references: [id])
+  sender    User      @relation("UserChatMessages", fields: [senderId], references: [id])
+}
+
+model Comment {
+  id          String   @id @default(cuid())
+  workspaceId String
+  userId      String
+  message     String
+  createdAt   DateTime @default(now())
+
+  workspace Workspace @relation("WorkspaceComments", fields: [workspaceId], references: [id])
+  user      User      @relation("UserComments", fields: [userId], references: [id])
+}
+
+model Cursor {
+  id          String   @id @default(cuid())
+  workspaceId String
+  userId      String
+  x           Float
+  y           Float
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace @relation("WorkspaceCursors", fields: [workspaceId], references: [id])
+  user      User      @relation("UserCursors", fields: [userId], references: [id])
+}
+
+model Presence {
+  id          String   @id @default(cuid())
+  workspaceId String
+  userId      String
+  status      String
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace @relation("WorkspacePresence", fields: [workspaceId], references: [id])
+  user      User      @relation("UserPresence", fields: [userId], references: [id])
+}
+
+
+

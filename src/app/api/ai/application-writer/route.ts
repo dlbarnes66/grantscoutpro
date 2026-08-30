@@ -1,40 +1,43 @@
+import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
+import { callUnifiedModel } from "@/app/api/ai/autoeditor/_lib/unifiedModel";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: NextRequest, context: { params: Record<string, string> }) {
-  try {
-    const { params } = context;
-    const url = new URL(req.url);
-
-    return NextResponse.json({
-      success: true,
-      method: "GET",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
-    });
-  } catch (err: any) {
-    console.error("GET ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+export async function POST(req: NextRequest) {
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-}
 
-export async function POST(req: NextRequest, context: { params: Record<string, string> }) {
-  try {
-    const { params } = context;
-    const url = new URL(req.url);
-    const body = await req.json().catch(() => ({}));
+  const { prompt = "", grant = {}, org = {} } = await req.json().catch(() => ({}));
 
-    return NextResponse.json({
-      success: true,
-      method: "POST",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
-      body,
-    });
-  } catch (err: any) {
-    console.error("POST ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  if (!prompt) {
+    return NextResponse.json(
+      { error: "Missing 'prompt' field" },
+      { status: 400 }
+    );
   }
-}
 
+  const modelPrompt = `
+You are an application-writing engine. Use the following information:
+
+Grant:
+${JSON.stringify(grant, null, 2)}
+
+Organization:
+${JSON.stringify(org, null, 2)}
+
+Task:
+${prompt}
+
+Return a polished, competitive grant application section.
+`;
+
+  const result = await callUnifiedModel(modelPrompt);
+
+  return NextResponse.json({
+    success: true,
+    application: result,
+  });
+}

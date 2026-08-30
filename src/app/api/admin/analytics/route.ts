@@ -1,40 +1,34 @@
-import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: NextRequest, context: { params: Record<string, string> }) {
+export async function GET() {
+  const { userId, sessionClaims } = await auth();
+  if (!userId || !sessionClaims?.superAdmin) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   try {
-    const { params } = context;
-    const url = new URL(req.url);
+    const users = await prisma.user.count();
+    const workspaces = await prisma.workspace.count();
+    const grants = await prisma.grant.count();
+    const applications = await prisma.application.count();
+    const documents = await prisma.document.count();
 
     return NextResponse.json({
       success: true,
-      method: "GET",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
+      analytics: {
+        users,
+        workspaces,
+        grants,
+        applications,
+        documents,
+      },
     });
   } catch (err: any) {
-    console.error("GET ERROR:", err);
+    console.error("ADMIN ANALYTICS ERROR:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
-
-export async function POST(req: NextRequest, context: { params: Record<string, string> }) {
-  try {
-    const { params } = context;
-    const url = new URL(req.url);
-    const body = await req.json().catch(() => ({}));
-
-    return NextResponse.json({
-      success: true,
-      method: "POST",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
-      body,
-    });
-  } catch (err: any) {
-    console.error("POST ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
-  }
-}
-

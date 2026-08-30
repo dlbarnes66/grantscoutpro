@@ -1,40 +1,66 @@
+import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
-export async function GET(req: NextRequest, context: { params: Record<string, string> }) {
+export async function GET(req: NextRequest) {
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
-    const { params } = context;
     const url = new URL(req.url);
+    const grantId = url.searchParams.get("grantId");
 
-    return NextResponse.json({
-      success: true,
-      method: "GET",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
+    if (!grantId) {
+      return NextResponse.json(
+        { error: "Missing grantId" },
+        { status: 400 }
+      );
+    }
+
+    const timeline = await prisma.agentHistory.findMany({
+      where: { grantId, userId },
     });
+
+    return NextResponse.json({ success: true, timeline });
   } catch (err: any) {
-    console.error("GET ERROR:", err);
+    console.error("GRANTS TIMELINE GET ERROR:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
 
-export async function POST(req: NextRequest, context: { params: Record<string, string> }) {
-  try {
-    const { params } = context;
-    const url = new URL(req.url);
-    const body = await req.json().catch(() => ({}));
+export async function POST(req: NextRequest) {
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
-    return NextResponse.json({
-      success: true,
-      method: "POST",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
-      body,
+  try {
+    const { grantId, action, note } = await req.json().catch(() => ({}));
+
+    if (!grantId || !action) {
+      return NextResponse.json(
+        { error: "Missing grantId or action" },
+        { status: 400 }
+      );
+    }
+
+    const entry = await prisma.agentHistory.create({
+      data: {
+        grantId,
+        userId,
+        action,
+        note: note || null,
+      },
     });
+
+    return NextResponse.json({ success: true, entry });
   } catch (err: any) {
-    console.error("POST ERROR:", err);
+    console.error("GRANTS TIMELINE POST ERROR:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
-

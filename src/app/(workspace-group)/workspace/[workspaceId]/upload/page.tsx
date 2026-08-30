@@ -1,17 +1,21 @@
 "use client";
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
 
 import WorkspaceShell from "@/components/workspace/WorkspaceShell";
 import Card from "@/components/ui/Card";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 
-export default function WorkspaceUploadPage() {
+export default function WorkspaceUploadPage({
+  params,
+}: {
+  params: { workspaceId: string };
+}) {
+  const { workspaceId } = params;
+
   return (
-    <WorkspaceShell title="Upload Documents">
+    <WorkspaceShell title="Upload Documents" workspaceId={workspaceId}>
       <Breadcrumbs
         items={[
-          { label: "Dashboard", href: "/dashboard" },
+          { label: "Dashboard", href: `/workspace/${workspaceId}` },
           { label: "Upload" },
         ]}
       />

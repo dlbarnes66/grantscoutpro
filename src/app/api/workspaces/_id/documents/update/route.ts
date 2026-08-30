@@ -7,7 +7,7 @@ export async function POST(
   { params }: { params: { _id: string } }
 ) {
   try {
-    const user = await requireUser(req);
+    const user = await requireUser();
     const workspaceId = params._id;
 
     if (!workspaceId) {

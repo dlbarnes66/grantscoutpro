@@ -1,23 +1,23 @@
-import { prisma } from "@/lib/prisma";
+// src/lib/billing/sendBillingNotification.ts
 
-/**
- * Send a billing-related notification to a workspace.
- * This is used for:
- * - past_due warnings
- * - renewal reminders
- * - seat limit warnings
- * - add-on changes
- * - workspace lock/unlock events
- */
+import { prisma } from "@/lib/db";
+
 export async function sendBillingNotification(
   workspaceId: string,
+  type: string,
   message: string
 ) {
-  await prisma.workspaceNotification.create({
-    data: {
-      workspaceId,
-      type: "billing",
-      message,
-    },
-  });
+  try {
+    await prisma.billingLog.create({
+      data: {
+        type,
+        message,
+        workspace: {
+          connect: { id: workspaceId },
+        },
+      },
+    });
+  } catch (err) {
+    console.error("sendBillingNotification error:", err);
+  }
 }

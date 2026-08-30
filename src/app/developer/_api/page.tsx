@@ -8,11 +8,7 @@ import APIRateLimits from "@/components/developer/APIRateLimits";
 import APILogViewer from "@/components/developer/APILogViewer";
 
 export default function DeveloperAPIPage() {
-  const [logs, setLogs] = useState<any[]>([]);
-
-  function addLog(entry: any) {
-    setLogs((prev) => [entry, ...prev]);
-  }
+  const [logs] = useState<any[]>([]);
 
   return (
     <div className="space-y-8">
@@ -22,7 +18,7 @@ export default function DeveloperAPIPage() {
 
       <APIKeyViewer />
 
-      <APIPlayground onLog={addLog} />
+      <APIPlayground />
 
       <APIRateLimits />
 

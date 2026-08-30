@@ -1,37 +1,42 @@
+import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import slugify from "slugify";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
-export async function GET(req: NextRequest, { params }: { params: Record<string, string> }) {
+export async function POST(req: NextRequest) {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   try {
-    const url = new URL(req.url);
+    const body = await req.json().catch(() => null);
+    if (!body || !body.name) {
+      return NextResponse.json({ error: "Missing workspace name" }, { status: 400 });
+    }
 
-    return NextResponse.json({
-      success: true,
-      method: "GET",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
+    const slug = slugify(body.name, { lower: true, strict: true });
+
+    const workspace = await prisma.workspace.create({
+      data: {
+        name: body.name,
+        slug,
+        ownerId: userId,
+      },
     });
-  } catch (err: any) {
-    console.error("GET ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
-  }
-}
 
-export async function POST(req: NextRequest, { params }: { params: Record<string, string> }) {
-  try {
-    const url = new URL(req.url);
-    const body = await req.json().catch(() => ({}));
-
-    return NextResponse.json({
-      success: true,
-      method: "POST",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
-      body,
+    await prisma.workspaceMember.create({
+      data: {
+        workspaceId: workspace.id,
+        userId,
+        role: "owner",
+      },
     });
+
+    return NextResponse.json({ success: true, workspace });
   } catch (err: any) {
-    console.error("POST ERROR:", err);
+    console.error("WORKSPACE CREATE ERROR:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

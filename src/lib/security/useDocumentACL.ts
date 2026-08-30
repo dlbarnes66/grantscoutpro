@@ -12,18 +12,28 @@ export function useDocumentACL(workspaceId: string, documentId: string) {
 
   useEffect(() => {
     async function loadACL() {
-      const res = await fetch(
-        `/api/workspaces/${workspaceId}/documents/${documentId}/acl/self`
-      );
+      try {
+        const res = await fetch(
+          `/api/workspaces/${workspaceId}/documents/${documentId}/acl/self`
+        );
 
-      const data = await res.json();
+        const data = await res.json();
 
-      setACL({
-        canView: data.canView,
-        canEdit: data.canEdit,
-        canRunDocumentAI: data.canRunDocumentAI,
-        loading: false,
-      });
+        setACL({
+          canView: data.canView ?? false,
+          canEdit: data.canEdit ?? false,
+          canRunDocumentAI: data.canRunDocumentAI ?? false,
+          loading: false,
+        });
+      } catch (err) {
+        console.error("Document ACL error:", err);
+        setACL({
+          canView: false,
+          canEdit: false,
+          canRunDocumentAI: false,
+          loading: false,
+        });
+      }
     }
 
     loadACL();

@@ -1,2 +1,98 @@
 import { auth } from "@clerk/nextjs/server";
-export { auth };
+import { prisma } from "@/lib/prisma";
+
+/**
+ * Require an authenticated Clerk user.
+ * Returns the User record from your database.
+ */
+export async function requireUser() {
+  const { userId } = await auth();
+
+  if (!userId) {
+    throw new Error("Unauthorized: No Clerk user found.");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    throw new Error("User not found in database.");
+  }
+
+  return user;
+}
+
+/**
+ * Require that the authenticated user is a member of the workspace.
+ * Enforces active membership (status = "active").
+ */
+export async function requireWorkspaceMember(workspaceId: string) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    throw new Error("Unauthorized: No Clerk user found.");
+  }
+
+  const member = await prisma.workspaceMember.findFirst({
+    where: {
+      workspaceId,
+      userId,
+      status: "active",
+    },
+  });
+
+  if (!member) {
+    throw new Error("You do not have access to this workspace.");
+  }
+
+  return member;
+}
+
+/**
+ * Require that the authenticated user is the owner of the workspace.
+ */
+export async function requireWorkspaceOwner(workspaceId: string) {
+  const user = await requireUser();
+
+  const workspace = await prisma.workspace.findUnique({
+    where: { id: workspaceId },
+    select: { ownerId: true },
+  });
+
+  if (!workspace) {
+    throw new Error("Workspace not found.");
+  }
+
+  if (workspace.ownerId !== user.id) {
+    throw new Error("Only the workspace owner can perform this action.");
+  }
+
+  return workspace;
+}
+
+/**
+ * Require that the authenticated user has a seat in the workspace.
+ * This is used for seat enforcement in your middleware.
+ */
+export async function requireActiveSeat(workspaceId: string) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    throw new Error("Unauthorized: No Clerk user found.");
+  }
+
+  const seat = await prisma.workspaceMember.findFirst({
+    where: {
+      workspaceId,
+      userId,
+      status: "active",
+    },
+  });
+
+  if (!seat) {
+    throw new Error("You do not have an active seat in this workspace.");
+  }
+
+  return seat;
+}

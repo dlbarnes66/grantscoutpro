@@ -1,9 +1,23 @@
 "use client";
 
-import useSWR from "swr";
+import React, { useEffect, useState } from "react";
 
 export function TrialBanner({ workspaceId }: { workspaceId: string }) {
-  const { data } = useSWR(`/api/workspace/${workspaceId}/trial/status`);
+  const [data, setData] = useState<any>(null);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await fetch(`/api/workspace/${workspaceId}/trial/status`);
+        if (res.ok) {
+          setData(await res.json());
+        }
+      } catch {
+        setData(null);
+      }
+    }
+    load();
+  }, [workspaceId]);
 
   if (!data || !data.trialActive) return null;
 
@@ -15,7 +29,7 @@ export function TrialBanner({ workspaceId }: { workspaceId: string }) {
   );
 
   return (
-    <div className="bg-yellow-100 border-b border-yellow-300 p-3 text-center text-sm">
+    <div className="bg-yellow-100 border-b border-yellow-300 p-3 text-center text-sm text-black">
       <strong>Trial Active</strong> — {daysLeft} days remaining
     </div>
   );

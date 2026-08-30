@@ -2,39 +2,31 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: NextRequest, context: { params: Record<string, string> }) {
-  try {
-    const { params } = context;
-    const url = new URL(req.url);
+type IndexedDoc = {
+  id: string;
+  url: string;
+  title: string;
+  textSnippet: string;
+  createdAt: string;
+};
 
-    return NextResponse.json({
-      success: true,
-      method: "GET",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
-    });
-  } catch (err: any) {
-    console.error("GET ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+const indexStore: IndexedDoc[] = [];
+
+export async function POST(req: NextRequest) {
+  const body = await req.json().catch(() => ({}));
+  const query: string = body.query ?? "";
+
+  if (!query) {
+    return NextResponse.json({ error: "query is required" }, { status: 400 });
   }
+
+  const q = query.toLowerCase();
+
+  const results = indexStore.filter(
+    (doc) =>
+      doc.title.toLowerCase().includes(q) ||
+      doc.textSnippet.toLowerCase().includes(q)
+  );
+
+  return NextResponse.json({ query, results });
 }
-
-export async function POST(req: NextRequest, context: { params: Record<string, string> }) {
-  try {
-    const { params } = context;
-    const url = new URL(req.url);
-    const body = await req.json().catch(() => ({}));
-
-    return NextResponse.json({
-      success: true,
-      method: "POST",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
-      body,
-    });
-  } catch (err: any) {
-    console.error("POST ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
-  }
-}
-

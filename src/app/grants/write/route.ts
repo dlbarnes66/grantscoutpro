@@ -1,22 +1,22 @@
+import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth/nextauth";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-export async function POST(req: NextRequest, context: { params: Record<string, string> }) {
-  const { params } = context;
+export async function POST(req: NextRequest) {
+  // In your project, auth() is typed as async (Promise<SessionAuthWithRedirect>)
+  const { userId } = await auth();
+
+  if (!userId) {
+    return NextResponse.json(
+      { error: "Unauthorized: No user session" },
+      { status: 401 }
+    );
+  }
+
   try {
-    const session = await auth();
-    const userId = session?.user?.id;
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: "Unauthorized: No user session" },
-        { status: 401 }
-      );
-    }
-
     const { grantId, content } = await req.json();
 
     if (!grantId || !content) {
@@ -39,10 +39,12 @@ export async function POST(req: NextRequest, context: { params: Record<string, s
     }
 
     // STEP 1: Find the comparison containing this grantId
+    // In your generated types, `grants` is a Json field, so we use `equals`
     const comparison = await prisma.grantComparison.findFirst({
       where: {
-        // JSON array contains grantId
-        grants: grantId,
+        grants: {
+          equals: grantId,
+        },
       },
     });
 

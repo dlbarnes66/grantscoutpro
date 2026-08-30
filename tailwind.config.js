@@ -1,20 +1,20 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    "./app/**/*.{js,ts,jsx,tsx}",
-    "./components/**/*.{js,ts,jsx,tsx}",
-    "./lib/**/*.{js,ts,jsx,tsx}",
+    "./src/app/**/*.{js,ts,jsx,tsx}",
+    "./src/app/(marketing)/**/*.{js,ts,jsx,tsx}",
+    "./src/components/**/*.{js,ts,jsx,tsx}",
+    "./src/lib/**/*.{js,ts,jsx,tsx}",
+
+    // Ensure Tailwind sees your CSS entrypoint
+    "./src/app/globals.css",
   ],
   theme: {
     extend: {
       colors: {
-        brand: {
-          blue: "#2563eb",
-          purple: "#7c3aed",
-          green: "#16a34a",
-          yellow: "#eab308",
-          red: "#dc2626",
-        },
+        brandBlue: "#1E3A8A",
+        brandGold: "#FBBF24",
+        brandLight: "#EFF6FF",
       },
       borderRadius: {
         DEFAULT: "12px",

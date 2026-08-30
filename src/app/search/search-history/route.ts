@@ -3,11 +3,9 @@ import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 
 // ===============================
-// GET /api/search-history
-// Returns the user's search history
+// GET /search-history
 // ===============================
-export async function GET(req: NextRequest, context: { params: Record<string, string> }) {
-  const { params } = context;
+export async function GET(req: NextRequest) {
   const { userId } = await auth();
 
   if (!userId) {
@@ -23,11 +21,9 @@ export async function GET(req: NextRequest, context: { params: Record<string, st
 }
 
 // ===============================
-// POST /api/search-history
-// Saves a new search query
+// POST /search-history
 // ===============================
-export async function POST(req: NextRequest, context: { params: Record<string, string> }) {
-  const { params } = context;
+export async function POST(req: NextRequest) {
   const { userId } = await auth();
 
   if (!userId) {

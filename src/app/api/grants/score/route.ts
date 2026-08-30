@@ -1,40 +1,80 @@
+import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
-export async function GET(req: NextRequest, context: { params: Record<string, string> }) {
+function computeReadinessScore(grant: any, profile: any) {
+  let score = 0;
+
+  if (grant.geography?.includes(profile.geography)) score += 25;
+
+  if (grant.focusAreas && profile.focusAreas) {
+    const overlap = grant.focusAreas.filter((fa: string) =>
+      profile.focusAreas.includes(fa)
+    );
+    score += overlap.length * 10;
+  }
+
+  if (grant.projectTypes && profile.projectTypes) {
+    const overlap = grant.projectTypes.filter((pt: string) =>
+      profile.projectTypes.includes(pt)
+    );
+    score += overlap.length * 10;
+  }
+
+  if (profile.readinessLevel) {
+    score += profile.readinessLevel * 5;
+  }
+
+  return Math.min(score, 100);
+}
+
+export async function POST(req: NextRequest) {
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
-    const { params } = context;
-    const url = new URL(req.url);
+    const { grantId } = await req.json().catch(() => ({}));
+    if (!grantId) {
+      return NextResponse.json(
+        { error: "Missing grantId" },
+        { status: 400 }
+      );
+    }
+
+    const grant = await prisma.grant.findUnique({ where: { id: grantId } });
+    if (!grant) {
+      return NextResponse.json(
+        { error: "Grant not found" },
+        { status: 404 }
+      );
+    }
+
+    const profile = await prisma.userProfile.findUnique({
+      where: { userId },
+    });
+    if (!profile) {
+      return NextResponse.json(
+        { error: "User profile not found" },
+        { status: 400 }
+      );
+    }
+
+    const score = computeReadinessScore(grant, profile);
 
     return NextResponse.json({
       success: true,
-      method: "GET",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
+      score,
     });
   } catch (err: any) {
-    console.error("GET ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error("GRANTS SCORE ERROR:", err);
+    return NextResponse.json(
+      { error: err.message || "Internal server error" },
+      { status: 500 }
+    );
   }
 }
-
-export async function POST(req: NextRequest, context: { params: Record<string, string> }) {
-  try {
-    const { params } = context;
-    const url = new URL(req.url);
-    const body = await req.json().catch(() => ({}));
-
-    return NextResponse.json({
-      success: true,
-      method: "POST",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
-      body,
-    });
-  } catch (err: any) {
-    console.error("POST ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
-  }
-}
-

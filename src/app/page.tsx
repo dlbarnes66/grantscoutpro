@@ -1,9 +1,7 @@
-import HeroSection from "@/components/hero/HeroSection";
+"use client";
 
-export default function HomePage() {
-  return (
-    <>
-      <HeroSection />
-    </>
-  );
+import MarketingHomePage from "./(marketing)/page";
+
+export default function Home() {
+  return <MarketingHomePage />;
 }

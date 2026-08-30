@@ -1,41 +1,28 @@
 "use client";
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
 
 import { useState } from "react";
-import WebhookList from "@/components/webhooks/WebhookList";
-import WebhookCreate from "@/components/webhooks/WebhookCreate";
-import WebhookTester from "@/components/webhooks/WebhookTester";
-import WebhookLogs from "@/components/webhooks/WebhookLogs";
-import WebhookSecret from "@/components/webhooks/WebhookSecret";
 
-export default function WebhooksPage() {
-  const [webhooks, setWebhooks] = useState<any[]>([]);
-  const [logs, setLogs] = useState<any[]>([]);
+import APIKeyViewer from "@/components/developer/APIKeyViewer";
+import APIPlayground from "@/components/developer/APIPlayground";
+import APIRateLimits from "@/components/developer/APIRateLimits";
+import APILogViewer from "@/components/developer/APILogViewer";
 
-  function addWebhook(w: any) {
-    setWebhooks((prev) => [...prev, w]);
-  }
-
-  function addLog(entry: any) {
-    setLogs((prev) => [entry, ...prev]);
-  }
+export default function DeveloperAPIPage() {
+  const [logs] = useState<any[]>([]);
 
   return (
     <div className="space-y-8">
       <h1 className="text-xl font-semibold text-slate-100">
-        Webhooks Manager
+        Developer API Console
       </h1>
 
-      <WebhookSecret />
+      <APIKeyViewer />
 
-      <WebhookCreate onCreate={addWebhook} />
+      <APIPlayground />
 
-      <WebhookList webhooks={webhooks} />
+      <APIRateLimits />
 
-      <WebhookTester webhooks={webhooks} onLog={addLog} />
-
-      <WebhookLogs logs={logs} />
+      <APILogViewer logs={logs} />
     </div>
   );
 }

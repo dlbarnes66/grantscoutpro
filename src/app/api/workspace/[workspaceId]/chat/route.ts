@@ -1,45 +1,15 @@
+import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
-
-export async function GET(
-  req: NextRequest,
-  context: { params: Promise<Record<string,string>> }
-) {
-  try {
-    const params = await context.params;
-
-    const workspaceId = params.workspaceId;
-
-    return NextResponse.json({
-      success: true,
-      method: "GET",
-      workspaceId
-    });
-  } catch (err: any) {
-    console.error("GET CHAT ERROR:", err);
-    return NextResponse.json({ error: err?.message }, { status: 500 });
-  }
-}
-
-export async function POST(
-  req: NextRequest,
-  context: { params: Promise<Record<string,string>> }
-) {
-  try {
-    const params = await context.params;
-    const body = await req.json().catch(() => ({}));
-
-    const workspaceId = params.workspaceId || body.workspaceId;
-
-    return NextResponse.json({
-      success: true,
-      method: "POST",
-      workspaceId,
-      body
-    });
-  } catch (err: any) {
-    console.error("POST CHAT ERROR:", err);
-    return NextResponse.json({ error: err?.message }, { status: 500 });
-  }
+export async function POST(req: NextRequest, context: { params: { workspaceId: string } }) {
+  const { userId, sessionClaims } = await await auth();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const body = await req.json().catch(() => ({}));
+  return NextResponse.json({
+    success: true,
+    workspaceId: context.params.workspaceId,
+    action: "chat",
+    body,
+  });
 }

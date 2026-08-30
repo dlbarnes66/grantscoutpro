@@ -1,40 +1,23 @@
-import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
+// src/app/api/grant-temp/[grant-temp]/route.ts
 
-export const dynamic = "force-dynamic";
-
-export async function GET(req: NextRequest, { params }: any) {
+import { NextResponse } from "next/server";
+export async function POST(req: Request) {
+  const { userId, sessionClaims } = await await auth();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
-    const { params } = context;
-    const url = new URL(req.url);
-
-    return NextResponse.json({
-      success: true,
-      method: "GET",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
-    });
-  } catch (err: any) {
-    console.error("GET ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const { prompt } = await req.json();
+    if (!prompt) {
+      return NextResponse.json({ error: "prompt required" }, { status: 400 });
+    }
+    // Placeholder AI response (replace with your model later)
+    const result = {
+      prompt,
+      output: `AI processed: ${prompt}`,
+    };
+    return NextResponse.json(result);
+  } catch (err) {
+    console.error("AI route error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
-
-export async function POST(req: NextRequest, { params }: any) {
-  try {
-    const { params } = context;
-    const url = new URL(req.url);
-    const body = await req.json().catch(() => ({}));
-
-    return NextResponse.json({
-      success: true,
-      method: "POST",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
-      body,
-    });
-  } catch (err: any) {
-    console.error("POST ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
-  }
-}
-

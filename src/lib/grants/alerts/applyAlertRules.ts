@@ -1,6 +1,6 @@
 // lib/grants/alerts/applyAlertRules.ts
 
-import { Grant } from "@prisma/client";
+import type { Grant } from "@prisma/client";
 
 type Alert = {
   type:
@@ -16,7 +16,7 @@ export function applyAlertRules(grant: Grant) {
   const alerts: Alert[] = [];
   const now = new Date();
 
-  // ⭐ Rule 1: New grant posted in last 48 hours
+  // Rule 1: New grant posted in last 48 hours
   if (grant.postedDate) {
     const diff = now.getTime() - new Date(grant.postedDate).getTime();
     if (diff < 48 * 60 * 60 * 1000) {
@@ -27,7 +27,7 @@ export function applyAlertRules(grant: Grant) {
     }
   }
 
-  // ⭐ Rule 2: Deadline approaching (7 days)
+  // Rule 2: Deadline approaching (7 days)
   if (grant.deadline) {
     const diff = new Date(grant.deadline).getTime() - now.getTime();
     if (diff < 7 * 24 * 60 * 60 * 1000 && diff > 0) {
@@ -38,7 +38,7 @@ export function applyAlertRules(grant: Grant) {
     }
   }
 
-  // ⭐ Rule 3: High AI alignment score
+  // Rule 3: High AI alignment score
   if (grant.aiAlignmentScore && grant.aiAlignmentScore >= 80) {
     alerts.push({
       type: "HIGH_ALIGNMENT",
@@ -46,7 +46,7 @@ export function applyAlertRules(grant: Grant) {
     });
   }
 
-  // ⭐ Rule 4: High readiness score
+  // Rule 4: High readiness score
   if (grant.aiReadinessScore && grant.aiReadinessScore >= 75) {
     alerts.push({
       type: "HIGH_READINESS",
@@ -54,7 +54,7 @@ export function applyAlertRules(grant: Grant) {
     });
   }
 
-  // ⭐ Rule 5: Foundation updates
+  // Rule 5: Foundation updates
   if (grant.foundationMission || grant.foundationGivingAreas) {
     alerts.push({
       type: "FOUNDATION_UPDATE",

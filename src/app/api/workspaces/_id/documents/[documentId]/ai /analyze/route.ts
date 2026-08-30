@@ -11,8 +11,9 @@ export async function POST(
   const { workspaceId, documentId } = params;
 
   const { userId } = await auth();
-  if (!userId)
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const { text = "", mode = "full" } = await req.json().catch(() => ({}));
 

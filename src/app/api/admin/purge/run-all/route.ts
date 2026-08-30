@@ -1,40 +1,55 @@
-import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: NextRequest, context: { params: Record<string, string> }) {
+export async function POST() {
+  const { userId, sessionClaims } = await auth();
+  if (!userId || !sessionClaims?.superAdmin) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   try {
-    const { params } = context;
-    const url = new URL(req.url);
+    // ---------------------------------------------
+    // 1. PURGE ARCHIVED GRANTS (valid field)
+    // ---------------------------------------------
+    const deletedGrants = await prisma.grant.deleteMany({
+      where: { status: "archived" },
+    });
+
+    // ---------------------------------------------
+    // 2. PURGE OLD AUDIT LOGS (no archived flag exists)
+    // ---------------------------------------------
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const deletedAuditLogs = await prisma.auditLog.deleteMany({
+      where: {
+        createdAt: { lt: thirtyDaysAgo },
+      },
+    });
+
+    // ---------------------------------------------
+    // 3. PURGE APPLICATIONS WITH NO CONTENT (no status field exists)
+    // ---------------------------------------------
+    const deletedApplications = await prisma.application.deleteMany({
+      where: {
+        content: null,
+      },
+    });
 
     return NextResponse.json({
       success: true,
-      method: "GET",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
+      deleted: {
+        grants: deletedGrants.count,
+        auditLogs: deletedAuditLogs.count,
+        applications: deletedApplications.count,
+      },
     });
+
   } catch (err: any) {
-    console.error("GET ERROR:", err);
+    console.error("PURGE ERROR:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
-
-export async function POST(req: NextRequest, context: { params: Record<string, string> }) {
-  try {
-    const { params } = context;
-    const url = new URL(req.url);
-    const body = await req.json().catch(() => ({}));
-
-    return NextResponse.json({
-      success: true,
-      method: "POST",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
-      body,
-    });
-  } catch (err: any) {
-    console.error("POST ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
-  }
-}
-

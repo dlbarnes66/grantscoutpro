@@ -1,36 +1,26 @@
-import { prisma } from "@/lib/prisma";
-import { auth } from "next-auth";
+import { auth } from "@clerk/nextjs/server";
+import { prisma } from "@/lib/db";
 
-export async function requireWorkspaceRole(
-  workspaceId: string,
-  requiredRoles: string | string[]
-) {
-  const session = await auth();
+export async function checkWorkspacePermission(workspaceId: string) {
+  const { userId } = await auth(); // ✔ FIXED
 
-  if (!session?.user?.id) {
-    throw new Error("Unauthorized");
+  if (!userId) {
+    return { allowed: false, role: null };
   }
 
-  const membership = await prisma.workspaceMember.findUnique({
-    where: {
-      workspaceId_userId: {
-        workspaceId,
-        userId: session.user.id
-      }
-    }
+  // Workspace membership
+  const membership = await prisma.workspaceMember.findFirst({
+    where: { userId, workspaceId },
   });
 
-  if (!membership) {
-    throw new Error("User is not a member of this workspace");
+  if (membership) {
+    return {
+      allowed: true,
+      role: membership.role,
+    };
   }
 
-  const roles = Array.isArray(requiredRoles)
-    ? requiredRoles
-    : [requiredRoles];
+  // ❌ Removed orgAdmin logic — orgMember does NOT exist in your schema
 
-  if (!roles.includes(membership.role)) {
-    throw new Error("Insufficient permissions");
-  }
-
-  return membership;
+  return { allowed: false, role: null };
 }

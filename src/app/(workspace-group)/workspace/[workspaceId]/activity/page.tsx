@@ -1,25 +1,25 @@
 "use client";
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
 
 import WorkspaceShell from "@/components/workspace/WorkspaceShell";
-import Card from "@/components/ui/Card";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
+import Card from "@/components/ui/Card";
 
-export default function WorkspaceActivityPage() {
+export default function WorkspaceActivityPage({ params }) {
+  const workspaceId = params.workspaceId;
+
   return (
-    <WorkspaceShell title="Workspace Activity">
+    <WorkspaceShell title="Workspace Activity" workspaceId={workspaceId}>
       <Breadcrumbs
         items={[
           { label: "Dashboard", href: "/dashboard" },
-          { label: "Workspace", href: "../" },
+          { label: "Workspace", href: `/workspace/${workspaceId}` },
           { label: "Activity" },
         ]}
       />
 
       <Card>
         <p className="text-slate-300">
-          Activity logs and workspace events will appear here.
+          Recent workspace activity will appear here.
         </p>
       </Card>
     </WorkspaceShell>

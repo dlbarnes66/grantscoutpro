@@ -1,0 +1,53 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/auth";
+
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { _id: string; documentId: string } }
+) {
+  try {
+    const user = await requireUser(req);
+    const workspaceId = params._id;
+    const documentId = params.documentId;
+
+    const body = await req.json().catch(() => ({}));
+    const permission = body.permission;
+
+    if (!workspaceId || !documentId || !permission) {
+      return NextResponse.json(
+        { error: "workspaceId, documentId, and permission are required." },
+        { status: 400 }
+      );
+    }
+
+    const acl = await prisma.documentACL.findFirst({
+      where: { documentId, userId: user.id },
+      select: {
+        canRead: true,
+        canWrite: true,
+        canComment: true,
+        canShare: true,
+        canManage: true
+      }
+    });
+
+    const perms = acl || {
+      canRead: true,
+      canWrite: false,
+      canComment: false,
+      canShare: false,
+      canManage: false
+    };
+
+    const allowed = perms[permission] === true;
+
+    return NextResponse.json({ allowed }, { status: 200 });
+  } catch (error) {
+    console.error("ACL CHECK error:", error);
+    return NextResponse.json(
+      { error: "Failed to check ACL." },
+      { status: 500 }
+    );
+  }
+}

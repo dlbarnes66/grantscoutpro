@@ -1,60 +1,71 @@
 "use client";
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
-
-
-
 
 import { useState } from "react";
-import { LineItemEditor } from "@/components/budget/LineItemEditor";
-import { BudgetTotals } from "@/components/budget/BudgetTotals";
+
+import BudgetShell from "@/components/budget/BudgetShell";
+import BudgetItemList from "@/components/budget/BudgetItemList";
+import BudgetNotesEditor from "@/components/budget/BudgetNotesEditor";
 import { AIBudgetGenerator } from "@/components/budget/AIBudgetGenerator";
-import { BudgetJustification } from "@/components/budget/BudgetJustification";
 import { BudgetOptimizer } from "@/components/budget/BudgetOptimizer";
 
-export default function BudgetBuilderPage({ params }: { params: { id: string } }) {
-  const [items, setItems] = useState([
-    { id: "1", category: "Personnel", description: "Program Coordinator", amount: 45000 },
-    { id: "2", category: "Supplies", description: "Workshop materials", amount: 5000 }
-  ]);
+export interface BudgetItem {
+  id: string;
+  name: string;
+  amount: number;
+}
 
-  function updateItem(id: string, field: string, value: any) {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, [field]: value } : item
-      )
-    );
+interface BudgetPageProps {
+  params: {
+    budgetId: string;
+  };
+}
+
+export default function BudgetPage({
+  params,
+}: BudgetPageProps) {
+  const { budgetId } = params;
+
+  const [items, setItems] = useState<BudgetItem[]>([]);
+  const [notes, setNotes] = useState("");
+
+  function handleItemsChange(updated: any[]) {
+    setItems(updated as BudgetItem[]);
   }
 
-  function addItem() {
-    setItems((prev) => [
-      ...prev,
-      { id: crypto.randomUUID(), category: "", description: "", amount: 0 }
-    ]);
+  function handleNotesChange(value: string) {
+    setNotes(value);
   }
 
-  function removeItem(id: string) {
-    setItems((prev) => prev.filter((item) => item.id !== id));
+  function handleGenerate(generatedItems: any[]) {
+    setItems(generatedItems as BudgetItem[]);
+  }
+
+  function handleOptimize(optimizedItems: any[]) {
+    setItems(optimizedItems as BudgetItem[]);
   }
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-      <div className="xl:col-span-3 space-y-6">
-        <LineItemEditor
+    <BudgetShell budgetId={budgetId}>
+      <div className="space-y-6">
+        <BudgetItemList
           items={items}
-          onUpdate={updateItem}
-          onAdd={addItem}
-          onRemove={removeItem}
+          onChangeAction={handleItemsChange}
         />
 
-        <BudgetJustification items={items} />
-      </div>
+        <BudgetNotesEditor
+          text={notes}
+          onChangeAction={handleNotesChange}
+        />
 
-      <div className="xl:col-span-1 space-y-6">
-        <BudgetTotals items={items} />
-        <AIBudgetGenerator onGenerate={(generated) => setItems(generated)} />
-        <BudgetOptimizer items={items} onOptimize={(optimized) => setItems(optimized)} />
+        <AIBudgetGenerator
+          onGenerateAction={handleGenerate}
+        />
+
+        <BudgetOptimizer
+          items={items}
+          onOptimizeAction={handleOptimize}
+        />
       </div>
-    </div>
+    </BudgetShell>
   );
 }

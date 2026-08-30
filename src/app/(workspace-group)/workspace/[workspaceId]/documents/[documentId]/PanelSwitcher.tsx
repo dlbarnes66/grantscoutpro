@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import GrantRiskAssessmentPanel from "./GrantRiskAssessmentPanel";
 import GrantBudgetRiskPanel from "./GrantBudgetRiskPanel";

@@ -1,98 +1,61 @@
 "use client";
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
 
-import { useEffect, useState } from "react";
-import { AuditFilters } from "@/components/audit/AuditFilters";
-import { AuditTable } from "@/components/audit/AuditTable";
-import { AuditDetailDrawer } from "@/components/audit/AuditDetailDrawer";
+import { useState } from "react";
+import AdminShell from "@/components/admin/AdminShell";
+import AuditFilterControls from "@/components/admin/AuditFilterControls";
+import AuditLogList from "@/components/admin/AuditLogList";
+import AuditLogDetails from "@/components/admin/AuditLogDetails";
 
-// Define the filter type here so TS stops complaining
-export type AuditFilter = "all" | "info" | "warning" | "system";
+export interface AuditFilter {
+  userId?: string;
+  action?: string;
+  fromDate?: string;
+  toDate?: string;
+}
 
-export default function AuditLogPage() {
-  const [logs, setLogs] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+export interface AuditLog {
+  id: string;
+  userId: string;
+  action: string;
+  timestamp: string;
+  details?: string;
+}
 
-  // Typed correctly now
-  const [filter, setFilter] = useState<AuditFilter>("all");
+export default function AdminAuditPage() {
+  const [filter, setFilter] = useState<AuditFilter>({});
+  const [logs, setLogs] = useState<AuditLog[]>([]);
+  const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
 
-  const [selected, setSelected] = useState<any | null>(null);
+  function handleFilterChange(next: AuditFilter) {
+    setFilter(next);
+    // TODO: fetch logs with new filter
+  }
 
-  useEffect(() => {
-    async function load() {
-      setLoading(true);
+  function handleSelectLog(log: AuditLog) {
+    setSelectedLog(log);
+  }
 
-      await new Promise((r) => setTimeout(r, 600));
-
-      setLogs([
-        {
-          id: "1",
-          actor: "Darryl Barnes",
-          action: "Updated narrative section",
-          resource: "Narrative: Project Overview",
-          timestamp: "2026-06-30 11:45",
-          severity: "info",
-          ip: "172.16.22.14",
-          metadata: { section: "overview", changes: 12 }
-        },
-        {
-          id: "2",
-          actor: "Alex Johnson",
-          action: "Modified budget line item",
-          resource: "Budget: Personnel",
-          timestamp: "2026-06-30 11:20",
-          severity: "warning",
-          ip: "172.16.22.88",
-          metadata: { field: "amount", old: 45000, new: 47000 }
-        },
-        {
-          id: "3",
-          actor: "System",
-          action: "AI risk analysis generated",
-          resource: "Risk Dashboard",
-          timestamp: "2026-06-30 10:55",
-          severity: "system",
-          ip: "127.0.0.1",
-          metadata: { score: 72 }
-        }
-      ]);
-
-      setLoading(false);
-    }
-
-    load();
-  }, []);
-
-  if (loading)
-    return <div className="text-slate-400">Loading audit logs...</div>;
-
-  const filtered =
-    filter === "all" ? logs : logs.filter((l) => l.severity === filter);
+  function handleCloseDetails() {
+    setSelectedLog(null);
+  }
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-xl font-semibold text-slate-100">
-        Audit Log
-      </h1>
+    <AdminShell title="Audit Logs">
+      <div className="space-y-6">
+        <AuditFilterControls
+          filter={filter}
+          onChangeAction={handleFilterChange}
+        />
 
-      {/* Filters */}
-      <AuditFilters filter={filter} onChange={setFilter} />
+        <AuditLogList logs={logs} onSelectAction={handleSelectLog} />
 
-      {/* Export Button */}
-      <div className="flex justify-end">
-        <button className="rounded-md bg-slate-800 hover:bg-slate-700 transition px-3 py-2 text-sm font-medium">
-          Export Logs
-        </button>
+        {selectedLog && (
+          <AuditLogDetails
+            log={selectedLog}
+            onCloseAction={handleCloseDetails}
+          />
+        )}
       </div>
-
-      {/* Table */}
-      <AuditTable logs={filtered} onSelect={setSelected} />
-
-      {/* Drawer */}
-      {selected && (
-        <AuditDetailDrawer log={selected} onClose={() => setSelected(null)} />
-      )}
-    </div>
+    </AdminShell>
   );
 }

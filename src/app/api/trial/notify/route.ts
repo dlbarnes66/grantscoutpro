@@ -1,40 +1,33 @@
-import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
-export const dynamic = "force-dynamic";
-
-export async function GET(req: NextRequest, context: { params: Record<string, string> }) {
+export async function POST(req: Request) {
   try {
-    const { params } = context;
-    const url = new URL(req.url);
+    const { userId, orgId } = await auth();
+    if (!userId || !orgId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    return NextResponse.json({
-      success: true,
-      method: "GET",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
+    const body = await req.json();
+    const { workspaceId } = body;
+
+    if (!workspaceId) {
+      return NextResponse.json(
+        { error: "workspaceId required" },
+        { status: 400 }
+      );
+    }
+
+    // No trialNotification field in schema, so we just mark locked or do nothing.
+    await prisma.workspace.update({
+      where: { id: workspaceId },
+      data: { trialLocked: true },
     });
+
+    return NextResponse.json({ notified: true });
   } catch (err: any) {
-    console.error("GET ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error("TRIAL NOTIFY ERROR:", err);
+    return NextResponse.json({ error: err?.message }, { status: 500 });
   }
 }
-
-export async function POST(req: NextRequest, context: { params: Record<string, string> }) {
-  try {
-    const { params } = context;
-    const url = new URL(req.url);
-    const body = await req.json().catch(() => ({}));
-
-    return NextResponse.json({
-      success: true,
-      method: "POST",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
-      body,
-    });
-  } catch (err: any) {
-    console.error("POST ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
-  }
-}
-

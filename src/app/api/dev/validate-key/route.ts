@@ -1,40 +1,43 @@
+import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: NextRequest, context: { params: Record<string, string> }) {
-  try {
-    const { params } = context;
-    const url = new URL(req.url);
+export async function GET(req: NextRequest) {
+  const { userId } = await auth();
+  if (!userId)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  try {
     return NextResponse.json({
       success: true,
       method: "GET",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
+      message: "Validation endpoint ready",
     });
   } catch (err: any) {
-    console.error("GET ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error("GET VALIDATE KEY ERROR:", err);
+    return NextResponse.json({ error: err?.message }, { status: 500 });
   }
 }
 
-export async function POST(req: NextRequest, context: { params: Record<string, string> }) {
+export async function POST(req: NextRequest) {
+  const { userId } = await auth();
+  if (!userId)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   try {
-    const { params } = context;
-    const url = new URL(req.url);
     const body = await req.json().catch(() => ({}));
+
+    const valid = typeof body.key === "string" && body.key.length > 0;
 
     return NextResponse.json({
       success: true,
       method: "POST",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
+      valid,
       body,
     });
   } catch (err: any) {
-    console.error("POST ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error("POST VALIDATE KEY ERROR:", err);
+    return NextResponse.json({ error: err?.message }, { status: 500 });
   }
 }
-

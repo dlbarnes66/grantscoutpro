@@ -1,18 +1,17 @@
-import Sidebar from "@/components/Sidebar";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import DashboardShell from "@/components/dashboard/DashboardShell";
 
-export default function DashboardLayout({
+export default async function DashboardGroupLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="flex min-h-screen bg-gray-50">
-      <Sidebar />
+  const { userId } = await auth();
 
-      {/* Main content */}
-      <main className="flex-1 overflow-y-auto">
-        {children}
-      </main>
-    </div>
-  );
+  if (!userId) {
+    redirect("/sign-in");
+  }
+
+  return <DashboardShell>{children}</DashboardShell>;
 }

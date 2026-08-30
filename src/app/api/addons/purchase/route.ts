@@ -1,37 +1,36 @@
+import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: NextRequest, { params }: { params: Record<string, string> }) {
-  try {
-    const url = new URL(req.url);
+export async function POST(req: NextRequest) {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    return NextResponse.json({
-      success: true,
-      method: "GET",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
-    });
-  } catch (err: any) {
-    console.error("GET ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  const { workspaceId, addonId, amount, period } = await req.json();
+
+  if (!workspaceId || !addonId || !amount || !period) {
+    return NextResponse.json(
+      { error: "workspaceId, addonId, amount, and period are required" },
+      { status: 400 }
+    );
   }
-}
 
-export async function POST(req: NextRequest, { params }: { params: Record<string, string> }) {
   try {
-    const url = new URL(req.url);
-    const body = await req.json().catch(() => ({}));
-
-    return NextResponse.json({
-      success: true,
-      method: "POST",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
-      body,
+    const billing = await prisma.addonBilling.create({
+      data: {
+        workspaceId,
+        addonId,
+        amount,
+        period,
+        status: "active",
+      },
     });
+
+    return NextResponse.json({ success: true, billing });
   } catch (err: any) {
-    console.error("POST ERROR:", err);
+    console.error("ADDON PURCHASE ERROR:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

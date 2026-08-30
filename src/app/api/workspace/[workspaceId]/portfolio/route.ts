@@ -1,32 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
-
-export async function GET(req: NextRequest, context: { params: Promise<Record<string,string>> }) {
-  try {
-    const params = await context.params;
-    const url = new URL(req.url);
-
-    const workspaceId = params.workspaceId || url.searchParams.get("workspaceId");
-
-    return NextResponse.json({ success: true, method: "GET", workspaceId });
-  } catch (err: any) {
-    console.error("GET PORTFOLIO ERROR:", err);
-    return NextResponse.json({ error: err?.message }, { status: 500 });
-  }
-}
-
-export async function POST(req: NextRequest, context: { params: Promise<Record<string,string>> }) {
-  try {
-    const params = await context.params;
-    const body = await req.json().catch(() => ({}));
-    const url = new URL(req.url);
-
-    const workspaceId = params.workspaceId || body.workspaceId || url.searchParams.get("workspaceId");
-
-    return NextResponse.json({ success: true, method: "POST", workspaceId, body });
-  } catch (err: any) {
-    console.error("POST PORTFOLIO ERROR:", err);
-    return NextResponse.json({ error: err?.message }, { status: 500 });
-  }
+export async function GET(context: { params: { workspaceId: string } }) {
+  const { userId, sessionClaims } = await await auth();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  return NextResponse.json({
+    success: true,
+    workspaceId: context.params.workspaceId,
+    action: "portfolio",
+  });
 }

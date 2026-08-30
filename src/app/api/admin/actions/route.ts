@@ -1,102 +1,83 @@
+import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { prisma } from "@/lib/db";
 
-export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
 export async function POST(req: NextRequest) {
+  const { userId, sessionClaims } = await auth();
+  if (!userId || !sessionClaims?.superAdmin) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   try {
-    const { action, workspaceId, userId } = await req.json();
+    const { action, workspaceId } = await req.json();
 
     if (!action) {
-      return NextResponse.json(
-        { error: "action is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "action is required" }, { status: 400 });
     }
 
-    // reset trial
+    // -------------------------------------
+    // RESET TRIAL
+    // -------------------------------------
     if (action === "reset-trial") {
       if (!workspaceId) {
-        return NextResponse.json(
-          { error: "workspaceId is required for reset-trial" },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: "workspaceId is required" }, { status: 400 });
       }
 
-      const { data, error } = await supabase
-        .from("workspaces")
-        .update({
-          plan: "trial",
-          status: "active",
-          trial_reset_at: new Date().toISOString(),
-        })
-        .eq("id", workspaceId)
-        .select()
-        .single();
+      const updated = await prisma.workspace.update({
+        where: { id: workspaceId },
+        data: {
+          trialStart: new Date(),
+          trialEnd: null,
+          trialActive: true,
+          trialLocked: false,
+          trialDaysRemaining: 14,
+        },
+      });
 
-      if (error) {
-        console.error("Admin reset-trial error:", error);
-        return NextResponse.json(
-          { error: "Failed to reset trial" },
-          { status: 500 }
-        );
+      return NextResponse.json({ success: true, workspace: updated });
+    }
+
+    // -------------------------------------
+    // RESET WORKSPACE LIMITS
+    // -------------------------------------
+    if (action === "reset-workspace-limits") {
+      if (!workspaceId) {
+        return NextResponse.json({ error: "workspaceId is required" }, { status: 400 });
       }
+
+      // Reset seat limits
+      const workspace = await prisma.workspace.update({
+        where: { id: workspaceId },
+        data: {
+          maxSeats: 1,
+          currentSeats: 1,
+        },
+      });
+
+      // Reset usage limits
+      const billing = await prisma.workspaceBilling.update({
+        where: { workspaceId },
+        data: {
+          usageSearches: 0,
+          usageUploads: 0,
+          usageMembers: 1,
+          usageAI: 0,
+        },
+      });
 
       return NextResponse.json({
         success: true,
-        workspace: data,
+        workspace,
+        billing,
       });
     }
 
-    // reset user limits
-    if (action === "reset-user-limits") {
-      if (!userId) {
-        return NextResponse.json(
-          { error: "userId is required for reset-user-limits" },
-          { status: 400 }
-        );
-      }
+    return NextResponse.json({ error: "Unknown action" }, { status: 400 });
 
-      const { data, error } = await supabase
-        .from("user_limits")
-        .update({
-          max_workspaces: 1,
-          max_members_per_workspace: 3,
-          max_grants: 25,
-        })
-        .eq("user_id", userId)
-        .select()
-        .single();
-
-      if (error) {
-        console.error("Admin reset-user-limits error:", error);
-        return NextResponse.json(
-          { error: "Failed to reset user limits" },
-          { status: 500 }
-        );
-      }
-
-      return NextResponse.json({
-        success: true,
-        limits: data,
-      });
-    }
-
-    return NextResponse.json(
-      { error: "Unknown action" },
-      { status: 400 }
-    );
   } catch (err: any) {
-    console.error("Admin actions route error:", err);
-    return NextResponse.json(
-      { error: err.message || "Unexpected error" },
-      { status: 500 }
-    );
+    console.error("ADMIN ACTION ERROR:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

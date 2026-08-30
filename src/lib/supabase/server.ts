@@ -1,25 +1,33 @@
-// lib/supabase/server.ts
+// src/lib/supabase/server.ts
 
 import { createServerClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 
-export function createSupabaseServerClient() {
+export function createSupabaseServer() {
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        async get(name: string) {
-          const cookieStore = await cookies();
-          return cookieStore.get(name)?.value;
+        get: async (name: string) => {
+          const store = await cookies();
+          const cookie = store.get(name);
+          return cookie?.value;
         },
-        async set(name: string, value: string, options: any) {
-          const cookieStore = await cookies();
-          cookieStore.set(name, value, options);
+        set: async (name: string, value: string, options?: any) => {
+          const store = await cookies();
+          store.set({
+            name,
+            value,
+            ...options,
+          });
         },
-        async remove(name: string, options: any) {
-          const cookieStore = await cookies();
-          cookieStore.set(name, "", { ...options, maxAge: 0 });
+        remove: async (name: string, options?: any) => {
+          const store = await cookies();
+          store.delete({
+            name,
+            ...options,
+          });
         },
       },
     }

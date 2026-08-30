@@ -1,40 +1,38 @@
-import { NextRequest, NextResponse } from "next/server";
+// /app/api/realtime/cursor/update/route.ts
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
-export const dynamic = "force-dynamic";
-
-export async function GET(req: NextRequest, context: { params: Record<string, string> }) {
+export async function POST(req: Request) {
   try {
-    const { params } = context;
-    const url = new URL(req.url);
+    const { workspaceId, userId, x, y } = await req.json();
 
-    return NextResponse.json({
-      success: true,
-      method: "GET",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
+    if (!workspaceId || !userId || x === undefined || y === undefined) {
+      return NextResponse.json(
+        { error: "workspaceId, userId, x, and y are required" },
+        { status: 400 }
+      );
+    }
+
+    const cursor = await prisma.cursor.upsert({
+      where: { id: `${workspaceId}-${userId}` },
+      update: { x, y },
+      create: {
+        id: `${workspaceId}-${userId}`,
+        workspaceId,
+        userId,
+        x,
+        y,
+      },
+      include: {
+        user: { select: { id: true, name: true, image: true } },
+      },
     });
-  } catch (err: any) {
-    console.error("GET ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+
+    console.log("Broadcast cursor:", cursor);
+
+    return NextResponse.json({ success: true, cursor });
+  } catch (error) {
+    console.error("Cursor Update Error:", error);
+    return NextResponse.json({ error: "Failed to update cursor" }, { status: 500 });
   }
 }
-
-export async function POST(req: NextRequest, context: { params: Record<string, string> }) {
-  try {
-    const { params } = context;
-    const url = new URL(req.url);
-    const body = await req.json().catch(() => ({}));
-
-    return NextResponse.json({
-      success: true,
-      method: "POST",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
-      body,
-    });
-  } catch (err: any) {
-    console.error("POST ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
-  }
-}
-

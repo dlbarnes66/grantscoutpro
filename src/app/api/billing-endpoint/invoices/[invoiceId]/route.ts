@@ -1,45 +1,40 @@
-import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import Stripe from "stripe";
 
-export const dynamic = "force-dynamic";
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 export async function GET(
-  req: NextRequest,
-  context: { params: Promise<Record<string, string>> }
+  req: Request,
+  { params }: { params: { invoiceId: string } }
 ) {
   try {
-    const params = await context.params;
-    const url = new URL(req.url);
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const invoiceId = params.invoiceId;
+
+    const invoice = await stripe.invoices.retrieve(invoiceId);
 
     return NextResponse.json({
-      success: true,
-      method: "GET",
-      invoiceId: params.invoiceId,
-      query: Object.fromEntries(url.searchParams.entries())
+      id: invoice.id,
+      amount: invoice.amount_due,
+      status: invoice.status,
+      date: invoice.created,
+      url: invoice.hosted_invoice_url,
+      pdf: invoice.invoice_pdf,
+      lines: invoice.lines.data.map((line) => ({
+        id: line.id,
+        description: line.description,
+        amount: line.amount,
+        quantity: line.quantity,
+        priceId: (line as any).price?.id,   // ⭐ FIXED
+      })),
     });
-  } catch (err: any) {
-    console.error("GET INVOICE ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
-  }
-}
-
-export async function POST(
-  req: NextRequest,
-  context: { params: Promise<Record<string, string>> }
-) {
-  try {
-    const params = await context.params;
-    const url = new URL(req.url);
-    const body = await req.json().catch(() => ({}));
-
-    return NextResponse.json({
-      success: true,
-      method: "POST",
-      invoiceId: params.invoiceId,
-      query: Object.fromEntries(url.searchParams.entries()),
-      body
-    });
-  } catch (err: any) {
-    console.error("POST INVOICE ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err) {
+    console.error("INVOICE DETAIL ERROR:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

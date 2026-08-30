@@ -1,40 +1,36 @@
-import { NextRequest, NextResponse } from "next/server";
+// /app/api/realtime/comments/add/route.ts
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
-export const dynamic = "force-dynamic";
-
-export async function GET(req: NextRequest, context: { params: Record<string, string> }) {
+export async function POST(req: Request) {
   try {
-    const { params } = context;
-    const url = new URL(req.url);
+    const { workspaceId, userId, message } = await req.json();
 
-    return NextResponse.json({
-      success: true,
-      method: "GET",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
+    if (!workspaceId || !userId || !message) {
+      return NextResponse.json(
+        { error: "workspaceId, userId, and message are required" },
+        { status: 400 }
+      );
+    }
+
+    const comment = await prisma.comment.create({
+      data: {
+        workspaceId,
+        userId,
+        message,
+      },
+      include: {
+        user: {
+          select: { id: true, name: true, image: true },
+        },
+      },
     });
-  } catch (err: any) {
-    console.error("GET ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+
+    console.log("Broadcast comment:", comment);
+
+    return NextResponse.json({ success: true, comment });
+  } catch (error) {
+    console.error("Comment Add Error:", error);
+    return NextResponse.json({ error: "Failed to add comment" }, { status: 500 });
   }
 }
-
-export async function POST(req: NextRequest, context: { params: Record<string, string> }) {
-  try {
-    const { params } = context;
-    const url = new URL(req.url);
-    const body = await req.json().catch(() => ({}));
-
-    return NextResponse.json({
-      success: true,
-      method: "POST",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
-      body,
-    });
-  } catch (err: any) {
-    console.error("POST ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
-  }
-}
-

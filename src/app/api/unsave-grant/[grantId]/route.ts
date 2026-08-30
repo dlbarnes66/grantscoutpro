@@ -1,37 +1,29 @@
-import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
-export const dynamic = "force-dynamic";
-
-export async function GET(req: NextRequest, { params }: { params: { grantId: string } }) {
+export async function POST(
+  req: Request,
+  { params }: { params: { grantId: string } }
+) {
   try {
-    const url = new URL(req.url);
+    const { userId, orgId } = await auth();
+    if (!userId || !orgId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    return NextResponse.json({
-      success: true,
-      method: "GET",
-      grantId: params.grantId,
-      query: Object.fromEntries(url.searchParams.entries()),
+    const grantId = params.grantId;
+
+    await prisma.savedGrant.deleteMany({
+      where: {
+        grantId,
+        orgId,
+      },
     });
-  } catch (err: any) {
-    console.error("GET ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
-  }
-}
 
-export async function POST(req: NextRequest, { params }: { params: { grantId: string } }) {
-  try {
-    const url = new URL(req.url);
-    const body = await req.json().catch(() => ({}));
-
-    return NextResponse.json({
-      success: true,
-      method: "POST",
-      grantId: params.grantId,
-      query: Object.fromEntries(url.searchParams.entries()),
-      body,
-    });
+    return NextResponse.json({ unsaved: true });
   } catch (err: any) {
-    console.error("POST ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error("UNSAVE GRANT ERROR:", err);
+    return NextResponse.json({ error: err?.message }, { status: 500 });
   }
 }

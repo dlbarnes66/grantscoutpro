@@ -1,3 +1,4 @@
+import { auth } from "@clerk/nextjs/server";
 import React from "react";
 import { prisma } from "@/lib/prisma";
 

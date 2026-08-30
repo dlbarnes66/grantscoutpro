@@ -1,45 +1,35 @@
-import { NextRequest, NextResponse } from "next/server";
-
-export const dynamic = "force-dynamic";
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { requireWorkspaceMember } from "@/lib/auth";
 
 export async function GET(
-  req: NextRequest,
-  context: { params: Promise<Record<string,string>> }
+  req: Request,
+  { params }: { params: { workspaceId: string } }
 ) {
   try {
-    const params = await context.params;
+    const { workspaceId } = params;
 
-    const workspaceId = params.workspaceId;
+    await requireWorkspaceMember(workspaceId);
 
-    return NextResponse.json({
-      success: true,
-      method: "GET",
-      workspaceId
+    const workspace = await prisma.workspace.findUnique({
+      where: { id: workspaceId },
+      include: {
+        members: {
+          include: { user: true },
+        },
+      },
     });
-  } catch (err: any) {
-    console.error("GET WORKSPACE ROOT ERROR:", err);
-    return NextResponse.json({ error: err?.message }, { status: 500 });
-  }
-}
 
-export async function POST(
-  req: NextRequest,
-  context: { params: Promise<Record<string,string>> }
-) {
-  try {
-    const params = await context.params;
-    const body = await req.json().catch(() => ({}));
+    if (!workspace) {
+      return NextResponse.json({ error: "Workspace not found." }, { status: 404 });
+    }
 
-    const workspaceId = params.workspaceId || body.workspaceId;
-
-    return NextResponse.json({
-      success: true,
-      method: "POST",
-      workspaceId,
-      body
-    });
-  } catch (err: any) {
-    console.error("POST WORKSPACE ROOT ERROR:", err);
-    return NextResponse.json({ error: err?.message }, { status: 500 });
+    return NextResponse.json(workspace);
+  } catch (error) {
+    console.error("Workspace route error:", error);
+    return NextResponse.json(
+      { error: "Failed to load workspace." },
+      { status: 500 }
+    );
   }
 }
