@@ -1,14 +1,23 @@
-[{
-	"resource": "/Users/darrylbarnes/grantscoutpro/src/app/(workspace-group)/workspace/[workspaceId]/trial-banner.tsx",
-	"owner": "typescript",
-	"code": "2307",
-	"severity": 8,
-	"message": "Cannot find module 'swr' or its corresponding type declarations.",
-	"source": "ts",
-	"startLineNumber": 3,
-	"startColumn": 20,
-	"endLineNumber": 3,
-	"endColumn": 25,
-	"modelVersionId": 1,
-	"origin": "extHost2"
-}]
+interface PageProps {
+  params: Promise<{
+    workspaceId: string;
+  }>;
+}
+
+export default async function WorkspacePage({
+  params,
+}: PageProps) {
+  const { workspaceId } = await params;
+
+  return (
+    <div className="p-6">
+      <h1 className="text-3xl font-bold">
+        Workspace
+      </h1>
+
+      <p className="mt-4">
+        Workspace ID: {workspaceId}
+      </p>
+    </div>
+  );
+}

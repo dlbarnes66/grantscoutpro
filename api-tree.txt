@@ -1,1861 +1,880 @@
-src/app/api
-├── .DS_Store
-├── access
-│   ├── document
-│   │   └── route.ts
-│   └── grant
-│       └── route.ts
-├── activity
-│   └── log
-│       └── route.ts
-├── addons
-│   ├── activate
-│   │   └── route.ts
-│   └── purchase
-│       └── route.ts
-├── admin
-│   ├── actions
-│   │   └── route.ts
-│   ├── analytics
-│   │   └── route.ts
-│   ├── archive
-│   │   ├── applications
-│   │   │   └── route.ts
-│   │   ├── audit
-│   │   │   └── route.ts
-│   │   └── grants
-│   │       └── route.ts
-│   ├── audit
-│   │   ├── detail
-│   │   │   └── route.ts
-│   │   ├── export
-│   │   │   └── route.ts
-│   │   └── search
-│   │       └── route.ts
-│   ├── billing
-│   │   ├── checklist
-│   │   │   └── route.ts
-│   │   ├── export
-│   │   │   └── route.ts
-│   │   ├── hard-delete-subscription
-│   │   │   └── route.ts
-│   │   ├── inspect
-│   │   │   └── route.ts
-│   │   ├── list
-│   │   │   └── route.ts
-│   │   ├── logs
-│   │   │   └── route.ts
-│   │   ├── reconcile-addons
-│   │   │   └── route.ts
-│   │   ├── recount-seats
-│   │   │   └── route.ts
-│   │   ├── reset-usage
-│   │   │   └── route.ts
-│   │   └── workspaces
-│   │       └── route.ts
-│   ├── compliance
-│   │   └── scan
-│   │       └── route.ts
-│   ├── dashboard
-│   │   ├── activity
-│   │   │   └── route.ts
-│   │   └── overview
-│   │       └── route.ts
-│   ├── delete-user
-│   │   └── route.ts
-│   ├── export
-│   │   ├── applications
-│   │   │   └── route.ts
-│   │   ├── grants
-│   │   │   └── route.ts
-│   │   ├── users
-│   │   │   └── route.ts
-│   │   └── warehouse
-│   │       └── route.ts
-│   ├── fraud
-│   │   └── route.ts
-│   ├── grants
-│   │   ├── delete
-│   │   │   └── route.ts
-│   │   ├── scrape
-│   │   │   └── route.ts
-│   │   └── update
-│   │       └── route.ts
-│   ├── logs
-│   │   └── route.ts
-│   ├── metrics
-│   │   └── route.ts
-│   ├── org
-│   │   ├── merge
-│   │   │   └── route.ts
-│   │   ├── move-applications
-│   │   │   └── route.ts
-│   │   ├── move-audit
-│   │   │   └── route.ts
-│   │   ├── move-members
-│   │   │   └── route.ts
-│   │   ├── split
-│   │   │   └── route.ts
-│   │   └── split-summary
-│   │       └── route.ts
-│   ├── purge
-│   │   ├── run-all
-│   │   │   └── route.ts
-│   │   └── users
-│   │       └── route.ts
-│   ├── ratelimit
-│   │   ├── endpoint
-│   │   │   └── route.ts
-│   │   ├── org
-│   │   │   └── route.ts
-│   │   ├── status
-│   │   │   └── route.ts
-│   │   └── user
-│   │       └── route.ts
-│   ├── rbac
-│   │   ├── check
-│   │   │   └── route.ts
-│   │   └── update-role
-│   │       └── route.ts
-│   ├── roles
-│   │   └── route
-│   ├── route.ts
-│   ├── settings
-│   │   └── route.ts
-│   ├── sso
-│   │   └── config
-│   │       └── route.ts
-│   ├── system-health
-│   │   └── route.ts
-│   ├── update-role
-│   │   └── route.ts
-│   ├── users
-│   │   └── route.ts
-│   ├── workspace
-│   │   ├── delete
-│   │   │   └── route.ts
-│   │   └── suspend
-│   │       └── route.ts
-│   └── workspaces
-│       └── route.ts
-├── ai
-│   ├── agent
-│   │   ├── draft
-│   │   │   └── route.ts
-│   │   ├── execute
-│   │   │   └── route.ts
-│   │   ├── history
-│   │   │   └── save
-│   │   │       └── route.ts
-│   │   ├── plan
-│   │   │   └── route.ts
-│   │   ├── research
-│   │   │   └── route.ts
-│   │   └── run
-│   │       └── route.ts
-│   ├── alignment-matrix
-│   │   └── route.ts
-│   ├── analyze-document
-│   │   └── route.ts
-│   ├── application-writer
-│   │   └── route.ts
-│   ├── autoeditor
-│   │   ├── _lib
-│   │   │   ├── grantIntelligence.ts
-│   │   │   └── unifiedModel.ts
-│   │   ├── clarity
-│   │   │   └── route.ts
-│   │   ├── coherence
-│   │   │   └── route.ts
-│   │   ├── constraints
-│   │   │   └── route.ts
-│   │   ├── history
-│   │   │   └── save
-│   │   │       └── route.ts
-│   │   ├── rewrite
-│   │   │   └── route.ts
-│   │   ├── route.ts
-│   │   └── tone
-│   │       └── route.ts
-│   ├── budget
-│   │   ├── compliance
-│   │   │   └── route.ts
-│   │   ├── create
-│   │   │   └── route.ts
-│   │   ├── history
-│   │   │   └── save
-│   │   │       └── route.ts
-│   │   ├── justify
-│   │   │   └── route.ts
-│   │   ├── optimize
-│   │   │   └── route.ts
-│   │   └── risk
-│   │       └── route.ts
-│   ├── budget-planner
-│   │   └── route.ts
-│   ├── budget-risk
-│   │   └── route.ts
-│   ├── calendar
-│   │   ├── balance
-│   │   │   └── route.ts
-│   │   ├── extract-deadline
-│   │   │   └── route.ts
-│   │   ├── priority
-│   │   │   └── route.ts
-│   │   ├── save
-│   │   │   └── route.ts
-│   │   └── timeline
-│   │       └── route.ts
-│   ├── clarity
-│   │   └── route.ts
-│   ├── closeout
-│   │   ├── assets
-│   │   │   └── route.ts
-│   │   ├── checklist
-│   │   │   └── route.ts
-│   │   ├── compliance
-│   │   │   └── route.ts
-│   │   ├── finance
-│   │   │   └── route.ts
-│   │   ├── history
-│   │   │   ├── route.ts
-│   │   │   └── save
-│   │   │       └── route.ts
-│   │   └── report
-│   │       └── route.ts
-│   ├── coherence
-│   │   └── route.ts
-│   ├── compare
-│   │   ├── history
-│   │   │   └── route.ts
-│   │   ├── multi
-│   │   │   └── route.ts
-│   │   ├── save
-│   │   │   └── route.ts
-│   │   ├── table
-│   │   │   └── route.ts
-│   │   └── two
-│   │       └── route.ts
-│   ├── compliance
-│   │   ├── fix
-│   │   │   └── route.ts
-│   │   ├── history
-│   │   │   ├── route.ts
-│   │   │   └── save
-│   │   │       └── route.ts
-│   │   ├── missing
-│   │   │   └── route.ts
-│   │   ├── route.ts
-│   │   ├── rules
-│   │   │   └── route.ts
-│   │   ├── scan
-│   │   │   └── route.ts
-│   │   └── score
-│   │       └── route
-│   ├── eligibility
-│   │   ├── breakdown
-│   │   │   └── route.ts
-│   │   ├── bulk
-│   │   │   └── route.ts
-│   │   ├── check
-│   │   │   └── route.ts
-│   │   └── risk
-│   │       └── route.ts
-│   ├── eligility-predictor
-│   │   └── route
-│   ├── forecast
-│   │   ├── history
-│   │   │   └── save
-│   │   │       └── route.ts
-│   │   ├── multi-year
-│   │   │   └── route.ts
-│   │   ├── probability-weighted
-│   │   │   └── route.ts
-│   │   ├── risk-adjusted
-│   │   │   └── route.ts
-│   │   ├── scenarios
-│   │   │   └── route.ts
-│   │   └── simulate
-│   │       └── route.ts
-│   ├── full-application
-│   │   └── route.ts
-│   ├── gaps
-│   │   ├── ecosystem
-│   │   │   └── route.ts
-│   │   ├── map
-│   │   │   └── route.ts
-│   │   ├── opportunities
-│   │   │   └── route.ts
-│   │   └── unmet-needs
-│   │       └── route.ts
-│   ├── generate
-│   │   └── route.ts
-│   ├── generate-grant
-│   │   └── route.ts
-│   ├── grant-scout-advisor
-│   │   └── route.ts
-│   ├── inline
-│   │   └── route.ts
-│   ├── match
-│   │   └── route.ts
-│   ├── matching
-│   │   ├── explain
-│   │   │   └── route.ts
-│   │   ├── history
-│   │   │   └── save
-│   │   │       └── route.ts
-│   │   ├── probability-weighted
-│   │   │   └── route.ts
-│   │   ├── recommend
-│   │   │   └── route.ts
-│   │   └── semantic
-│   │       └── route.ts
-│   ├── monitoring
-│   │   ├── alerts
-│   │   │   └── route.ts
-│   │   ├── dashboard
-│   │   │   └── route.ts
-│   │   ├── forecast
-│   │   │   └── route.ts
-│   │   ├── health
-│   │   │   └── route.ts
-│   │   └── kpis
-│   │       └── route.ts
-│   ├── narrative
-│   │   ├── Coherence
-│   │   │   └── route.ts
-│   │   ├── consistency
-│   │   │   └── route.ts
-│   │   ├── generate
-│   │   │   └── route.ts
-│   │   ├── reasoning
-│   │   │   └── route.ts
-│   │   └── storytelling
-│   │       └── route.ts
-│   ├── negotiation
-│   │   ├── budget
-│   │   │   └── route.ts
-│   │   ├── officer
-│   │   │   └── route.ts
-│   │   ├── rebuttal
-│   │   │   └── route.ts
-│   │   ├── scope
-│   │   │   └── route.ts
-│   │   └── strategy
-│   │       └── route.ts
-│   ├── opportunity
-│   │   ├── custom
-│   │   │   └── route
-│   │   ├── founder-style
-│   │   │   └── route.ts
-│   │   ├── gaps
-│   │   │   └── route.ts
-│   │   ├── map
-│   │   │   └── route.ts
-│   │   └── synthetic
-│   │       └── route.ts
-│   ├── outreach
-│   │   ├── email
-│   │   │   └── route.ts
-│   │   ├── followup
-│   │   │   └── route.ts
-│   │   ├── meeting
-│   │   │   └── route.ts
-│   │   ├── persona
-│   │   │   └── route.ts
-│   │   └── relationship
-│   │       └── route.ts
-│   ├── portfolio
-│   │   ├── breakdown
-│   │   │   └── route.ts
-│   │   ├── diversify
-│   │   │   └── route.ts
-│   │   ├── optimize
-│   │   │   └── route.ts
-│   │   ├── probability
-│   │   │   └── route.ts
-│   │   ├── rebalance
-│   │   │   └── route.ts
-│   │   └── score
-│   │       └── route.ts
-│   ├── rank-grants
-│   │   └── route.ts
-│   ├── readability
-│   │   └── route.ts
-│   ├── renewal
-│   │   ├── budget
-│   │   │   └── route.ts
-│   │   ├── eligibility
-│   │   │   └── route.ts
-│   │   ├── narrative
-│   │   │   └── route.ts
-│   │   ├── probability
-│   │   │   └── route.ts
-│   │   └── strategy
-│   │       └── route.ts
-│   ├── reviewer
-│   │   ├── compliance
-│   │   │   └── route.ts
-│   │   ├── evaluate
-│   │   │   └── route.ts
-│   │   ├── panel
-│   │   │   └── route.ts
-│   │   ├── revise
-│   │   │   └── route.ts
-│   │   ├── route.ts
-│   │   └── rubric
-│   │       └── route.ts
-│   ├── reviewer-pro
-│   │   └── route.ts
-│   ├── reviewer-sim
-│   │   └── route.ts
-│   ├── rewrite
-│   │   ├── executive
-│   │   │   └── route.ts
-│   │   ├── multi
-│   │   │   └── route.ts
-│   │   ├── reviewer
-│   │   │   └── route.ts
-│   │   ├── route.ts
-│   │   └── single
-│   │       └── route.ts
-│   ├── risk
-│   │   ├── compliance
-│   │   │   └── route.ts
-│   │   ├── funding
-│   │   │   └── route.ts
-│   │   ├── mitigation
-│   │   │   └── route.ts
-│   │   ├── operational
-│   │   │   └── route.ts
-│   │   ├── route.ts
-│   │   └── score
-│   │       └── route.ts
-│   ├── scalability-predictor
-│   │   └── route.ts
-│   ├── score-grant
-│   │   └── route.ts
-│   ├── semantic-search
-│   │   └── route.ts
-│   ├── submission
-│   │   ├── attachmants
-│   │   │   └── final-compliance
-│   │   │       └── route.ts
-│   │   ├── checklist
-│   │   │   └── route.ts
-│   │   ├── formatting
-│   │   │   └── route.ts
-│   │   ├── history
-│   │   │   └── save
-│   │   │       └── route.ts
-│   │   └── readiness
-│   │       └── route.ts
-│   ├── success-probability
-│   │   └── route.ts
-│   ├── summarize-opportunity
-│   │   └── route.ts
-│   ├── summary
-│   │   └── route.ts
-│   └── sustainability-analyzer
-│       └── route.ts
-├── ai-analysis
-│   └── [grantId]
-│       └── route.ts
-├── alerts
-│   ├── detect
-│   │   └── route.ts
-│   ├── generate
-│   │   └── route.ts
-│   ├── notify
-│   │   └── route.ts
-│   ├── rules
-│   │   └── route.ts
-│   └── unified
-│       └── route.ts
-├── applications
-│   ├── start
-│   │   └── route.ts
-│   ├── submit
-│   │   └── route.ts
-│   ├── update
-│   │   └── route.ts
-│   └── version
-│       ├── list
-│       │   └── route.ts
-│       ├── restore
-│       │   └── route.ts
-│       └── save
-│           └── route.ts
-├── assistant
-│   ├── coach
-│   │   └── route.ts
-│   ├── core
-│   │   └── route.ts
-│   ├── explain
-│   │   └── route.ts
-│   ├── strategy
-│   │   └── route.ts
-│   └── unified
-│       └── route.ts
-├── audit
-│   ├── list
-│   │   └── route.ts
-│   ├── replay
-│   │   └── route.ts
-│   └── write
-│       └── route.ts
-├── auth
-│   ├── check
-│   │   └── route.ts
-│   ├── me
-│   │   └── route.ts
-│   ├── org-role
-│   │   └── route.ts
-│   ├── role
-│   │   └── route.ts
-│   └── workspace-role
-│       └── route.ts
-├── billing
-│   ├── create-checkout
-│   │   └── route.ts
-│   ├── portal
-│   │   └── route.ts
-│   ├── seats
-│   │   └── route.ts
-│   ├── usage
-│   │   └── route.ts
-│   └── webhook
-│       └── route.ts
-├── billing-endpoint
-│   ├── cancel
-│   │   └── route.ts
-│   ├── checkout
-│   │   ├── addons
-│   │   │   └── route.ts
-│   │   ├── route.ts
-│   │   ├── seats
-│   │   │   └── route.ts
-│   │   └── simple
-│   │       └── route.ts
-│   ├── create-customer
-│   │   └── route.ts
-│   ├── create-session
-│   │   └── route.ts
-│   ├── events
-│   │   └── route.ts
-│   ├── history
-│   │   └── route.ts
-│   ├── invoices
-│   │   ├── [invoiceId]
-│   │   │   ├── pdf
-│   │   │   │   └── route.ts
-│   │   │   └── route.ts
-│   │   └── route.ts
-│   ├── limits
-│   │   └── route.ts
-│   ├── overview
-│   │   └── route.ts
-│   ├── owner
-│   │   └── route.ts
-│   ├── period
-│   │   └── route.ts
-│   ├── plan
-│   │   ├── route.ts
-│   │   └── update
-│   │       └── route.ts
-│   ├── portal
-│   │   └── route.ts
-│   ├── reactivate
-│   │   └── route.ts
-│   ├── remove-addon
-│   │   └── route.ts
-│   ├── renewal
-│   │   └── route.ts
-│   ├── route.ts
-│   ├── seats
-│   │   └── checkout
-│   │       └── route.ts
-│   ├── status
-│   │   └── route.ts
-│   ├── subscription-sync
-│   │   └── route.ts
-│   ├── summary
-│   │   └── route.ts
-│   ├── switch-tier
-│   │   └── route.ts
-│   ├── update
-│   │   └── route.ts
-│   ├── usage
-│   │   ├── enforce
-│   │   │   └── route.ts
-│   │   └── route.ts
-│   ├── usage-sync
-│   │   └── route.ts
-│   └── webhook
-│       └── route.ts
-├── budget
-│   ├── generate
-│   │   └── route.ts
-│   ├── justify
-│   │   └── route.ts
-│   ├── load
-│   │   └── route.ts
-│   ├── optimize
-│   │   └── route.ts
-│   ├── route.ts
-│   └── save
-│       └── route.ts
-├── closeout
-│   ├── assets
-│   │   └── route.ts
-│   ├── checklist
-│   │   └── route.ts
-│   ├── finacials
-│   │   └── route.ts
-│   ├── final-report
-│   │   └── route.ts
-│   └── summary
-│       └── route.ts
-├── clustering
-│   ├── cluster
-│   │   └── route.ts
-│   ├── compute
-│   │   └── route.ts
-│   ├── embeded
-│   │   └── route.ts
-│   └── overview
-│       └── route.ts
-├── collab
-│   ├── Stream
-│   │   └── route.ts
-│   └── edit
-│       └── route.ts
-├── compare
-│   ├── [workspaceId]
-│   │   └── route.ts
-│   ├── add
-│   │   └── [workspaceId]
-│   │       └── route.ts
-│   ├── clear
-│   │   └── [workspaceId]
-│   │       └── route.ts
-│   ├── remove
-│   │   └── [workspaceId]
-│   │       └── route.ts
-│   └── route.ts
-├── crawl
-│   └── grant-crawl
-│       └── route.ts
-├── crm
-│   ├── activity
-│   │   └── route.ts
-│   ├── contacts
-│   │   └── route.ts
-│   ├── deals
-│   │   └── route.ts
-│   ├── grant-activity
-│   │   └── route.ts
-│   ├── grant-leads
-│   │   └── route.ts
-│   ├── grant-notes
-│   │   └── route.ts
-│   ├── grant-opportunities
-│   │   └── route.ts
-│   ├── grant-pipeline
-│   │   └── route.ts
-│   ├── leads
-│   │   ├── create
-│   │   │   └── route.ts
-│   │   ├── route.ts
-│   │   └── update-status
-│   │       └── route.ts
-│   ├── notes
-│   │   └── route.ts
-│   ├── organizations
-│   │   └── route.ts
-│   └── pipeline
-│       └── route.ts
-├── cron
-│   └── upcoming-deadlines
-│       └── route.ts
-├── dashboard
-│   └── metrics
-│       └── route.ts
-├── dev
-│   ├── generate-key
-│   │   └── route.ts
-│   ├── playground
-│   │   └── route.ts
-│   └── validate-key
-│       └── route.ts
-├── developer
-│   ├── api-keys
-│   │   ├── create
-│   │   │   └── route.ts
-│   │   ├── list
-│   │   │   └── route.ts
-│   │   ├── revoke
-│   │   │   └── route.ts
-│   │   └── rotate
-│   │       └── route.ts
-│   ├── api-usage
-│   │   ├── list
-│   │   │   └── route.ts
-│   │   └── log
-│   │       └── route.ts
-│   └── summary
-│       └── route.ts
-├── docs
-│   ├── patch
-│   │   └── route.ts
-│   ├── snapshot
-│   │   └── route.ts
-│   └── stream
-│       └── route.ts
-├── documents
-│   ├── .DS_Store
-│   ├── [documentId]
-│   │   ├── messages
-│   │   │   └── route.ts
-│   │   ├── patch
-│   │   │   └── route.ts
-│   │   ├── presence
-│   │   │   └── route.ts
-│   │   └── version
-│   │       └── route.ts
-│   ├── comments
-│   │   ├── create
-│   │   │   └── route.ts
-│   │   └── list
-│   │       └── route.ts
-│   ├── create
-│   │   └── route.ts
-│   ├── events
-│   │   └── list
-│   │       └── route.ts
-│   ├── route.ts
-│   ├── tags
-│   │   ├── add
-│   │   │   └── route.ts
-│   │   └── remove
-│   │       └── route.ts
-│   ├── upload
-│   │   └── route.ts
-│   └── version
-│       ├── diff
-│       │   └── route.ts
-│       ├── get
-│       │   └── route.ts
-│       ├── history
-│       │   └── route.ts
-│       ├── meta
-│       │   └── route.ts
-│       ├── restore
-│       │   └── route.ts
-│       └── save
-│           └── route.ts
-├── embeddings
-│   ├── ingest
-│   │   └── route.ts
-│   └── route.ts
-├── export
-│   ├── docx
-│   │   └── route.ts
-│   └── pdf
-│       └── route.ts
-├── extract-grant
-│   └── route.ts
-├── feed
-│   └── grants
-│       └── route.ts
-├── files
-│   ├── get
-│   │   └── route.ts
-│   ├── route.ts
-│   └── upload
-│       └── route.ts
-├── firecrawl
-│   ├── crawl
-│   │   └── route.ts
-│   ├── extract
-│   │   └── route.ts
-│   ├── index
-│   │   └── route.ts
-│   ├── ingest
-│   │   └── route.ts
-│   ├── metadata
-│   │   └── route.ts
-│   ├── scrape
-│   │   └── route.ts
-│   └── search
-│       └── route.ts
-├── grant
-│   ├── [workspaceId]
-│   │   └── [grantId]
-│   │       └── route.ts
-│   ├── compare
-│   │   └── route.ts
-│   ├── delete
-│   │   └── route.ts
-│   ├── intelligence
-│   │   ├── eligibility
-│   │   │   └── route.ts
-│   │   ├── match
-│   │   │   └── route.ts
-│   │   ├── narrative
-│   │   │   └── route.ts
-│   │   ├── risk
-│   │   │   └── route.ts
-│   │   ├── route.ts
-│   │   └── score
-│   │       └── route.ts
-│   ├── save
-│   │   └── route.ts
-│   └── update
-│       └── route.ts
-├── grant-comparisons
-│   ├── .DS_Store
-│   ├── [grantId]
-│   │   └── route.ts
-│   └── route.ts
-├── grant-documents
-│   └── [grantId]
-│       ├── delete
-│       │   └── route.ts
-│       ├── route.ts
-│       └── upload
-│           └── route.ts
-├── grant-drafts
-│   └── [grantId]
-│       ├── route.ts
-│       ├── save
-│       │   └── route.ts
-│       └── update
-│           └── route.ts
-├── grant-history
-│   └── [grantId]
-│       └── route.ts
-├── grant-sections
-│   └── [grantId]
-│       └── route.ts
-├── grant-temp
-│   └── [grant-temp]
-│       ├── ai
-│       │   ├── history
-│       │   │   └── route.ts
-│       │   ├── route.ts
-│       │   └── run
-│       │       └── route.ts
-│       ├── application
-│       │   ├── [applicationId]
-│       │   │   ├── route.ts
-│       │   │   └── versions
-│       │   │       └── route.ts
-│       │   └── route.ts
-│       ├── documents
-│       │   ├── [docId]
-│       │   │   └── route.ts
-│       │   └── route.ts
-│       ├── history
-│       │   └── route.ts
-│       ├── narrative
-│       │   ├── [narrativeId]
-│       │   │   └── route.ts
-│       │   └── route.ts
-│       ├── route.ts
-│       └── sections
-│           └── [sectionId]
-│               └── route.ts
-├── grantcrawl
-│   └── route.ts
-├── grantradar
-│   └── unified
-│       └── route.ts
-├── grants
-│   ├── [grantId]
-│   │   ├── detail
-│   │   │   └── route.ts
-│   │   └── related
-│   │       └── route.ts
-│   ├── alerts
-│   │   └── route.ts
-│   ├── analyze
-│   │   └── route.ts
-│   ├── budget
-│   │   └── route.ts
-│   ├── create
-│   │   └── route.ts
-│   ├── delete
-│   │   └── route.ts
-│   ├── documents
-│   │   └── upload
-│   │       └── route.ts
-│   ├── export
-│   │   └── pdf
-│   │       └── route.ts
-│   ├── facets
-│   │   └── route.ts
-│   ├── federal
-│   │   └── ingest
-│   │       └── route.ts
-│   ├── foundations
-│   │   └── ingest
-│   │       └── route.ts
-│   ├── get
-│   │   └── route.ts
-│   ├── import
-│   │   ├── api
-│   │   │   └── route.ts
-│   │   └── csv
-│   │       └── route.ts
-│   ├── intelligence
-│   │   └── route.ts
-│   ├── lifecycle
-│   │   └── process
-│   │       └── route.ts
-│   ├── match
-│   │   └── route.ts
-│   ├── packet
-│   │   ├── pdf
-│   │   │   └── route.ts
-│   │   └── route.ts
-│   ├── recommend
-│   │   └── route.ts
-│   ├── recommendations
-│   │   └── route.ts
-│   ├── region
-│   │   └── route.ts
-│   ├── review
-│   │   └── route.ts
-│   ├── rewrite
-│   │   └── route.ts
-│   ├── route.ts
-│   ├── save
-│   │   └── route.ts
-│   ├── score
-│   │   └── route.ts
-│   ├── search
-│   │   └── route.ts
-│   ├── sections
-│   │   └── create
-│   │       └── route.ts
-│   ├── state
-│   │   └── ingest
-│   │       └── route.ts
-│   ├── status
-│   │   └── update
-│   │       └── route.ts
-│   ├── timeline
-│   │   └── route.ts
-│   ├── unsave
-│   │   └── route.ts
-│   ├── update
-│   │   └── route.ts
-│   └── write
-│       └── route.ts
-├── help-ai
-│   └── route.ts
-├── index
-│   └── route.ts
-├── ingest
-│   └── grant
-│       └── route.ts
-├── intelligence
-│   ├── eligibility
-│   │   └── route.ts
-│   ├── match-confidence
-│   │   └── route.ts
-│   ├── oportunity-insights
-│   │   └── route.ts
-│   ├── ranking
-│   │   └── route.ts
-│   ├── risk-flags
-│   │   └── route.ts
-│   ├── score
-│   │   └── route.ts
-│   └── strategic-recommendations
-│       └── route.ts
-├── internal
-│   ├── cleanup-orphans
-│   │   └── route.ts
-│   ├── reindex-document
-│   │   └── route.ts
-│   └── reindex-workspace
-│       └── route.ts
-├── jobs
-│   ├── .DS_Store
-│   ├── [jobId]
-│   │   ├── .DS_Store
-│   │   ├── cancel
-│   │   │   └── route.ts
-│   │   ├── delete
-│   │   │   └── route.ts
-│   │   ├── duplicate
-│   │   │   └── route.ts
-│   │   ├── logs
-│   │   │   └── route.ts
-│   │   ├── rerun
-│   │   │   └── route.ts
-│   │   ├── retry
-│   │   │   └── route.ts
-│   │   └── route.ts
-│   ├── create
-│   │   └── route.ts
-│   ├── process
-│   │   └── route.ts
-│   └── route.ts
-├── location
-│   └── intelligence
-│       └── route.ts
-├── match-grants
-│   ├── [documentId]
-│   │   └── route.ts
-│   └── route.ts
-├── messages
-│   ├── conversation
-│   │   └── route.ts
-│   └── send
-│       └── route.ts
-├── narrative
-│   └── [grantId]
-│       ├── route.ts
-│       ├── save
-│       │   └── route.ts
-│       └── update
-│           └── route.ts
-├── notifications
-│   ├── admin-broadcast
-│   │   └── route.ts
-│   ├── ai-extraction-complete
-│   │   └── route.ts
-│   ├── billing-failure
-│   │   └── route.ts
-│   ├── create
-│   │   └── route.ts
-│   ├── delete
-│   │   └── route.ts
-│   ├── email
-│   │   └── route.ts
-│   ├── list
-│   │   └── route.ts
-│   ├── read
-│   │   └── route.ts
-│   ├── stream
-│   │   └── route.ts
-│   ├── trial-expiration
-│   │   └── route.ts
-│   └── unread-count
-│       └── route.ts
-├── onboarding
-│   └── route.ts
-├── org
-│   ├── audit
-│   │   └── list
-│   │       └── route.ts
-│   ├── billing
-│   │   ├── consolidate
-│   │   │   └── route.ts
-│   │   └── route.ts
-│   ├── check-permission
-│   │   └── route.ts
-│   ├── custom-roles
-│   │   └── route.ts
-│   ├── invite
-│   │   └── route.ts
-│   ├── remove
-│   │   └── route.ts
-│   ├── share
-│   │   ├── check
-│   │   │   └── route.ts
-│   │   ├── create
-│   │   │   └── route.ts
-│   │   ├── grant
-│   │   │   └── route.ts
-│   │   ├── list
-│   │   │   └── route.ts
-│   │   └── revoke
-│   │       └── route.ts
-│   ├── strict
-│   │   └── check
-│   │       └── route.ts
-│   ├── update
-│   │   └── route.ts
-│   └── user
-│       └── route.ts
-├── packet
-│   ├── compliance
-│   │   └── route.ts
-│   ├── final
-│   │   └── route.ts
-│   ├── formatting
-│   │   └── route.ts
-│   ├── pdf
-│   │   └── route.ts
-│   └── required-documents
-│       └── route.ts
-├── public
-│   └── document
-│       ├── get
-│       │   └── route.ts
-│       ├── metadata
-│       │   └── route.ts
-│       └── search
-│           └── route.ts
-├── queue
-│   ├── add
-│   │   └── route.ts
-│   └── process
-│       └── route.ts
-├── rag
-│   └── answer
-│       └── route.ts
-├── realtime
-│   ├── chat
-│   │   └── send
-│   │       └── route.ts
-│   ├── comments
-│   │   └── add
-│   │       └── route.ts
-│   ├── cursor
-│   │   └── route.ts
-│   ├── edit
-│   │   ├── document
-│   │   │   └── route.ts
-│   │   ├── grant
-│   │   │   └── route.ts
-│   │   └── route.ts
-│   ├── events
-│   │   └── route.ts
-│   ├── presence
-│   │   └── route.ts
-│   └── socket
-│       └── route.ts
-├── recommendations
-│   └── route.ts
-├── region
-│   └── info
-│       └── route.ts
-├── reports
-│   ├── csv
-│   │   └── route.ts
-│   └── pdf
-│       └── route.ts
-├── saved
-│   └── route.ts
-├── saved-grant
-│   ├── [grantId]
-│   │   └── route.ts
-│   ├── delete
-│   │   └── route.ts
-│   └── route.ts
-├── saved-searches
-│   ├── [searchId]
-│   │   └── route.ts
-│   ├── delete
-│   │   └── route.ts
-│   ├── route.ts
-│   └── run
-│       └── route.ts
-├── score-grant
-│   ├── ingest
-│   │   └── route.ts
-│   └── route.ts
-├── scraper
-│   ├── extract
-│   │   └── route.ts
-│   ├── html
-│   │   └── route.ts
-│   ├── import
-│   │   └── route.ts
-│   ├── json
-│   │   └── route.ts
-│   ├── rss
-│   │   └── route.ts
-│   └── run-all
-│       └── route.ts
-├── search
-│   ├── [workspaceId]
-│   │   └── route.ts
-│   ├── embed-grant
-│   │   └── route.ts
-│   ├── route.ts
-│   ├── semantic
-│   │   └── route.ts
-│   └── track
-│       └── route.ts
-├── search-grants
-│   └── route.ts
-├── search-history
-│   └── route.ts
-├── sentry-example-api
-│   └── route.ts
-├── settings
-│   ├── account
-│   │   └── delete
-│   │       └── route.ts
-│   ├── preferences
-│   │   └── update
-│   │       └── route.ts
-│   ├── profile
-│   │   └── update
-│   │       └── route.ts
-│   └── security
-│       ├── 2fa
-│       │   └── setup
-│       │       └── route.ts
-│       └── change-password
-│           └── route.ts
-├── sso
-│   ├── oauth
-│   │   ├── callback
-│   │   │   └── route.ts
-│   │   └── login
-│   │       └── route.ts
-│   ├── provision
-│   │   └── route.ts
-│   └── saml
-│       ├── acs
-│       │   └── route.ts
-│       └── metadata
-│           └── route.ts
-├── state
-│   ├── insights
-│   │   └── route.ts
-│   ├── intelligence
-│   │   └── route.ts
-│   ├── ranking
-│   │   └── route.ts
-│   ├── search
-│   │   └── route.ts
-│   └── structure
-│       └── route.ts
-├── stripe
-│   ├── create-checkout-session
-│   │   └── route.ts
-│   ├── create-customer
-│   │   └── route.ts
-│   ├── create-portal-session
-│   │   └── route.ts
-│   ├── create-subscription
-│   │   └── route.ts
-│   ├── customer
-│   │   ├── delete
-│   │   │   └── route.ts
-│   │   ├── route.ts
-│   │   └── sync
-│   │       └── route.ts
-│   ├── invoice
-│   │   └── list
-│   │       └── route.ts
-│   ├── payment-intent
-│   │   └── create
-│   │       └── route.ts
-│   ├── payment-method
-│   │   └── sync
-│   │       └── route.ts
-│   ├── portal
-│   │   └── route.ts
-│   ├── prices
-│   │   └── route.ts
-│   ├── products
-│   │   └── route.ts
-│   ├── subscription
-│   │   ├── cancel
-│   │   │   └── route.ts
-│   │   ├── create
-│   │   │   └── route.ts
-│   │   ├── resume
-│   │   │   └── route.ts
-│   │   └── sync
-│   │       └── route.ts
-│   ├── usage
-│   │   └── route.ts
-│   └── webhook
-│       └── route.ts
-├── sync
-│   ├── all
-│   │   └── route.ts
-│   ├── application
-│   │   └── route.ts
-│   ├── audit
-│   │   └── route.ts
-│   ├── grants
-│   │   └── route.ts
-│   └── users
-│       └── route.ts
-├── system
-│   ├── diagnostics
-│   │   └── route.ts
-│   └── health
-│       └── route.ts
-├── team
-│   ├── add
-│   │   └── route.ts
-│   └── remove
-│       └── route.ts
-├── trial
-│   ├── lock
-│   │   └── route.ts
-│   ├── notify
-│   │   └── route.ts
-│   └── status
-│       └── route.ts
-├── unsave-grant
-│   └── [grantId]
-│       └── route.ts
-├── usage
-│   ├── ai
-│   │   └── track
-│   │       └── route.ts
-│   ├── members
-│   │   └── track
-│   │       └── route.ts
-│   ├── report
-│   │   └── route.ts
-│   ├── reset
-│   │   └── route.ts
-│   └── uploads
-│       └── track
-│           └── route.ts
-├── user
-│   └── limits
-│       └── route.ts
-├── vault
-│   ├── delete
-│   │   └── route.ts
-│   ├── extract
-│   │   └── route.ts
-│   ├── index
-│   │   └── route.ts
-│   ├── list
-│   │   └── route.ts
-│   ├── metadata
-│   │   └── route.ts
-│   ├── structured
-│   │   └── route.ts
-│   └── upload
-│       └── route.ts
-├── webhook
-│   └── route.ts
-├── webhooks
-│   ├── ai-events
-│   │   └── route.ts
-│   ├── clerk
-│   │   └── route.ts
-│   └── stripe
-│       └── route.ts
-├── workspace
-│   ├── [workspaceId]
-│   │   ├── admin
-│   │   │   └── route.ts
-│   │   ├── billing
-│   │   │   └── route.ts
-│   │   ├── chat
-│   │   │   └── route.ts
-│   │   ├── dashboard
-│   │   │   └── route.ts
-│   │   ├── events
-│   │   │   └── list
-│   │   │       └── route.ts
-│   │   ├── grants
-│   │   │   └── route.ts
-│   │   ├── invite
-│   │   │   └── route.ts
-│   │   ├── locations
-│   │   │   └── route.ts
-│   │   ├── members
-│   │   │   └── route.ts
-│   │   ├── notifications
-│   │   │   └── route.ts
-│   │   ├── portfolio
-│   │   │   └── route.ts
-│   │   ├── presence
-│   │   │   └── route.ts
-│   │   ├── route.ts
-│   │   ├── search
-│   │   │   └── route.ts
-│   │   └── upload
-│   │       └── route.ts
-│   ├── activity
-│   │   └── list
-│   │       └── route.ts
-│   ├── addUser
-│   │   └── route.ts
-│   ├── create
-│   │   └── route.ts
-│   ├── dashboard-ai
-│   │   └── route.ts
-│   ├── dashboard-summary
-│   │   └── route.ts
-│   ├── delete
-│   │   └── route.ts
-│   ├── invite
-│   │   └── route.ts
-│   ├── lock
-│   │   └── route.ts
-│   ├── members
-│   │   └── route.ts
-│   ├── notifications
-│   │   └── list
-│   │       └── route.ts
-│   ├── permissions
-│   │   └── route.ts
-│   ├── removeUser
-│   │   └── route.ts
-│   ├── role
-│   │   └── route.ts
-│   ├── settings
-│   │   ├── name
-│   │   │   └── route.ts
-│   │   └── route.ts
-│   ├── status-sync
-│   │   └── route.ts
-│   ├── sync
-│   │   └── route.ts
-│   ├── trial-status
-│   │   └── route.ts
-│   ├── update
-│   │   └── route.ts
-│   └── usage
-│       └── route.ts
-├── workspaces
-│   ├── .DS_Store
-│   ├── _id
-│   │   ├── .DS_Store
-│   │   ├── acl 
-│   │   │   ├── check
-│   │   │   │   └── routes
-│   │   │   ├── get
-│   │   │   │   └── route.ts
-│   │   │   ├── route.ts
-│   │   │   ├── self
-│   │   │   │   └── route.ts
-│   │   │   └── update
-│   │   │       └── route.ts
-│   │   ├── activity
-│   │   │   └── route.ts
-│   │   ├── addons
-│   │   │   ├── activate
-│   │   │   │   └── route.ts
-│   │   │   ├── deactivate
-│   │   │   │   └── route.ts
-│   │   │   └── status
-│   │   │       └── route.ts
-│   │   ├── admin
-│   │   │   ├── members
-│   │   │   │   └── route.ts
-│   │   │   ├── permissions
-│   │   │   │   └── route.ts
-│   │   │   └── route.ts
-│   │   ├── ai
-│   │   │   ├── actions
-│   │   │   │   └── route.ts
-│   │   │   ├── alignment
-│   │   │   │   └── route.ts
-│   │   │   ├── answer
-│   │   │   │   └── route.ts
-│   │   │   ├── autoeditor
-│   │   │   │   └── route.ts
-│   │   │   ├── automation
-│   │   │   │   └── route.ts
-│   │   │   ├── capabilities
-│   │   │   │   └── route.ts
-│   │   │   ├── chat
-│   │   │   │   └── route.ts
-│   │   │   ├── clustering
-│   │   │   │   └── route.ts
-│   │   │   ├── compliance
-│   │   │   │   └── route.ts
-│   │   │   ├── diagnostics
-│   │   │   │   └── route.ts
-│   │   │   ├── duplication
-│   │   │   │   └── route.ts
-│   │   │   ├── embeddings
-│   │   │   │   └── route.ts
-│   │   │   ├── forecast
-│   │   │   │   └── route.ts
-│   │   │   ├── gap-analysis
-│   │   │   │   └── route.ts
-│   │   │   ├── health
-│   │   │   │   └── route.ts
-│   │   │   ├── knowledge-graph
-│   │   │   │   └── route.ts
-│   │   │   ├── meta
-│   │   │   │   └── route.ts
-│   │   │   ├── multi-year-forecast
-│   │   │   │   └── route.ts
-│   │   │   ├── opportunity-insights
-│   │   │   │   └── route.ts
-│   │   │   ├── orchestrate
-│   │   │   │   └── route.ts
-│   │   │   ├── piplines
-│   │   │   │   └── route.ts
-│   │   │   ├── probability
-│   │   │   │   └── route.ts
-│   │   │   ├── rag
-│   │   │   │   └── route.ts
-│   │   │   ├── ranking
-│   │   │   │   └── route.ts
-│   │   │   ├── readiness
-│   │   │   │   └── route.ts
-│   │   │   ├── reviewer-sim
-│   │   │   │   └── route.ts
-│   │   │   ├── risk-adjusted-forcast
-│   │   │   │   └── route.ts
-│   │   │   ├── risk-flags
-│   │   │   │   └── route.ts
-│   │   │   ├── scenario-simulation
-│   │   │   │   └── route.ts
-│   │   │   ├── scoring
-│   │   │   │   └── route.ts
-│   │   │   ├── scoring-advanced
-│   │   │   │   └── route.ts
-│   │   │   ├── semantic-grouping
-│   │   │   │   └── route.ts
-│   │   │   ├── semantic-index
-│   │   │   │   └── route.ts
-│   │   │   ├── semantic-search
-│   │   │   │   └── route.ts
-│   │   │   ├── strategic-recommendations
-│   │   │   │   └── route.ts
-│   │   │   ├── summaries
-│   │   │   │   └── route.ts
-│   │   │   ├── topic-modeling
-│   │   │   │   └── route.ts
-│   │   │   ├── triggers
-│   │   │   │   └── route.ts
-│   │   │   └── workflows
-│   │   │       └── route.ts
-│   │   ├── analytics
-│   │   │   ├── activity-log
-│   │   │   │   └── route.ts
-│   │   │   ├── overview
-│   │   │   │   └── route.ts
-│   │   │   ├── route.ts
-│   │   │   └── search
-│   │   │       └── route.ts
-│   │   ├── billing
-│   │   │   ├── overview
-│   │   │   │   └── route.ts
-│   │   │   ├── route.ts
-│   │   │   ├── update-plan
-│   │   │   │   └── route.ts
-│   │   │   └── usage
-│   │   │       └── route.ts
-│   │   ├── chat
-│   │   │   └── route.ts
-│   │   ├── detail
-│   │   │   └── route.ts
-│   │   ├── documents
-│   │   │   ├── .DS_Store
-│   │   │   ├── [documentId]
-│   │   │   │   ├── .DS_Store
-│   │   │   │   ├── ai 
-│   │   │   │   │   ├── aiUtils.ts
-│   │   │   │   │   ├── alignment
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── analyze
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── answer
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── application-intelligence
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── autoeditor
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── batch
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── batch-sections
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── budget-intelligence
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── budget-risk
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── chat
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── checklist
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── clarity
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── classify
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── coherence
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── coherence-advanced
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── comments
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── compliance
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── constraints
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── cross-document
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── efficiency
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── embeddings
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── evidence
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── extract
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── funders
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── grant-intelligence
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── grant-link
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── improve
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── inline
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── innovation
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── monitoring-intelligence
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── multi-year-impact
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── narrative
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── presence
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── rag
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── readability
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── readiness
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── renewal-intelligence
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── review
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── reviewer-sim
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── rewrite
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── risk
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── risk-heatmap
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── risk-mitigation
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── scalability
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── scoring
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── semantic-search
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── snapshots
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── stakeholders
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── suggest
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── summarize
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── summarizer
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── sustainability
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── timeline
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── tone
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── version
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── viewer
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   └── workspace-search
-│   │   │   │   │       └── route.ts
-│   │   │   │   ├── comments
-│   │   │   │   │   ├── create
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── delete
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── list
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── route.ts
-│   │   │   │   │   └── update
-│   │   │   │   │       └── route.ts
-│   │   │   │   ├── file
-│   │   │   │   │   └── route.ts
-│   │   │   │   ├── get
-│   │   │   │   │   └── route.ts
-│   │   │   │   ├── messages
-│   │   │   │   │   └── route.ts
-│   │   │   │   ├── patch
-│   │   │   │   │   ├── apply
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── create
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── list
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   └── route.ts
-│   │   │   │   ├── presence
-│   │   │   │   │   ├── chat
-│   │   │   │   │   │   ├── delete
-│   │   │   │   │   │   │   └── route.ts
-│   │   │   │   │   │   ├── list
-│   │   │   │   │   │   │   └── route.ts
-│   │   │   │   │   │   ├── route.ts
-│   │   │   │   │   │   ├── send
-│   │   │   │   │   │   │   └── route.ts
-│   │   │   │   │   │   └── thread
-│   │   │   │   │   │       └── route.ts
-│   │   │   │   │   ├── leave
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── list
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── route.ts
-│   │   │   │   │   └── update
-│   │   │   │   │       └── route.ts
-│   │   │   │   ├── route.ts
-│   │   │   │   ├── search
-│   │   │   │   │   └── index
-│   │   │   │   │       └── route.ts
-│   │   │   │   ├── share
-│   │   │   │   │   ├── add
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── create
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── list
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── remove
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── revoke
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   └── route.ts
-│   │   │   │   ├── snapshots
-│   │   │   │   │   └── route.ts
-│   │   │   │   ├── update
-│   │   │   │   │   └── route.ts
-│   │   │   │   ├── version
-│   │   │   │   │   ├── [versionId]
-│   │   │   │   │   │   └── restore
-│   │   │   │   │   │       └── route.ts
-│   │   │   │   │   ├── create
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── diff
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── list
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   ├── restore
-│   │   │   │   │   │   └── route.ts
-│   │   │   │   │   └── route.ts
-│   │   │   │   └── viewer
-│   │   │   │       └── route.ts
-│   │   │   ├── activity
-│   │   │   │   └── route.ts
-│   │   │   ├── create
-│   │   │   │   └── route.ts
-│   │   │   ├── delete
-│   │   │   │   └── route.ts
-│   │   │   ├── documents
-│   │   │   │   └── upload
-│   │   │   │       └── route.ts
-│   │   │   ├── list
-│   │   │   │   └── route.ts
-│   │   │   ├── update
-│   │   │   │   └── route.ts
-│   │   │   └── upload
-│   │   │       └── route.ts
-│   │   ├── grants
-│   │   │   ├── [grantId]
-│   │   │   │   ├── acl
-│   │   │   │   │   └── self
-│   │   │   │   │       └── route.ts
-│   │   │   │   ├── ai
-│   │   │   │   │   └── route.ts
-│   │   │   │   ├── detail
-│   │   │   │   │   └── route.ts
-│   │   │   │   ├── editor
-│   │   │   │   │   └── route.ts
-│   │   │   │   ├── intelligence
-│   │   │   │   │   └── route.ts
-│   │   │   │   └── viewer
-│   │   │   │       └── route.ts
-│   │   │   ├── compare
-│   │   │   │   └── route.ts
-│   │   │   ├── list
-│   │   │   │   └── route.ts
-│   │   │   └── search
-│   │   │       └── route.ts
-│   │   ├── insights
-│   │   │   └── route.ts
-│   │   ├── invite
-│   │   │   └── route.ts
-│   │   ├── invites
-│   │   │   ├── _inviteId
-│   │   │   │   └── route.ts
-│   │   │   └── route.ts
-│   │   ├── members
-│   │   │   ├── [memberId]
-│   │   │   │   └── route.ts
-│   │   │   ├── _userId
-│   │   │   │   └── route.ts
-│   │   │   ├── add
-│   │   │   │   └── route.ts
-│   │   │   ├── list
-│   │   │   │   └── route.ts
-│   │   │   ├── remove
-│   │   │   │   └── route.ts
-│   │   │   └── route.ts
-│   │   ├── notifications
-│   │   │   ├── create
-│   │   │   │   └── route.ts
-│   │   │   ├── delete
-│   │   │   │   └── route.ts
-│   │   │   ├── list
-│   │   │   │   └── route.ts
-│   │   │   ├── mark-read
-│   │   │   │   └── route.ts
-│   │   │   ├── read
-│   │   │   │   └── route.ts
-│   │   │   ├── route.ts
-│   │   │   └── unread-count
-│   │   │       └── route.ts
-│   │   ├── route.ts
-│   │   ├── search
-│   │   │   ├── query
-│   │   │   │   └── route.ts
-│   │   │   └── route.ts
-│   │   ├── trial
-│   │   │   ├── lock
-│   │   │   │   └── route.ts
-│   │   │   ├── override
-│   │   │   │   └── route.ts
-│   │   │   ├── route.ts
-│   │   │   ├── status
-│   │   │   │   └── route.ts
-│   │   │   └── unlock
-│   │   │       └── route.ts
-│   │   ├── update
-│   │   │   └── route.ts
-│   │   ├── upload
-│   │   │   └── route.ts
-│   │   └── usage
-│   │       └── route.ts
-│   ├── _utils.ts
-│   ├── create
-│   │   └── route.ts
-│   ├── list
-│   │   └── route.ts
-│   ├── route.ts
-│   └── switch
-│       └── route.ts
-└── writer
-    ├── budget-justification
-    │   └── route.ts
-    ├── compliance
-    │   └── route.ts
-    ├── full-proposal
-    │   └── route.ts
-    ├── narrative
-    │   └── route.ts
-    ├── revision
-    │   └── route.ts
-    ├── section
-    │   └── route.ts
-    └── tone-style
-        └── route.ts
-
-1002 directories, 857 files
+src/app/api/.DS_Store
+src/app/api/access/document/route.ts
+src/app/api/access/grant/route.ts
+src/app/api/activity/log/route.ts
+src/app/api/addons/activate/route.ts
+src/app/api/addons/purchase/route.ts
+src/app/api/admin/actions/route.ts
+src/app/api/admin/analytics/route.ts
+src/app/api/admin/archive/applications/route.ts
+src/app/api/admin/archive/audit/route.ts
+src/app/api/admin/archive/grants/route.ts
+src/app/api/admin/audit/detail/route.ts
+src/app/api/admin/audit/export/route.ts
+src/app/api/admin/audit/search/route.ts
+src/app/api/admin/billing/checklist/route.ts
+src/app/api/admin/billing/export/route.ts
+src/app/api/admin/billing/hard-delete-subscription/route.ts
+src/app/api/admin/billing/inspect/route.ts
+src/app/api/admin/billing/list/route.ts
+src/app/api/admin/billing/logs/route.ts
+src/app/api/admin/billing/reconcile-addons/route.ts
+src/app/api/admin/billing/recount-seats/route.ts
+src/app/api/admin/billing/reset-usage/route.ts
+src/app/api/admin/billing/workspaces/route.ts
+src/app/api/admin/compliance/scan/route.ts
+src/app/api/admin/dashboard/activity/route.ts
+src/app/api/admin/dashboard/overview/route.ts
+src/app/api/admin/delete-user/route.ts
+src/app/api/admin/export/applications/route.ts
+src/app/api/admin/export/grants/route.ts
+src/app/api/admin/export/users/route.ts
+src/app/api/admin/export/warehouse/route.ts
+src/app/api/admin/fraud/route.ts
+src/app/api/admin/grants/delete/route.ts
+src/app/api/admin/grants/scrape/route.ts
+src/app/api/admin/grants/update/route.ts
+src/app/api/admin/logs/route.ts
+src/app/api/admin/metrics/route.ts
+src/app/api/admin/org/merge/route.ts
+src/app/api/admin/org/move-applications/route.ts
+src/app/api/admin/org/move-audit/route.ts
+src/app/api/admin/org/move-members/route.ts
+src/app/api/admin/org/split-summary/route.ts
+src/app/api/admin/org/split/route.ts
+src/app/api/admin/purge/run-all/route.ts
+src/app/api/admin/purge/users/route.ts
+src/app/api/admin/ratelimit/endpoint/route.ts
+src/app/api/admin/ratelimit/org/route.ts
+src/app/api/admin/ratelimit/status/route.ts
+src/app/api/admin/ratelimit/user/route.ts
+src/app/api/admin/rbac/check/route.ts
+src/app/api/admin/rbac/update-role/route.ts
+src/app/api/admin/roles/route
+src/app/api/admin/route.ts
+src/app/api/admin/settings/route.ts
+src/app/api/admin/sso/config/route.ts
+src/app/api/admin/system-health/route.ts
+src/app/api/admin/update-role/route.ts
+src/app/api/admin/users/route.ts
+src/app/api/admin/workspace/delete/route.ts
+src/app/api/admin/workspace/suspend/route.ts
+src/app/api/admin/workspaces/route.ts
+src/app/api/ai-analysis/[grantId]/route.ts
+src/app/api/ai/agent/draft/route.ts
+src/app/api/ai/agent/execute/route.ts
+src/app/api/ai/agent/history/save/route.ts
+src/app/api/ai/agent/plan/route.ts
+src/app/api/ai/agent/research/route.ts
+src/app/api/ai/agent/route.ts
+src/app/api/ai/agent/run/route.ts
+src/app/api/ai/alignment-matrix/route.ts
+src/app/api/ai/analyze-document/route.ts
+src/app/api/ai/application-writer/route.ts
+src/app/api/ai/autoeditor/_lib/grantIntelligence.ts
+src/app/api/ai/autoeditor/_lib/unifiedModel.ts
+src/app/api/ai/autoeditor/clarity/route.ts
+src/app/api/ai/autoeditor/coherence/route.ts
+src/app/api/ai/autoeditor/constraints/route.ts
+src/app/api/ai/autoeditor/history/save/route.ts
+src/app/api/ai/autoeditor/rewrite/route.ts
+src/app/api/ai/autoeditor/route.ts
+src/app/api/ai/autoeditor/tone/route.ts
+src/app/api/ai/budget-planner/route.ts
+src/app/api/ai/budget-risk/route.ts
+src/app/api/ai/budget/compliance/route.ts
+src/app/api/ai/budget/create/route.ts
+src/app/api/ai/budget/history/save/route.ts
+src/app/api/ai/budget/justify/route.ts
+src/app/api/ai/budget/optimize/route.ts
+src/app/api/ai/budget/risk/route.ts
+src/app/api/ai/budget/route.ts
+src/app/api/ai/calendar/balance/route.ts
+src/app/api/ai/calendar/build/route.ts
+src/app/api/ai/calendar/extract-deadline/route.ts
+src/app/api/ai/calendar/priority/route.ts
+src/app/api/ai/calendar/route.ts
+src/app/api/ai/calendar/save/route.ts
+src/app/api/ai/calendar/timeline/route.ts
+src/app/api/ai/clarity/route.ts
+src/app/api/ai/closeout/assets/route.ts
+src/app/api/ai/closeout/checklist/route.ts
+src/app/api/ai/closeout/compliance/route.ts
+src/app/api/ai/closeout/finance/route.ts
+src/app/api/ai/closeout/history/route.ts
+src/app/api/ai/closeout/history/save/route.ts
+src/app/api/ai/closeout/report/route.ts
+src/app/api/ai/coherence/route.ts
+src/app/api/ai/compare/history/route.ts
+src/app/api/ai/compare/multi/route.ts
+src/app/api/ai/compare/route.ts
+src/app/api/ai/compare/save/route.ts
+src/app/api/ai/compare/table/route.ts
+src/app/api/ai/compare/two/route.ts
+src/app/api/ai/compliance/fix/route.ts
+src/app/api/ai/compliance/history/route.ts
+src/app/api/ai/compliance/history/save/route.ts
+src/app/api/ai/compliance/missing/route.ts
+src/app/api/ai/compliance/route.ts
+src/app/api/ai/compliance/rules/route.ts
+src/app/api/ai/compliance/scan/route.ts
+src/app/api/ai/compliance/score/route
+src/app/api/ai/decision/route.ts
+src/app/api/ai/editor/route.ts
+src/app/api/ai/eligibility/breakdown/route.ts
+src/app/api/ai/eligibility/bulk/route.ts
+src/app/api/ai/eligibility/check/route.ts
+src/app/api/ai/eligibility/risk/route.ts
+src/app/api/ai/eligibility/route.ts
+src/app/api/ai/eligility-predictor/route
+src/app/api/ai/evidence/route.ts
+src/app/api/ai/forecast/history/save/route.ts
+src/app/api/ai/forecast/multi-year/route.ts
+src/app/api/ai/forecast/probability-weighted/route.ts
+src/app/api/ai/forecast/risk-adjusted/route.ts
+src/app/api/ai/forecast/route.ts
+src/app/api/ai/forecast/scenarios/route.ts
+src/app/api/ai/forecast/simulate/route.ts
+src/app/api/ai/full-application/route.ts
+src/app/api/ai/gaps/ecosystem/route.ts
+src/app/api/ai/gaps/map/route.ts
+src/app/api/ai/gaps/opportunities/route.ts
+src/app/api/ai/gaps/route.ts
+src/app/api/ai/gaps/unmet-needs/route.ts
+src/app/api/ai/generate-grant/route.ts
+src/app/api/ai/generate/route.ts
+src/app/api/ai/grant-scout-advisor/route.ts
+src/app/api/ai/inline/route.ts
+src/app/api/ai/match/route.ts
+src/app/api/ai/matching/explain/route.ts
+src/app/api/ai/matching/history/save/route.ts
+src/app/api/ai/matching/probability-weighted/route.ts
+src/app/api/ai/matching/recommend/route.ts
+src/app/api/ai/matching/route.ts
+src/app/api/ai/matching/semantic/route.ts
+src/app/api/ai/monitoring/alerts/route.ts
+src/app/api/ai/monitoring/dashboard/route.ts
+src/app/api/ai/monitoring/forecast/route.ts
+src/app/api/ai/monitoring/health/route.ts
+src/app/api/ai/monitoring/kpis/route.ts
+src/app/api/ai/narrative/Coherence/route.ts
+src/app/api/ai/narrative/consistency/route.ts
+src/app/api/ai/narrative/generate/route.ts
+src/app/api/ai/narrative/reasoning/route.ts
+src/app/api/ai/narrative/route.ts
+src/app/api/ai/narrative/storytelling/route.ts
+src/app/api/ai/negotiation/budget/route.ts
+src/app/api/ai/negotiation/officer/route.ts
+src/app/api/ai/negotiation/rebuttal/route.ts
+src/app/api/ai/negotiation/scope/route.ts
+src/app/api/ai/negotiation/strategy/route.ts
+src/app/api/ai/opportunity/custom/route
+src/app/api/ai/opportunity/founder-style/route.ts
+src/app/api/ai/opportunity/gaps/route.ts
+src/app/api/ai/opportunity/map/route.ts
+src/app/api/ai/opportunity/synthetic/route.ts
+src/app/api/ai/optimization/route.ts
+src/app/api/ai/outreach/email/route.ts
+src/app/api/ai/outreach/followup/route.ts
+src/app/api/ai/outreach/meeting/route.ts
+src/app/api/ai/outreach/persona/route.ts
+src/app/api/ai/outreach/relationship/route.ts
+src/app/api/ai/outreach/route.ts
+src/app/api/ai/panel/route.ts
+src/app/api/ai/portfolio/breakdown/route.ts
+src/app/api/ai/portfolio/diversify/route.ts
+src/app/api/ai/portfolio/optimize/route.ts
+src/app/api/ai/portfolio/probability/route.ts
+src/app/api/ai/portfolio/rebalance/route.ts
+src/app/api/ai/portfolio/score/route.ts
+src/app/api/ai/probability/route.ts
+src/app/api/ai/quality/route.ts
+src/app/api/ai/rank-grants/route.ts
+src/app/api/ai/readability/route.ts
+src/app/api/ai/recommendations/route.ts
+src/app/api/ai/renewal/budget/route.ts
+src/app/api/ai/renewal/eligibility/route.ts
+src/app/api/ai/renewal/narrative/route.ts
+src/app/api/ai/renewal/probability/route.ts
+src/app/api/ai/renewal/strategy/route.ts
+src/app/api/ai/reviewer-pro/route.ts
+src/app/api/ai/reviewer-sim/route.ts
+src/app/api/ai/reviewer/compliance/route.ts
+src/app/api/ai/reviewer/evaluate/route.ts
+src/app/api/ai/reviewer/panel/route.ts
+src/app/api/ai/reviewer/revise/route.ts
+src/app/api/ai/reviewer/route.ts
+src/app/api/ai/reviewer/rubric/route.ts
+src/app/api/ai/rewrite/executive/route.ts
+src/app/api/ai/rewrite/multi/route.ts
+src/app/api/ai/rewrite/reviewer/route.ts
+src/app/api/ai/rewrite/route.ts
+src/app/api/ai/rewrite/single/route.ts
+src/app/api/ai/risk/compliance/route.ts
+src/app/api/ai/risk/funding/route.ts
+src/app/api/ai/risk/mitigation/route.ts
+src/app/api/ai/risk/operational/route.ts
+src/app/api/ai/risk/route.ts
+src/app/api/ai/risk/score/route.ts
+src/app/api/ai/scalability-predictor/route.ts
+src/app/api/ai/score-grant/route.ts
+src/app/api/ai/semantic-search/route.ts
+src/app/api/ai/submission/attachmants/final-compliance/route.ts
+src/app/api/ai/submission/checklist/route.ts
+src/app/api/ai/submission/formatting/route.ts
+src/app/api/ai/submission/history/save/route.ts
+src/app/api/ai/submission/readiness/route.ts
+src/app/api/ai/success-probability/route.ts
+src/app/api/ai/summarize-opportunity/route.ts
+src/app/api/ai/summary/route.ts
+src/app/api/ai/sustainability-analyzer/route.ts
+src/app/api/alerts/detect/route.ts
+src/app/api/alerts/generate/route.ts
+src/app/api/alerts/notify/route.ts
+src/app/api/alerts/rules/route.ts
+src/app/api/alerts/unified/route.ts
+src/app/api/applications/start/route.ts
+src/app/api/applications/submit/route.ts
+src/app/api/applications/update/route.ts
+src/app/api/applications/version/list/route.ts
+src/app/api/applications/version/restore/route.ts
+src/app/api/applications/version/save/route.ts
+src/app/api/assistant/coach/route.ts
+src/app/api/assistant/core/route.ts
+src/app/api/assistant/explain/route.ts
+src/app/api/assistant/strategy/route.ts
+src/app/api/assistant/unified/route.ts
+src/app/api/audit/list/route.ts
+src/app/api/audit/replay/route.ts
+src/app/api/audit/write/route.ts
+src/app/api/auth/check/route.ts
+src/app/api/auth/me/route.ts
+src/app/api/auth/org-role/route.ts
+src/app/api/auth/role/route.ts
+src/app/api/auth/workspace-role/route.ts
+src/app/api/billing-endpoint/cancel/route.ts
+src/app/api/billing-endpoint/checkout/addons/route.ts
+src/app/api/billing-endpoint/checkout/route.ts
+src/app/api/billing-endpoint/checkout/seats/route.ts
+src/app/api/billing-endpoint/checkout/simple/route.ts
+src/app/api/billing-endpoint/create-customer/route.ts
+src/app/api/billing-endpoint/create-session/route.ts
+src/app/api/billing-endpoint/events/route.ts
+src/app/api/billing-endpoint/history/route.ts
+src/app/api/billing-endpoint/invoices/[invoiceId]/pdf/route.ts
+src/app/api/billing-endpoint/invoices/[invoiceId]/route.ts
+src/app/api/billing-endpoint/invoices/route.ts
+src/app/api/billing-endpoint/limits/route.ts
+src/app/api/billing-endpoint/overview/route.ts
+src/app/api/billing-endpoint/owner/route.ts
+src/app/api/billing-endpoint/period/route.ts
+src/app/api/billing-endpoint/plan/route.ts
+src/app/api/billing-endpoint/plan/update/route.ts
+src/app/api/billing-endpoint/portal/route.ts
+src/app/api/billing-endpoint/reactivate/route.ts
+src/app/api/billing-endpoint/remove-addon/route.ts
+src/app/api/billing-endpoint/renewal/route.ts
+src/app/api/billing-endpoint/route.ts
+src/app/api/billing-endpoint/seats/checkout/route.ts
+src/app/api/billing-endpoint/status/route.ts
+src/app/api/billing-endpoint/subscription-sync/route.ts
+src/app/api/billing-endpoint/summary/route.ts
+src/app/api/billing-endpoint/switch-tier/route.ts
+src/app/api/billing-endpoint/update/route.ts
+src/app/api/billing-endpoint/usage-sync/route.ts
+src/app/api/billing-endpoint/usage/enforce/route.ts
+src/app/api/billing-endpoint/usage/route.ts
+src/app/api/billing-endpoint/webhook/route.ts
+src/app/api/billing/create-checkout/route.ts
+src/app/api/billing/portal/route.ts
+src/app/api/billing/seats/route.ts
+src/app/api/billing/usage/route.ts
+src/app/api/billing/webhook/route.ts
+src/app/api/budget/generate/route.ts
+src/app/api/budget/justify/route.ts
+src/app/api/budget/load/route.ts
+src/app/api/budget/optimize/route.ts
+src/app/api/budget/route.ts
+src/app/api/budget/save/route.ts
+src/app/api/closeout/assets/route.ts
+src/app/api/closeout/checklist/route.ts
+src/app/api/closeout/finacials/route.ts
+src/app/api/closeout/final-report/route.ts
+src/app/api/closeout/summary/route.ts
+src/app/api/clustering/cluster/route.ts
+src/app/api/clustering/compute/route.ts
+src/app/api/clustering/embeded/route.ts
+src/app/api/clustering/overview/route.ts
+src/app/api/collab/Stream/route.ts
+src/app/api/collab/edit/route.ts
+src/app/api/compare/[workspaceId]/route.ts
+src/app/api/compare/add/[workspaceId]/route.ts
+src/app/api/compare/clear/[workspaceId]/route.ts
+src/app/api/compare/remove/[workspaceId]/route.ts
+src/app/api/compare/route.ts
+src/app/api/crawl/grant-crawl/route.ts
+src/app/api/crm/activity/route.ts
+src/app/api/crm/contacts/route.ts
+src/app/api/crm/deals/route.ts
+src/app/api/crm/grant-activity/route.ts
+src/app/api/crm/grant-leads/route.ts
+src/app/api/crm/grant-notes/route.ts
+src/app/api/crm/grant-opportunities/route.ts
+src/app/api/crm/grant-pipeline/route.ts
+src/app/api/crm/leads/create/route.ts
+src/app/api/crm/leads/route.ts
+src/app/api/crm/leads/update-status/route.ts
+src/app/api/crm/notes/route.ts
+src/app/api/crm/organizations/route.ts
+src/app/api/crm/pipeline/route.ts
+src/app/api/cron/upcoming-deadlines/route.ts
+src/app/api/dashboard/metrics/route.ts
+src/app/api/dev/generate-key/route.ts
+src/app/api/dev/playground/route.ts
+src/app/api/dev/validate-key/route.ts
+src/app/api/developer/api-keys/create/route.ts
+src/app/api/developer/api-keys/list/route.ts
+src/app/api/developer/api-keys/revoke/route.ts
+src/app/api/developer/api-keys/rotate/route.ts
+src/app/api/developer/api-usage/list/route.ts
+src/app/api/developer/api-usage/log/route.ts
+src/app/api/developer/summary/route.ts
+src/app/api/docs/patch/route.ts
+src/app/api/docs/snapshot/route.ts
+src/app/api/docs/stream/route.ts
+src/app/api/documents/.DS_Store
+src/app/api/documents/[documentId]/messages/route.ts
+src/app/api/documents/[documentId]/patch/route.ts
+src/app/api/documents/[documentId]/presence/route.ts
+src/app/api/documents/[documentId]/version/route.ts
+src/app/api/documents/comments/create/route.ts
+src/app/api/documents/comments/list/route.ts
+src/app/api/documents/create/route.ts
+src/app/api/documents/events/list/route.ts
+src/app/api/documents/route.ts
+src/app/api/documents/tags/add/route.ts
+src/app/api/documents/tags/remove/route.ts
+src/app/api/documents/upload/route.ts
+src/app/api/documents/version/diff/route.ts
+src/app/api/documents/version/get/route.ts
+src/app/api/documents/version/history/route.ts
+src/app/api/documents/version/meta/route.ts
+src/app/api/documents/version/restore/route.ts
+src/app/api/documents/version/save/route.ts
+src/app/api/embeddings/ingest/route.ts
+src/app/api/embeddings/route.ts
+src/app/api/export/docx/route.ts
+src/app/api/export/pdf/route.ts
+src/app/api/extract-grant/route.ts
+src/app/api/feed/grants/route.ts
+src/app/api/files/get/route.ts
+src/app/api/files/route.ts
+src/app/api/files/upload/route.ts
+src/app/api/firecrawl/crawl/route.ts
+src/app/api/firecrawl/extract/route.ts
+src/app/api/firecrawl/index/route.ts
+src/app/api/firecrawl/ingest/route.ts
+src/app/api/firecrawl/metadata/route.ts
+src/app/api/firecrawl/scrape/route.ts
+src/app/api/firecrawl/search/route.ts
+src/app/api/grant-comparisons/.DS_Store
+src/app/api/grant-comparisons/[grantId]/route.ts
+src/app/api/grant-comparisons/route.ts
+src/app/api/grant-documents/[grantId]/delete/route.ts
+src/app/api/grant-documents/[grantId]/route.ts
+src/app/api/grant-documents/[grantId]/upload/route.ts
+src/app/api/grant-drafts/[grantId]/route.ts
+src/app/api/grant-drafts/[grantId]/save/route.ts
+src/app/api/grant-drafts/[grantId]/update/route.ts
+src/app/api/grant-history/[grantId]/route.ts
+src/app/api/grant-sections/[grantId]/route.ts
+src/app/api/grant-temp/[grant-temp]/ai/history/route.ts
+src/app/api/grant-temp/[grant-temp]/ai/route.ts
+src/app/api/grant-temp/[grant-temp]/ai/run/route.ts
+src/app/api/grant-temp/[grant-temp]/application/[applicationId]/route.ts
+src/app/api/grant-temp/[grant-temp]/application/[applicationId]/versions/route.ts
+src/app/api/grant-temp/[grant-temp]/application/route.ts
+src/app/api/grant-temp/[grant-temp]/documents/[docId]/route.ts
+src/app/api/grant-temp/[grant-temp]/documents/route.ts
+src/app/api/grant-temp/[grant-temp]/history/route.ts
+src/app/api/grant-temp/[grant-temp]/narrative/[narrativeId]/route.ts
+src/app/api/grant-temp/[grant-temp]/narrative/route.ts
+src/app/api/grant-temp/[grant-temp]/route.ts
+src/app/api/grant-temp/[grant-temp]/sections/[sectionId]/route.ts
+src/app/api/grant/[workspaceId]/[grantId]/route.ts
+src/app/api/grant/compare/route.ts
+src/app/api/grant/delete/route.ts
+src/app/api/grant/intelligence/eligibility/route.ts
+src/app/api/grant/intelligence/match/route.ts
+src/app/api/grant/intelligence/narrative/route.ts
+src/app/api/grant/intelligence/risk/route.ts
+src/app/api/grant/intelligence/route.ts
+src/app/api/grant/intelligence/score/route.ts
+src/app/api/grant/save/route.ts
+src/app/api/grant/update/route.ts
+src/app/api/grantcrawl/route.ts
+src/app/api/grantradar/unified/route.ts
+src/app/api/grants/[grantId]/detail/route.ts
+src/app/api/grants/[grantId]/related/route.ts
+src/app/api/grants/alerts/route.ts
+src/app/api/grants/analyze/route.ts
+src/app/api/grants/budget/route.ts
+src/app/api/grants/create/route.ts
+src/app/api/grants/delete/route.ts
+src/app/api/grants/documents/upload/route.ts
+src/app/api/grants/export/pdf/route.ts
+src/app/api/grants/facets/route.ts
+src/app/api/grants/federal/ingest/route.ts
+src/app/api/grants/foundations/ingest/route.ts
+src/app/api/grants/get/route.ts
+src/app/api/grants/import/api/route.ts
+src/app/api/grants/import/csv/route.ts
+src/app/api/grants/intelligence/route.ts
+src/app/api/grants/lifecycle/process/route.ts
+src/app/api/grants/match/route.ts
+src/app/api/grants/packet/pdf/route.ts
+src/app/api/grants/packet/route.ts
+src/app/api/grants/recommend/route.ts
+src/app/api/grants/recommendations/route.ts
+src/app/api/grants/region/route.ts
+src/app/api/grants/review/route.ts
+src/app/api/grants/rewrite/route.ts
+src/app/api/grants/route.ts
+src/app/api/grants/save/route.ts
+src/app/api/grants/score/route.ts
+src/app/api/grants/search/route.ts
+src/app/api/grants/sections/create/route.ts
+src/app/api/grants/state/ingest/route.ts
+src/app/api/grants/status/update/route.ts
+src/app/api/grants/timeline/route.ts
+src/app/api/grants/unsave/route.ts
+src/app/api/grants/update/route.ts
+src/app/api/grants/write/route.ts
+src/app/api/help-ai/route.ts
+src/app/api/index/route.ts
+src/app/api/ingest/grant/route.ts
+src/app/api/intelligence/eligibility/route.ts
+src/app/api/intelligence/match-confidence/route.ts
+src/app/api/intelligence/oportunity-insights/route.ts
+src/app/api/intelligence/ranking/route.ts
+src/app/api/intelligence/risk-flags/route.ts
+src/app/api/intelligence/score/route.ts
+src/app/api/intelligence/strategic-recommendations/route.ts
+src/app/api/internal/cleanup-orphans/route.ts
+src/app/api/internal/reindex-document/route.ts
+src/app/api/internal/reindex-workspace/route.ts
+src/app/api/jobs/.DS_Store
+src/app/api/jobs/[jobId]/.DS_Store
+src/app/api/jobs/[jobId]/cancel/route.ts
+src/app/api/jobs/[jobId]/delete/route.ts
+src/app/api/jobs/[jobId]/duplicate/route.ts
+src/app/api/jobs/[jobId]/logs/route.ts
+src/app/api/jobs/[jobId]/rerun/route.ts
+src/app/api/jobs/[jobId]/retry/route.ts
+src/app/api/jobs/[jobId]/route.ts
+src/app/api/jobs/create/route.ts
+src/app/api/jobs/process/route.ts
+src/app/api/jobs/route.ts
+src/app/api/location/intelligence/route.ts
+src/app/api/match-grants/[documentId]/route.ts
+src/app/api/match-grants/route.ts
+src/app/api/messages/conversation/route.ts
+src/app/api/messages/send/route.ts
+src/app/api/narrative/[grantId]/route.ts
+src/app/api/narrative/[grantId]/save/route.ts
+src/app/api/narrative/[grantId]/update/route.ts
+src/app/api/notifications/admin-broadcast/route.ts
+src/app/api/notifications/ai-extraction-complete/route.ts
+src/app/api/notifications/billing-failure/route.ts
+src/app/api/notifications/create/route.ts
+src/app/api/notifications/delete/route.ts
+src/app/api/notifications/email/route.ts
+src/app/api/notifications/list/route.ts
+src/app/api/notifications/read/route.ts
+src/app/api/notifications/stream/route.ts
+src/app/api/notifications/trial-expiration/route.ts
+src/app/api/notifications/unread-count/route.ts
+src/app/api/onboarding/route-BEFORE-FIRECRAWL-WORKING.ts
+src/app/api/onboarding/route-BUILD2-working.ts
+src/app/api/onboarding/route-BUILD4-pre-firecrawl.ts
+src/app/api/onboarding/route.ts
+src/app/api/org/audit/list/route.ts
+src/app/api/org/billing/consolidate/route.ts
+src/app/api/org/billing/route.ts
+src/app/api/org/check-permission/route.ts
+src/app/api/org/custom-roles/route.ts
+src/app/api/org/invite/route.ts
+src/app/api/org/remove/route.ts
+src/app/api/org/share/check/route.ts
+src/app/api/org/share/create/route.ts
+src/app/api/org/share/grant/route.ts
+src/app/api/org/share/list/route.ts
+src/app/api/org/share/revoke/route.ts
+src/app/api/org/strict/check/route.ts
+src/app/api/org/update/route.ts
+src/app/api/org/user/route.ts
+src/app/api/packet/compliance/route.ts
+src/app/api/packet/final/route.ts
+src/app/api/packet/formatting/route.ts
+src/app/api/packet/pdf/route.ts
+src/app/api/packet/required-documents/route.ts
+src/app/api/public/document/get/route.ts
+src/app/api/public/document/metadata/route.ts
+src/app/api/public/document/search/route.ts
+src/app/api/queue/add/route.ts
+src/app/api/queue/process/route.ts
+src/app/api/rag/answer/route.ts
+src/app/api/realtime/chat/send/route.ts
+src/app/api/realtime/comments/add/route.ts
+src/app/api/realtime/cursor/route.ts
+src/app/api/realtime/edit/document/route.ts
+src/app/api/realtime/edit/grant/route.ts
+src/app/api/realtime/edit/route.ts
+src/app/api/realtime/events/route.ts
+src/app/api/realtime/presence/route.ts
+src/app/api/realtime/socket/route.ts
+src/app/api/recommendations/route.ts
+src/app/api/region/info/route.ts
+src/app/api/reports/csv/route.ts
+src/app/api/reports/pdf/route.ts
+src/app/api/saved-grant/[grantId]/route.ts
+src/app/api/saved-grant/delete/route.ts
+src/app/api/saved-grant/route.ts
+src/app/api/saved-searches/[searchId]/route.ts
+src/app/api/saved-searches/delete/route.ts
+src/app/api/saved-searches/route.ts
+src/app/api/saved-searches/run/route.ts
+src/app/api/saved/route.ts
+src/app/api/score-grant/ingest/route.ts
+src/app/api/score-grant/route.ts
+src/app/api/scraper/extract/route.ts
+src/app/api/scraper/html/route.ts
+src/app/api/scraper/import/route.ts
+src/app/api/scraper/json/route.ts
+src/app/api/scraper/rss/route.ts
+src/app/api/scraper/run-all/route.ts
+src/app/api/search-grants/route.ts
+src/app/api/search-history/route.ts
+src/app/api/search/[workspaceId]/route.ts
+src/app/api/search/embed-grant/route.ts
+src/app/api/search/route.ts
+src/app/api/search/semantic/route.ts
+src/app/api/search/track/route.ts
+src/app/api/sentry-example-api/route.ts
+src/app/api/settings/account/delete/route.ts
+src/app/api/settings/preferences/update/route.ts
+src/app/api/settings/profile/update/route.ts
+src/app/api/settings/security/2fa/setup/route.ts
+src/app/api/settings/security/change-password/route.ts
+src/app/api/sso/oauth/callback/route.ts
+src/app/api/sso/oauth/login/route.ts
+src/app/api/sso/provision/route.ts
+src/app/api/sso/saml/acs/route.ts
+src/app/api/sso/saml/metadata/route.ts
+src/app/api/state/insights/route.ts
+src/app/api/state/intelligence/route.ts
+src/app/api/state/ranking/route.ts
+src/app/api/state/search/route.ts
+src/app/api/state/structure/route.ts
+src/app/api/stripe/checkout/route.ts
+src/app/api/stripe/create-checkout-session/route.ts
+src/app/api/stripe/create-customer/route.ts
+src/app/api/stripe/create-portal-session/route.ts
+src/app/api/stripe/create-subscription/route.ts
+src/app/api/stripe/customer/delete/route.ts
+src/app/api/stripe/customer/route.ts
+src/app/api/stripe/customer/sync/route.ts
+src/app/api/stripe/invoice/list/route.ts
+src/app/api/stripe/payment-intent/create/route.ts
+src/app/api/stripe/payment-method/sync/route.ts
+src/app/api/stripe/portal/route.ts
+src/app/api/stripe/prices/route.ts
+src/app/api/stripe/products/route.ts
+src/app/api/stripe/subscription/cancel/route.ts
+src/app/api/stripe/subscription/create/route.ts
+src/app/api/stripe/subscription/resume/route.ts
+src/app/api/stripe/subscription/sync/route.ts
+src/app/api/stripe/usage/route.ts
+src/app/api/stripe/webhook/route.ts
+src/app/api/sync/all/route.ts
+src/app/api/sync/application/route.ts
+src/app/api/sync/audit/route.ts
+src/app/api/sync/grants/route.ts
+src/app/api/sync/users/route.ts
+src/app/api/system/diagnostics/route.ts
+src/app/api/system/health/route.ts
+src/app/api/team/add/route.ts
+src/app/api/team/remove/route.ts
+src/app/api/trial/lock/route.ts
+src/app/api/trial/notify/route.ts
+src/app/api/trial/status/route.ts
+src/app/api/unsave-grant/[grantId]/route.ts
+src/app/api/usage/ai/track/route.ts
+src/app/api/usage/members/track/route.ts
+src/app/api/usage/report/route.ts
+src/app/api/usage/reset/route.ts
+src/app/api/usage/uploads/track/route.ts
+src/app/api/user/limits/route.ts
+src/app/api/vault/delete/route.ts
+src/app/api/vault/extract/route.ts
+src/app/api/vault/index/route.ts
+src/app/api/vault/list/route.ts
+src/app/api/vault/metadata/route.ts
+src/app/api/vault/structured/route.ts
+src/app/api/vault/upload/route.ts
+src/app/api/webhook/route.ts
+src/app/api/webhooks/ai-events/route.ts
+src/app/api/webhooks/clerk/route.ts
+src/app/api/webhooks/stripe/route.ts
+src/app/api/workspace/[workspaceId]/admin/route.ts
+src/app/api/workspace/[workspaceId]/billing/route.ts
+src/app/api/workspace/[workspaceId]/chat/route.ts
+src/app/api/workspace/[workspaceId]/dashboard/route.ts
+src/app/api/workspace/[workspaceId]/events/list/route.ts
+src/app/api/workspace/[workspaceId]/grants/route.ts
+src/app/api/workspace/[workspaceId]/invite/route.ts
+src/app/api/workspace/[workspaceId]/locations/route.ts
+src/app/api/workspace/[workspaceId]/members/route.ts
+src/app/api/workspace/[workspaceId]/notifications/route.ts
+src/app/api/workspace/[workspaceId]/portfolio/route.ts
+src/app/api/workspace/[workspaceId]/presence/route.ts
+src/app/api/workspace/[workspaceId]/route.ts
+src/app/api/workspace/[workspaceId]/search/route.ts
+src/app/api/workspace/[workspaceId]/upload/route.ts
+src/app/api/workspace/activity/list/route.ts
+src/app/api/workspace/addUser/route.ts
+src/app/api/workspace/create/route.ts
+src/app/api/workspace/dashboard-ai/route.ts
+src/app/api/workspace/dashboard-summary/route.ts
+src/app/api/workspace/delete/route.ts
+src/app/api/workspace/invite/route.ts
+src/app/api/workspace/lock/route.ts
+src/app/api/workspace/members/route.ts
+src/app/api/workspace/notifications/list/route.ts
+src/app/api/workspace/permissions/route.ts
+src/app/api/workspace/removeUser/route.ts
+src/app/api/workspace/role/route.ts
+src/app/api/workspace/settings/name/route.ts
+src/app/api/workspace/settings/route.ts
+src/app/api/workspace/status-sync/route.ts
+src/app/api/workspace/sync/route.ts
+src/app/api/workspace/trial-status/route.ts
+src/app/api/workspace/update/route.ts
+src/app/api/workspace/usage/route.ts
+src/app/api/workspaces/.DS_Store
+src/app/api/workspaces/_id/.DS_Store
+src/app/api/workspaces/_id/acl /check/routes
+src/app/api/workspaces/_id/acl /get/route.ts
+src/app/api/workspaces/_id/acl /route.ts
+src/app/api/workspaces/_id/acl /self/route.ts
+src/app/api/workspaces/_id/acl /update/route.ts
+src/app/api/workspaces/_id/activity/route.ts
+src/app/api/workspaces/_id/addons/activate/route.ts
+src/app/api/workspaces/_id/addons/deactivate/route.ts
+src/app/api/workspaces/_id/addons/status/route.ts
+src/app/api/workspaces/_id/admin/members/route.ts
+src/app/api/workspaces/_id/admin/permissions/route.ts
+src/app/api/workspaces/_id/admin/route.ts
+src/app/api/workspaces/_id/ai/actions/route.ts
+src/app/api/workspaces/_id/ai/alignment/route.ts
+src/app/api/workspaces/_id/ai/answer/route.ts
+src/app/api/workspaces/_id/ai/autoeditor/route.ts
+src/app/api/workspaces/_id/ai/automation/route.ts
+src/app/api/workspaces/_id/ai/capabilities/route.ts
+src/app/api/workspaces/_id/ai/chat/route.ts
+src/app/api/workspaces/_id/ai/clustering/route.ts
+src/app/api/workspaces/_id/ai/compliance/route.ts
+src/app/api/workspaces/_id/ai/diagnostics/route.ts
+src/app/api/workspaces/_id/ai/duplication/route.ts
+src/app/api/workspaces/_id/ai/embeddings/route.ts
+src/app/api/workspaces/_id/ai/forecast/route.ts
+src/app/api/workspaces/_id/ai/gap-analysis/route.ts
+src/app/api/workspaces/_id/ai/health/route.ts
+src/app/api/workspaces/_id/ai/knowledge-graph/route.ts
+src/app/api/workspaces/_id/ai/meta/route.ts
+src/app/api/workspaces/_id/ai/multi-year-forecast/route.ts
+src/app/api/workspaces/_id/ai/opportunity-insights/route.ts
+src/app/api/workspaces/_id/ai/orchestrate/route.ts
+src/app/api/workspaces/_id/ai/piplines/route.ts
+src/app/api/workspaces/_id/ai/probability/route.ts
+src/app/api/workspaces/_id/ai/rag/route.ts
+src/app/api/workspaces/_id/ai/ranking/route.ts
+src/app/api/workspaces/_id/ai/readiness/route.ts
+src/app/api/workspaces/_id/ai/reviewer-sim/route.ts
+src/app/api/workspaces/_id/ai/risk-adjusted-forcast/route.ts
+src/app/api/workspaces/_id/ai/risk-flags/route.ts
+src/app/api/workspaces/_id/ai/scenario-simulation/route.ts
+src/app/api/workspaces/_id/ai/scoring-advanced/route.ts
+src/app/api/workspaces/_id/ai/scoring/route.ts
+src/app/api/workspaces/_id/ai/semantic-grouping/route.ts
+src/app/api/workspaces/_id/ai/semantic-index/route.ts
+src/app/api/workspaces/_id/ai/semantic-search/route.ts
+src/app/api/workspaces/_id/ai/strategic-recommendations/route.ts
+src/app/api/workspaces/_id/ai/summaries/route.ts
+src/app/api/workspaces/_id/ai/topic-modeling/route.ts
+src/app/api/workspaces/_id/ai/triggers/route.ts
+src/app/api/workspaces/_id/ai/workflows/route.ts
+src/app/api/workspaces/_id/analytics/activity-log/route.ts
+src/app/api/workspaces/_id/analytics/overview/route.ts
+src/app/api/workspaces/_id/analytics/route.ts
+src/app/api/workspaces/_id/analytics/search/route.ts
+src/app/api/workspaces/_id/billing/overview/route.ts
+src/app/api/workspaces/_id/billing/route.ts
+src/app/api/workspaces/_id/billing/update-plan/route.ts
+src/app/api/workspaces/_id/billing/usage/route.ts
+src/app/api/workspaces/_id/chat/route.ts
+src/app/api/workspaces/_id/detail/route.ts
+src/app/api/workspaces/_id/documents/.DS_Store
+src/app/api/workspaces/_id/documents/[documentId]/.DS_Store
+src/app/api/workspaces/_id/documents/[documentId]/ai /aiUtils.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /alignment/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /analyze/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /answer/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /application-intelligence/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /autoeditor/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /batch-sections/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /batch/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /budget-intelligence/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /budget-risk/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /chat/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /checklist/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /clarity/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /classify/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /coherence-advanced/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /coherence/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /comments/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /compliance/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /constraints/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /cross-document/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /efficiency/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /embeddings/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /evidence/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /extract/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /funders/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /grant-intelligence/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /grant-link/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /improve/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /inline/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /innovation/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /monitoring-intelligence/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /multi-year-impact/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /narrative/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /presence/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /rag/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /readability/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /readiness/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /renewal-intelligence/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /review/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /reviewer-sim/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /rewrite/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /risk-heatmap/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /risk-mitigation/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /risk/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /scalability/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /scoring/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /semantic-search/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /snapshots/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /stakeholders/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /suggest/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /summarize/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /summarizer/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /sustainability/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /timeline/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /tone/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /version/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /viewer/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/ai /workspace-search/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/comments/create/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/comments/delete/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/comments/list/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/comments/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/comments/update/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/file/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/get/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/messages/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/patch/apply/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/patch/create/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/patch/list/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/patch/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/presence/chat/delete/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/presence/chat/list/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/presence/chat/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/presence/chat/send/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/presence/chat/thread/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/presence/leave/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/presence/list/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/presence/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/presence/update/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/search/index/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/share/add/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/share/create/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/share/list/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/share/remove/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/share/revoke/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/share/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/snapshots/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/update/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/version/[versionId]/restore/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/version/create/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/version/diff/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/version/list/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/version/restore/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/version/route.ts
+src/app/api/workspaces/_id/documents/[documentId]/viewer/route.ts
+src/app/api/workspaces/_id/documents/activity/route.ts
+src/app/api/workspaces/_id/documents/create/route.ts
+src/app/api/workspaces/_id/documents/delete/route.ts
+src/app/api/workspaces/_id/documents/documents/upload/route.ts
+src/app/api/workspaces/_id/documents/list/route.ts
+src/app/api/workspaces/_id/documents/update/route.ts
+src/app/api/workspaces/_id/documents/upload/route.ts
+src/app/api/workspaces/_id/grants/[grantId]/acl/self/route.ts
+src/app/api/workspaces/_id/grants/[grantId]/ai/route.ts
+src/app/api/workspaces/_id/grants/[grantId]/detail/route.ts
+src/app/api/workspaces/_id/grants/[grantId]/editor/route.ts
+src/app/api/workspaces/_id/grants/[grantId]/intelligence/route.ts
+src/app/api/workspaces/_id/grants/[grantId]/viewer/route.ts
+src/app/api/workspaces/_id/grants/compare/route.ts
+src/app/api/workspaces/_id/grants/list/route.ts
+src/app/api/workspaces/_id/grants/search/route.ts
+src/app/api/workspaces/_id/insights/route.ts
+src/app/api/workspaces/_id/invite/route.ts
+src/app/api/workspaces/_id/invites/_inviteId/route.ts
+src/app/api/workspaces/_id/invites/route.ts
+src/app/api/workspaces/_id/members/[memberId]/route.ts
+src/app/api/workspaces/_id/members/_userId/route.ts
+src/app/api/workspaces/_id/members/add/route.ts
+src/app/api/workspaces/_id/members/list/route.ts
+src/app/api/workspaces/_id/members/remove/route.ts
+src/app/api/workspaces/_id/members/route.ts
+src/app/api/workspaces/_id/notifications/create/route.ts
+src/app/api/workspaces/_id/notifications/delete/route.ts
+src/app/api/workspaces/_id/notifications/list/route.ts
+src/app/api/workspaces/_id/notifications/mark-read/route.ts
+src/app/api/workspaces/_id/notifications/read/route.ts
+src/app/api/workspaces/_id/notifications/route.ts
+src/app/api/workspaces/_id/notifications/unread-count/route.ts
+src/app/api/workspaces/_id/route.ts
+src/app/api/workspaces/_id/search/query/route.ts
+src/app/api/workspaces/_id/search/route.ts
+src/app/api/workspaces/_id/trial/lock/route.ts
+src/app/api/workspaces/_id/trial/override/route.ts
+src/app/api/workspaces/_id/trial/route.ts
+src/app/api/workspaces/_id/trial/status/route.ts
+src/app/api/workspaces/_id/trial/unlock/route.ts
+src/app/api/workspaces/_id/update/route.ts
+src/app/api/workspaces/_id/upload/route.ts
+src/app/api/workspaces/_id/usage/route.ts
+src/app/api/workspaces/_utils.ts
+src/app/api/workspaces/create/route.ts
+src/app/api/workspaces/list/route.ts
+src/app/api/workspaces/route.ts
+src/app/api/workspaces/switch/route.ts
+src/app/api/writer/budget-justification/route.ts
+src/app/api/writer/compliance/route.ts
+src/app/api/writer/full-proposal/route.ts
+src/app/api/writer/narrative/route.ts
+src/app/api/writer/revision/route.ts
+src/app/api/writer/section/route.ts
+src/app/api/writer/tone-style/route.ts

@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 /**
  * Require an authenticated Clerk user.
- * Returns the User record from your database.
+ * Auto-provisions a Prisma User record if one does not exist.
  */
 export async function requireUser() {
   const { userId } = await auth();
@@ -12,12 +12,21 @@ export async function requireUser() {
     throw new Error("Unauthorized: No Clerk user found.");
   }
 
-  const user = await prisma.user.findUnique({
+  let user = await prisma.user.findUnique({
     where: { id: userId },
   });
 
   if (!user) {
-    throw new Error("User not found in database.");
+    console.log(
+      `Auto-provisioning new Prisma user for Clerk user: ${userId}`
+    );
+
+    user = await prisma.user.create({
+      data: {
+        id: userId,
+        role: "user",
+      },
+    });
   }
 
   return user;
@@ -77,7 +86,10 @@ export async function requireWorkspaceOwner(workspaceId: string) {
 export async function requireWorkspaceNotSuspended(workspaceId: string) {
   const workspace = await prisma.workspace.findUnique({
     where: { id: workspaceId },
-    select: { suspended: true, suspendedAt: true },
+    select: {
+      suspended: true,
+      suspendedAt: true,
+    },
   });
 
   if (!workspace) {
@@ -86,7 +98,9 @@ export async function requireWorkspaceNotSuspended(workspaceId: string) {
 
   if (workspace.suspended) {
     throw new Error(
-      `Workspace is suspended as of ${workspace.suspendedAt || "unknown date"}.`
+      `Workspace is suspended as of ${
+        workspace.suspendedAt || "unknown date"
+      }.`
     );
   }
 
@@ -112,7 +126,9 @@ export async function requireActiveSeat(workspaceId: string) {
   });
 
   if (!seat) {
-    throw new Error("You do not have an active seat in this workspace.");
+    throw new Error(
+      "You do not have an active seat in this workspace."
+    );
   }
 
   return seat;
@@ -127,7 +143,9 @@ export async function requireBillingLimits(workspaceId: string) {
   });
 
   if (!billing) {
-    throw new Error("Billing record not found for workspace.");
+    throw new Error(
+      "Billing record not found for workspace."
+    );
   }
 
   return billing;
