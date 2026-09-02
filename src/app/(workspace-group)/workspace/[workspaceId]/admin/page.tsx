@@ -21,7 +21,7 @@ export default function AdminConsolePage({
 
   useEffect(() => {
     const load = async () => {
-      const res = await fetch(`/api/workspace/${workspaceId}/admin`);
+      const res = await fetch(`/api/workspaces/${workspaceId}/admin`);
       const json = await res.json();
       setData(json);
       setLoading(false);

@@ -9,7 +9,7 @@ export default function VersionsPanel({ workspaceId, documentId, userId }) {
   async function fetchVersions() {
     try {
       const res = await fetch(
-        `/api/workspace/${workspaceId}/documents/${documentId}/versions`
+        `/api/workspaces/${workspaceId}/documents/${documentId}/versions`
       );
       const data = await res.json();
       setVersions(data.versions || []);
@@ -23,7 +23,7 @@ export default function VersionsPanel({ workspaceId, documentId, userId }) {
   async function restoreVersion(versionId) {
     try {
       await fetch(
-        `/api/workspace/${workspaceId}/documents/${documentId}/versions`,
+        `/api/workspaces/${workspaceId}/documents/${documentId}/versions`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },

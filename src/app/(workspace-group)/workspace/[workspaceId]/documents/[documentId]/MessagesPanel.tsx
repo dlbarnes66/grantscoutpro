@@ -10,7 +10,7 @@ export default function MessagesPanel({ workspaceId, documentId, userId }) {
   async function fetchMessages() {
     try {
       const res = await fetch(
-        `/api/workspace/${workspaceId}/documents/${documentId}/messages`
+        `/api/workspaces/${workspaceId}/documents/${documentId}/messages`
       );
       const data = await res.json();
       setMessages(data.messages || []);
@@ -26,7 +26,7 @@ export default function MessagesPanel({ workspaceId, documentId, userId }) {
 
     try {
       await fetch(
-        `/api/workspace/${workspaceId}/documents/${documentId}/messages`,
+        `/api/workspaces/${workspaceId}/documents/${documentId}/messages`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

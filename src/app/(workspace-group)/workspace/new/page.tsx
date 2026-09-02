@@ -15,7 +15,7 @@ export default function NewWorkspacePage() {
       setCreating(true);
       setError("");
 
-      const res = await fetch("/api/workspace/create", {
+      const res = await fetch("/api/workspaces/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -20,7 +20,7 @@ export default function BillingPage({
 
   useEffect(() => {
     const load = async () => {
-      const res = await fetch(`/api/workspace/${workspaceId}/billing`);
+      const res = await fetch(`/api/workspaces/${workspaceId}/billing`);
       const json = await res.json();
       setBilling(json.billing);
       setLoading(false);

@@ -15,7 +15,7 @@ export default function GrantReviewerPanel({
 
     try {
       const res = await fetch(
-        `/api/workspace/${workspaceId}/documents/${documentId}/ai/review`,
+        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/review`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

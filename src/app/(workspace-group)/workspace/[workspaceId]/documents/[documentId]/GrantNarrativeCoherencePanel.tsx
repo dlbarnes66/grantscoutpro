@@ -15,7 +15,7 @@ export default function GrantNarrativeCoherencePanel({
 
     try {
       const res = await fetch(
-        `/api/workspace/${workspaceId}/documents/${documentId}/ai/coherence`,
+        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/coherence`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

@@ -19,7 +19,7 @@ export default function GrantRequirementsPanel({
 
     try {
       const res = await fetch(
-        `/api/workspace/${workspaceId}/documents/${documentId}/ai/requirements`,
+        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/requirements`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

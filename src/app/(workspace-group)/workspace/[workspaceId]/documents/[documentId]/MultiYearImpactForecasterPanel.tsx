@@ -15,7 +15,7 @@ export default function GrantMultiYearImpactForecasterPanel({
 
     try {
       const res = await fetch(
-        `/api/workspace/${workspaceId}/documents/${documentId}/ai/multi-year-impact`,
+        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/multi-year-impact`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

@@ -16,7 +16,7 @@ export default function StrengthWeaknessRatioPanel({
 
     try {
       const res = await fetch(
-        `/api/workspace/${workspaceId}/documents/${documentId}/ai/ratio`,
+        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/ratio`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

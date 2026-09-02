@@ -15,7 +15,7 @@ export default function GrantEvidenceStrengthPanel({
 
     try {
       const res = await fetch(
-        `/api/workspace/${workspaceId}/documents/${documentId}/ai/evidence`,
+        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/evidence`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

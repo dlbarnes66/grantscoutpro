@@ -15,7 +15,7 @@ export default function GrantBudgetRiskPanel({
 
     try {
       const res = await fetch(
-        `/api/workspace/${workspaceId}/documents/${documentId}/ai/budget-risk`,
+        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/budget-risk`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

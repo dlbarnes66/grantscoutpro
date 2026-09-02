@@ -10,7 +10,7 @@ export default function CommentsPanel({ workspaceId, documentId, userId }) {
   async function fetchComments() {
     try {
       const res = await fetch(
-        `/api/workspace/${workspaceId}/documents/${documentId}/comments`
+        `/api/workspaces/${workspaceId}/documents/${documentId}/comments`
       );
       const data = await res.json();
       setComments(data.comments || []);
@@ -26,7 +26,7 @@ export default function CommentsPanel({ workspaceId, documentId, userId }) {
 
     try {
       await fetch(
-        `/api/workspace/${workspaceId}/documents/${documentId}/comments`,
+        `/api/workspaces/${workspaceId}/documents/${documentId}/comments`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

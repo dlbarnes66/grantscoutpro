@@ -10,7 +10,7 @@ export default function EmbeddingsPanel({ workspaceId, documentId, userId }) {
   async function fetchEmbeddings() {
     try {
       const res = await fetch(
-        `/api/workspace/${workspaceId}/documents/${documentId}/embeddings`
+        `/api/workspaces/${workspaceId}/documents/${documentId}/embeddings`
       );
       const data = await res.json();
       setEmbeddings(data.embeddings || null);
@@ -26,7 +26,7 @@ export default function EmbeddingsPanel({ workspaceId, documentId, userId }) {
 
     try {
       await fetch(
-        `/api/workspace/${workspaceId}/documents/${documentId}/embeddings`,
+        `/api/workspaces/${workspaceId}/documents/${documentId}/embeddings`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

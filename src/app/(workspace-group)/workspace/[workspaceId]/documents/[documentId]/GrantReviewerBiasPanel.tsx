@@ -17,7 +17,7 @@ export default function GrantReviewerBiasPanel({
 
     try {
       const res = await fetch(
-        `/api/workspace/${workspaceId}/documents/${documentId}/ai/bias`,
+        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/bias`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

@@ -16,7 +16,7 @@ export default function ComplianceCheckerPanel({
 
     try {
       const res = await fetch(
-        `/api/workspace/${workspaceId}/documents/${documentId}/ai/compliance`,
+        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/compliance`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

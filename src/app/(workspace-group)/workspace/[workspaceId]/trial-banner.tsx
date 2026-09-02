@@ -8,7 +8,7 @@ export function TrialBanner({ workspaceId }: { workspaceId: string }) {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(`/api/workspace/${workspaceId}/trial/status`);
+        const res = await fetch(`/api/workspaces/${workspaceId}/trial/status`);
         if (res.ok) {
           setData(await res.json());
         }

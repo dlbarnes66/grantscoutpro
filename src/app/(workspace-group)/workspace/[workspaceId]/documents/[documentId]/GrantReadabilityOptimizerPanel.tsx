@@ -15,7 +15,7 @@ export default function GrantReadabilityOptimizerPanel({
 
     try {
       const res = await fetch(
-        `/api/workspace/${workspaceId}/documents/${documentId}/ai/readability`,
+        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/readability`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

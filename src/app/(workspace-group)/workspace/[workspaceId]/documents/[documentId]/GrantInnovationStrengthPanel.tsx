@@ -17,7 +17,7 @@ export default function GrantInnovationStrengthPanel({
 
     try {
       const res = await fetch(
-        `/api/workspace/${workspaceId}/documents/${documentId}/ai/innovation`,
+        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/innovation`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

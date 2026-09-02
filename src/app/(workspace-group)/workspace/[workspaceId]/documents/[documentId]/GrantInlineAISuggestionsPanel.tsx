@@ -16,7 +16,7 @@ export default function GrantInlineAISuggestionsPanel({
 
     try {
       const res = await fetch(
-        `/api/workspace/${workspaceId}/documents/${documentId}/ai/inline`,
+        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/inline`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

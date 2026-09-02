@@ -18,7 +18,7 @@ export default function GrantBudgetBuilderPanel({
 
     try {
       const res = await fetch(
-        `/api/workspace/${workspaceId}/documents/${documentId}/ai/budget`,
+        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/budget`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

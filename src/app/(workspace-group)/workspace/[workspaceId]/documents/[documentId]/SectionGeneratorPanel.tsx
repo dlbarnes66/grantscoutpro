@@ -18,7 +18,7 @@ export default function SectionGeneratorPanel({
 
     try {
       const res = await fetch(
-        `/api/workspace/${workspaceId}/documents/${documentId}/ai/sections`,
+        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/sections`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -54,7 +54,7 @@ export default function SectionGeneratorPanel({
 
     try {
       const res = await fetch(
-        `/api/workspace/${workspaceId}/documents/${documentId}/ai/sections`,
+        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/sections`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

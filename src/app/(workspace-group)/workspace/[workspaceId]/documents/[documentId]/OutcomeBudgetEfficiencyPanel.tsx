@@ -17,7 +17,7 @@ export default function OutcomeBudgetEfficiencyPanel({
 
     try {
       const res = await fetch(
-        `/api/workspace/${workspaceId}/documents/${documentId}/ai/efficiency`,
+        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/efficiency`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

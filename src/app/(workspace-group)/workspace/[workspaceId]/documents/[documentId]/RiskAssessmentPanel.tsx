@@ -16,7 +16,7 @@ export default function RiskAssessmentPanel({
 
     try {
       const res = await fetch(
-        `/api/workspace/${workspaceId}/documents/${documentId}/ai/risk`,
+        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/risk`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

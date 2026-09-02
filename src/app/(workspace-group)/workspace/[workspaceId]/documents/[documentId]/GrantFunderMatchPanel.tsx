@@ -16,7 +16,7 @@ export default function GrantFunderMatchPanel({
 
     try {
       const res = await fetch(
-        `/api/workspace/${workspaceId}/documents/${documentId}/ai/funders`,
+        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/funders`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

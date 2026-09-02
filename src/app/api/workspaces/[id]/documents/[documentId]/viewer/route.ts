@@ -5,45 +5,53 @@ export const dynamic = "force-dynamic";
 
 export async function GET(
   req: NextRequest,
-  {
-    params,
-  }: {
-    params: {
+  context: {
+    params: Promise<{
       id: string;
       documentId: string;
-    };
+    }>;
   }
 ) {
-  const { userId } = await auth();
-
-  if (!userId) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    );
-  }
-
   try {
+    const { userId } = await auth();
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const params = await context.params;
+
     const url = new URL(req.url);
 
     return NextResponse.json({
       success: true,
       workspaceId: params.id,
       documentId: params.documentId,
+      content: "",
       query: Object.fromEntries(
         url.searchParams.entries()
       ),
-      file: "placeholder",
     });
-  } catch (err: any) {
+  } catch (error) {
     console.error(
-      "WORKSPACE DOCUMENT FILE ERROR:",
-      err
+      "WORKSPACE DOCUMENT VIEWER ERROR:",
+      error
     );
 
     return NextResponse.json(
-      { error: err.message },
-      { status: 500 }
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unknown error",
+      },
+      {
+        status: 500,
+      }
     );
   }
 }
+``

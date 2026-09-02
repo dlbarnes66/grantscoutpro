@@ -15,7 +15,7 @@ export default function GrantRiskHeatmapPanel({
 
     try {
       const res = await fetch(
-        `/api/workspace/${workspaceId}/documents/${documentId}/ai/risk-heatmap`,
+        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/risk-heatmap`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

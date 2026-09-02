@@ -20,7 +20,7 @@ export default function InsightsPage({
   const [generating, setGenerating] = useState(false);
 
   const load = async () => {
-    const res = await fetch(`/api/workspace/${workspaceId}/insights`);
+    const res = await fetch(`/api/workspaces/${workspaceId}/insights`);
     const json = await res.json();
     setInsights(json.insights || []);
     setLoading(false);
@@ -32,7 +32,7 @@ export default function InsightsPage({
 
   const generate = async () => {
     setGenerating(true);
-    await fetch(`/api/workspace/${workspaceId}/insights`, {
+    await fetch(`/api/workspaces/${workspaceId}/insights`, {
       method: "POST",
     });
     await load();

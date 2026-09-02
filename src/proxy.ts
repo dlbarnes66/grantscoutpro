@@ -53,18 +53,16 @@ export const proxy = clerkMiddleware(async (auth, req) => {
 
     // Billing record (includes suspension flags)
     const billing = await prisma.workspaceBilling.findFirst({
-      where: { workspaceId },
-      select: {
-        plan: true,
-        seats: true,
-        aiTokensMonthly: true,
-        aiTokensUsed: true,
-        documentLimit: true,
-        storageLimitMb: true,
-        suspended: true,
-        suspendedAt: true,
-      },
-    });
+  where: { workspaceId },
+  select: {
+    plan: true,
+    seats: true,
+    aiTokensMonthly: true,
+    aiTokensUsed: true,
+    documentLimit: true,
+    storageLimitMb: true,
+  },
+});
 
     if (!billing) {
       return NextResponse.json(
@@ -74,15 +72,7 @@ export const proxy = clerkMiddleware(async (auth, req) => {
     }
 
     // Workspace suspension
-    if (billing.suspended) {
-      return NextResponse.json(
-        {
-          error: "Workspace is suspended.",
-          suspendedAt: billing.suspendedAt,
-        },
-        { status: 403 }
-      );
-    }
+    
 
     // Seat enforcement
     const activeMembers = await prisma.workspaceMember.count({

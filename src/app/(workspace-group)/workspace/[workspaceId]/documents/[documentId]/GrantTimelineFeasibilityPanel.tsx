@@ -17,7 +17,7 @@ export default function GrantTimelineFeasibilityPanel({
 
     try {
       const res = await fetch(
-        `/api/workspace/${workspaceId}/documents/${documentId}/ai/timeline`,
+        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/timeline`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
