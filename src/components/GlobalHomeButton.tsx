@@ -25,31 +25,34 @@ export default function GlobalHomeButton() {
 
   return (
     <SignedIn>
-      <Link
-        href="/home"
-        aria-label="Back to Dashboard"
+      <div
         style={{
-          position: "fixed",
-          top: "16px",
-          left: "16px",
+          position: "sticky",
+          top: 0,
           zIndex: 9999,
-          display: "flex",
-          alignItems: "center",
-          gap: "8px",
-          background: "#11233F",
-          color: "#FFFFFF",
-          padding: "10px 16px",
-          borderRadius: "999px",
-          border: "1px solid rgba(255,255,255,0.15)",
-          textDecoration: "none",
-          fontSize: "14px",
-          fontWeight: 600,
-          boxShadow: "0 4px 14px rgba(0,0,0,0.35)",
+          width: "100%",
+          background: "#0A1A2F",
+          borderBottom: "1px solid rgba(255,255,255,0.08)",
+          padding: "8px 20px",
         }}
       >
-        <Home size={16} />
-        Dashboard
-      </Link>
+        <Link
+          href="/home"
+          aria-label="Back to Dashboard"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "8px",
+            color: "#FFFFFF",
+            textDecoration: "none",
+            fontSize: "14px",
+            fontWeight: 600,
+          }}
+        >
+          <Home size={16} />
+          Dashboard
+        </Link>
+      </div>
     </SignedIn>
   );
 }
