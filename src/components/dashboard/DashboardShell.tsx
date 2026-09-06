@@ -1,8 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { UserButton } from "@clerk/nextjs";
+import dynamic from "next/dynamic";
 import { ReactNode } from "react";
+
+const UserButton = dynamic(
+  () => import("@clerk/nextjs").then((mod) => mod.UserButton),
+  { ssr: false }
+);
 
 interface DashboardShellProps {
   children: ReactNode;

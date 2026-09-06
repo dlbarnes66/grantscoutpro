@@ -1,6 +1,12 @@
-"use client"
+"use client";
 
-import { UserButton, useUser } from "@clerk/nextjs";
+import dynamic from "next/dynamic";
+import { useUser } from "@clerk/nextjs";
+
+const UserButton = dynamic(
+  () => import("@clerk/nextjs").then((mod) => mod.UserButton),
+  { ssr: false }
+);
 
 interface ClerkUser {
   firstName?: string | null;
