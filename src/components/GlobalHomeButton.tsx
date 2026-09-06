@@ -5,10 +5,21 @@ import { usePathname } from "next/navigation";
 import { SignedIn } from "@clerk/nextjs";
 import { Home } from "lucide-react";
 
+const HIDDEN_PATHS = [
+  "/home",
+  "/",
+  "/pricing",
+  "/features",
+  "/docs",
+  "/privacy",
+  "/refund",
+  "/terms",
+];
+
 export default function GlobalHomeButton() {
   const pathname = usePathname();
 
-  if (pathname === "/home") {
+  if (pathname && HIDDEN_PATHS.includes(pathname)) {
     return null;
   }
 
