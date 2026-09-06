@@ -1,6 +1,20 @@
 "use client";
 
+import { useState } from "react";
+
 export default function MarketingHomePage() {
+  const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
+
+  const getDisplayPrice = (monthlyPrice: number) => {
+    if (billing === "annual") {
+      return (monthlyPrice * 0.85).toFixed(2);
+    }
+    return monthlyPrice.toString();
+  };
+
+  const getBillingCaption = () =>
+    billing === "annual" ? "/month, billed annually" : "/month";
+
   return (
     <div
       style={{
@@ -569,7 +583,7 @@ export default function MarketingHomePage() {
             style={{
               fontSize: "22px",
               color: "#CBD5E1",
-              marginBottom: "16px",
+              marginBottom: "32px",
             }}
           >
             Choose the funding universe you want access to.
@@ -577,12 +591,78 @@ export default function MarketingHomePage() {
 
           <div
             style={{
-              color: "#F5C542",
-              fontWeight: 700,
-              fontSize: "18px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "16px",
             }}
           >
-            Annual Billing Saves 15%
+            <span
+              style={{
+                fontWeight: 700,
+                color: billing === "monthly" ? "#FFFFFF" : "#94A3B8",
+              }}
+            >
+              Monthly
+            </span>
+
+            <button
+              type="button"
+              onClick={() =>
+                setBilling(billing === "monthly" ? "annual" : "monthly")
+              }
+              aria-pressed={billing === "annual"}
+              aria-label="Toggle annual billing"
+              style={{
+                width: "56px",
+                height: "30px",
+                borderRadius: "999px",
+                border: "none",
+                cursor: "pointer",
+                position: "relative",
+                background:
+                  billing === "annual" ? "#F5C542" : "rgba(255,255,255,.15)",
+                transition: "background 0.2s ease",
+                flexShrink: 0,
+              }}
+            >
+              <span
+                style={{
+                  position: "absolute",
+                  top: "3px",
+                  left: billing === "annual" ? "29px" : "3px",
+                  width: "24px",
+                  height: "24px",
+                  borderRadius: "50%",
+                  background: "#071633",
+                  transition: "left 0.2s ease",
+                }}
+              />
+            </button>
+
+            <span
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                fontWeight: 700,
+                color: billing === "annual" ? "#FFFFFF" : "#94A3B8",
+              }}
+            >
+              Annual
+              <span
+                style={{
+                  background: "#F5C542",
+                  color: "#071633",
+                  fontSize: "12px",
+                  fontWeight: 800,
+                  padding: "2px 10px",
+                  borderRadius: "999px",
+                }}
+              >
+                Save 15%
+              </span>
+            </span>
           </div>
         </div>
 
@@ -612,10 +692,10 @@ export default function MarketingHomePage() {
                 color: "#F5C542",
               }}
             >
-              $29
+              ${getDisplayPrice(29)}
             </div>
 
-            <p>/month</p>
+            <p>{getBillingCaption()}</p>
 
             <p
               style={{
@@ -666,10 +746,10 @@ export default function MarketingHomePage() {
                 color: "#F5C542",
               }}
             >
-              $49
+              ${getDisplayPrice(49)}
             </div>
 
-            <p>/month</p>
+            <p>{getBillingCaption()}</p>
 
             <p
               style={{
@@ -732,10 +812,10 @@ export default function MarketingHomePage() {
                 color: "#F5C542",
               }}
             >
-              $99
+              ${getDisplayPrice(99)}
             </div>
 
-            <p>/month</p>
+            <p>{getBillingCaption()}</p>
 
             <p
               style={{
