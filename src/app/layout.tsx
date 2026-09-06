@@ -1,4 +1,5 @@
 import { ClerkProvider } from "@clerk/nextjs";
+import GlobalHomeButton from "@/components/GlobalHomeButton";
 import "./globals.css";
 
 export default function RootLayout({
@@ -9,7 +10,10 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
-        <body>{children}</body>
+        <body>
+          <GlobalHomeButton />
+          {children}
+        </body>
       </html>
     </ClerkProvider>
   );
