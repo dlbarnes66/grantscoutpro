@@ -12,19 +12,21 @@ export interface PlanConfig {
   name: string;
   monthlyPrice: number | null; // null = custom pricing (Enterprise)
   maxSeats: number | null; // null = unlimited seats
+  manualSearchesPerDay: number | null; // null = unlimited manual searches/day
   access: PlanAccess;
 }
 
-// Single source of truth for plan tiers: seat limits and grant-database
-// access. Used both by the marketing pricing page (display) and by the
-// workspace invite/member APIs (enforcement), so the two can never drift
-// apart the way the old hardcoded copy did.
+// Single source of truth for plan tiers: seat limits, manual-search
+// allowance, and grant-database access. Used by the marketing pricing
+// page (display) and the workspace invite/member/search APIs
+// (enforcement), so display and enforcement can never drift apart.
 export const PLANS: Record<PlanId, PlanConfig> = {
   basic: {
     id: "basic",
     name: "Basic",
     monthlyPrice: 29,
     maxSeats: 1,
+    manualSearchesPerDay: 1,
     access: { federal: true, state: false, foundation: false, crm: false },
   },
   team: {
@@ -32,6 +34,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
     name: "Team",
     monthlyPrice: 49,
     maxSeats: 5,
+    manualSearchesPerDay: 5,
     access: { federal: true, state: true, foundation: false, crm: false },
   },
   business: {
@@ -39,6 +42,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
     name: "Business",
     monthlyPrice: 99,
     maxSeats: 10,
+    manualSearchesPerDay: 15,
     access: { federal: true, state: true, foundation: true, crm: false },
   },
   enterprise: {
@@ -46,6 +50,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
     name: "Enterprise",
     monthlyPrice: null,
     maxSeats: null,
+    manualSearchesPerDay: null,
     access: { federal: true, state: true, foundation: true, crm: true },
   },
 };
@@ -67,4 +72,17 @@ export function getSeatLimitLabel(plan: PlanConfig): string {
 export function isAtSeatLimit(plan: PlanConfig, seatsInUse: number): boolean {
   if (plan.maxSeats === null) return false;
   return seatsInUse >= plan.maxSeats;
+}
+
+export function getManualSearchLimitLabel(plan: PlanConfig): string {
+  if (plan.manualSearchesPerDay === null) return "Unlimited manual searches";
+  return `${plan.manualSearchesPerDay} manual search${plan.manualSearchesPerDay === 1 ? "" : "es"}/day`;
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// Given the last reset timestamp, tells the caller whether the daily
+// counter is due to roll over. Pure function so it's easy to test.
+export function isManualSearchResetDue(resetAt: Date, now: Date = new Date()): boolean {
+  return now.getTime() - resetAt.getTime() >= DAY_MS;
 }

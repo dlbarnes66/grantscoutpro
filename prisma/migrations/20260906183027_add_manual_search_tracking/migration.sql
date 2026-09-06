@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "WorkspaceBilling" ADD COLUMN     "manualSearchCount" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "manualSearchResetAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;

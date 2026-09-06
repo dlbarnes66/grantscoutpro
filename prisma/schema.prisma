@@ -461,6 +461,11 @@ model WorkspaceBilling {
   documentLimit   Int @default(100)
   storageLimitMb  Int @default(500)
 
+  // Daily manual grant-search allowance (distinct from the monthly
+  // usageSearches/period billing counters above) - resets every 24h.
+  manualSearchCount   Int      @default(0)
+  manualSearchResetAt DateTime @default(now())
+
   workspace Workspace @relation("WorkspaceToBilling", fields: [workspaceId], references: [id])
 }
 
