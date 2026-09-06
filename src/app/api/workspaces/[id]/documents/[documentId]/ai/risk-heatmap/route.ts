@@ -4,12 +4,32 @@ import { callUnifiedModel } from "@/app/api/ai/autoeditor/_lib/unifiedModel";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(req, { params }) {
-  const { workspaceId, documentId } = params;
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export async function POST(
+  req: NextRequest,
+  context: {
+    params: Promise<{
+      id: string;
+      documentId: string;
+    }>;
+  }
+) {
+  const params = await context.params;
 
-  const { text = "" } = await req.json().catch(() => ({}));
+  const workspaceId = params.id;
+  const documentId = params.documentId;
+
+  const { userId } = await auth();
+
+  if (!userId) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 }
+    );
+  }
+
+  const {
+    text = "",
+  } = await req.json().catch(() => ({}));
 
   const prompt = `
 Generate a risk heatmap for this workspace document.
@@ -27,6 +47,18 @@ Return JSON with:
 - mitigationRecommendations
 `;
 
+  console.log(
+    "RISK HEATMAP ROUTE HIT",
+    workspaceId,
+    documentId
+  );
+
   const result = await callUnifiedModel(prompt);
-  return NextResponse.json({ success: true, heatmap: result });
+
+  console.log("OPENAI RESPONSE RECEIVED");
+
+  return NextResponse.json({
+    success: true,
+    heatmap: result,
+  });
 }

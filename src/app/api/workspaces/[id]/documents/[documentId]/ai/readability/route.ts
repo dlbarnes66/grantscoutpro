@@ -25,12 +25,18 @@ export async function POST(
 
     const params = await context.params;
 
+    console.log(
+      "READABILITY ROUTE HIT",
+      params.id,
+      params.documentId
+    );
+
     const body = await req.json().catch(() => ({}));
 
     const text = body.text ?? "";
 
     const prompt = `
-Readability Analysis for Workspace Document
+Readability Analysis
 
 Workspace: ${params.id}
 Document: ${params.documentId}
@@ -45,7 +51,11 @@ Return JSON with:
 - recommendedFixes
 `;
 
+    console.log("CALLING OPENAI");
+
     const result = await callUnifiedModel(prompt);
+
+    console.log("OPENAI RESPONSE RECEIVED");
 
     return NextResponse.json({
       success: true,

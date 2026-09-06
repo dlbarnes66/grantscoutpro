@@ -2,6 +2,8 @@ import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { callUnifiedModel } from "@/app/api/ai/autoeditor/_lib/unifiedModel";
 
+console.log("RISK ROUTE LOADED");
+
 export const dynamic = "force-dynamic";
 
 export async function POST(
@@ -25,8 +27,18 @@ export async function POST(
 
     const params = await context.params;
 
+    console.log("RISK ROUTE HIT");
+    console.log("WORKSPACE:", params.id);
+    console.log("DOCUMENT:", params.documentId);
+
+    const body = await req.json().catch(() => ({}));
+
+    console.log("REQUEST BODY:", body);
+
     const text =
-      (await req.json().catch(() => ({}))).text ?? "";
+      body.text ??
+      body.content ??
+      "";
 
     const prompt = `
 Workspace Document Risk Analysis
@@ -44,14 +56,21 @@ Return JSON with:
 - recommendedMitigation
 `;
 
+    console.log("CALLING OPENAI");
+
     const result = await callUnifiedModel(prompt);
+
+    console.log("OPENAI RESPONSE RECEIVED");
 
     return NextResponse.json({
       success: true,
       risk: result,
     });
   } catch (error) {
-    console.error("RISK API ERROR:", error);
+    console.error(
+      "RISK API ERROR:",
+      error
+    );
 
     return NextResponse.json(
       {

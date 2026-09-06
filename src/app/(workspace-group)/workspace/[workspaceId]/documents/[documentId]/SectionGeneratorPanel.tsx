@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useState } from "react";
 
@@ -7,169 +7,357 @@ export default function SectionGeneratorPanel({
   documentId,
   userId,
   content,
-  setContent
+  setContent,
 }) {
   const [loading, setLoading] = useState(false);
   const [customPrompt, setCustomPrompt] = useState("");
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState<any[]>([]);
 
-  async function generate(type) {
+  function buildSections(type: string) {
+    return [
+      {
+        type,
+        content:
+          typeof content === "string"
+            ? content
+            : JSON.stringify(content || {}),
+      },
+    ];
+  }
+
+  function extractGeneratedContent(
+    batchSections: any
+  ) {
+    try {
+      const parsed =
+        typeof batchSections === "string"
+          ? JSON.parse(batchSections)
+          : batchSections;
+
+      if (
+        parsed?.processedSections &&
+        Array.isArray(parsed.processedSections)
+      ) {
+        return parsed.processedSections
+          .map(
+            (section: any) =>
+              `# ${section.type}\n\n${section.content}`
+          )
+          .join("\n\n");
+      }
+
+      return typeof batchSections === "string"
+        ? batchSections
+        : JSON.stringify(
+            batchSections,
+            null,
+            2
+          );
+    } catch {
+      return typeof batchSections === "string"
+        ? batchSections
+        : JSON.stringify(
+            batchSections,
+            null,
+            2
+          );
+    }
+  }
+
+  async function generate(type: string) {
     setLoading(true);
 
     try {
       const res = await fetch(
-        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/sections`,
+        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/batch-sections`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
           body: JSON.stringify({
-            userId,
-            type,
-            content: JSON.parse(content)
-          })
+            sections: buildSections(type),
+          }),
         }
       );
 
-      const data = await res.json();
+      const text = await res.text();
 
-      if (data.output) {
-        setContent(JSON.stringify(data.output, null, 2));
+      console.log(
+        "SECTION STATUS:",
+        res.status
+      );
+      console.log(
+        "SECTION RESPONSE:",
+        text
+      );
+
+      const data = text
+        ? JSON.parse(text)
+        : {};
+
+      console.log(
+        "BATCH SECTIONS DATA",
+        JSON.stringify(
+          data,
+          null,
+          2
+        )
+      );
+
+      if (data.batchSections) {
+        const generatedContent =
+          extractGeneratedContent(
+            data.batchSections
+          );
+
+        setContent(generatedContent);
+
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            text: generatedContent,
+          },
+        ]);
       }
-
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", text: data.message || "Section generated." }
-      ]);
     } catch (err) {
-      console.error("Section generation failed:", err);
+      console.error(
+        "Section generation failed:",
+        err
+      );
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }
 
   async function generateCustom() {
-    if (!customPrompt.trim()) return;
+    if (!customPrompt.trim()) {
+      return;
+    }
 
     setLoading(true);
 
     try {
       const res = await fetch(
-        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/sections`,
+        `/api/workspaces/${workspaceId}/documents/${documentId}/ai/batch-sections`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
           body: JSON.stringify({
-            userId,
-            type: "custom",
-            prompt: customPrompt,
-            content: JSON.parse(content)
-          })
+            sections: [
+              {
+                type: "custom",
+                prompt: customPrompt,
+                content:
+                  typeof content ===
+                  "string"
+                    ? content
+                    : JSON.stringify(
+                        content || {}
+                      ),
+              },
+            ],
+          }),
         }
       );
 
-      const data = await res.json();
+      const text = await res.text();
 
-      if (data.output) {
-        setContent(JSON.stringify(data.output, null, 2));
+      console.log(
+        "CUSTOM SECTION STATUS:",
+        res.status
+      );
+
+      console.log(
+        "CUSTOM SECTION RESPONSE:",
+        text
+      );
+
+      const data = text
+        ? JSON.parse(text)
+        : {};
+
+      console.log(
+        "CUSTOM BATCH SECTIONS DATA",
+        JSON.stringify(
+          data,
+          null,
+          2
+        )
+      );
+
+      if (data.batchSections) {
+        const generatedContent =
+          extractGeneratedContent(
+            data.batchSections
+          );
+
+        setContent(generatedContent);
+
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            text: generatedContent,
+          },
+        ]);
       }
-
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", text: data.message || "Custom section generated." }
-      ]);
     } catch (err) {
-      console.error("Custom section generation failed:", err);
+      console.error(
+        "Custom section generation failed:",
+        err
+      );
+    } finally {
+      setLoading(false);
+      setCustomPrompt("");
     }
-
-    setLoading(false);
-    setCustomPrompt("");
   }
 
   return (
-    <div className="w-96 h-full border-l bg-white p-4 flex flex-col">
-      <h2 className="text-lg font-semibold mb-4">AI Section Generator</h2>
+  <div className="flex-1 h-full bg-slate-950 text-white p-8 overflow-y-auto">
+    <div className="max-w-5xl mx-auto">
 
-      <div className="grid grid-cols-1 gap-2 mb-4">
+      <div className="mb-8">
+        <h2 className="text-3xl font-bold">
+          AI Section Generator
+        </h2>
+
+        <p className="mt-2 text-slate-400">
+          Generate complete grant sections using AI-powered proposal writing.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+
         <button
-          onClick={() => generate("outline")}
-          className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          Generate Outline
+  onClick={() => generate("outline")}
+  className="cursor-pointer bg-slate-900 border border-slate-700 rounded-2xl p-5 hover:border-cyan-500 hover:bg-slate-800 transition-all"
+>
+          <div className="font-semibold text-cyan-400">
+            Generate Outline
+          </div>
+
+          <div className="mt-2 text-sm text-slate-400">
+            Build a complete proposal structure.
+          </div>
         </button>
 
         <button
           onClick={() => generate("needs")}
-          className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          className="bg-slate-900 border border-slate-800 rounded-2xl p-5 text-left hover:border-cyan-500 transition"
         >
-          Needs Statement
+          <div className="font-semibold text-cyan-400">
+            Needs Statement
+          </div>
+
+          <div className="mt-2 text-sm text-slate-400">
+            Generate community need and problem statements.
+          </div>
         </button>
 
         <button
           onClick={() => generate("goals")}
-          className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          className="bg-slate-900 border border-slate-800 rounded-2xl p-5 text-left hover:border-cyan-500 transition"
         >
-          Goals & Objectives
+          <div className="font-semibold text-cyan-400">
+            Goals & Objectives
+          </div>
+
+          <div className="mt-2 text-sm text-slate-400">
+            Create measurable project objectives.
+          </div>
         </button>
 
         <button
           onClick={() => generate("methodology")}
-          className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          className="bg-slate-900 border border-slate-800 rounded-2xl p-5 text-left hover:border-cyan-500 transition"
         >
-          Methodology
+          <div className="font-semibold text-cyan-400">
+            Methodology
+          </div>
+
+          <div className="mt-2 text-sm text-slate-400">
+            Build project implementation strategies.
+          </div>
         </button>
 
         <button
           onClick={() => generate("evaluation")}
-          className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          className="bg-slate-900 border border-slate-800 rounded-2xl p-5 text-left hover:border-cyan-500 transition"
         >
-          Evaluation Plan
+          <div className="font-semibold text-cyan-400">
+            Evaluation Plan
+          </div>
+
+          <div className="mt-2 text-sm text-slate-400">
+            Measure project outcomes and success.
+          </div>
         </button>
 
         <button
           onClick={() => generate("budget")}
-          className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          className="bg-slate-900 border border-slate-800 rounded-2xl p-5 text-left hover:border-cyan-500 transition"
         >
-          Budget Narrative
+          <div className="font-semibold text-cyan-400">
+            Budget Narrative
+          </div>
+
+          <div className="mt-2 text-sm text-slate-400">
+            Generate budget justification content.
+          </div>
         </button>
 
-        <button
-          onClick={() => generate("sustainability")}
-          className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          Sustainability Plan
-        </button>
       </div>
 
-      <div className="mb-4">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-8">
+
+        <h3 className="text-xl font-semibold mb-4">
+          Custom Section Generator
+        </h3>
+
         <textarea
           value={customPrompt}
-          onChange={(e) => setCustomPrompt(e.target.value)}
-          className="w-full border rounded-md p-2 text-sm"
-          placeholder="Describe a custom section to generate..."
+          onChange={(e) =>
+            setCustomPrompt(e.target.value)
+          }
+          className="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-white"
+          placeholder="Describe a section you want AI to generate..."
         />
 
         <button
           onClick={generateCustom}
-          className="mt-2 w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
+          className="mt-4 px-6 py-3 bg-cyan-500 text-slate-950 rounded-xl font-semibold hover:bg-cyan-400 transition"
         >
           Generate Custom Section
         </button>
-      </div>
 
-      <div className="flex-1 overflow-y-auto space-y-3">
-        {messages.map((m, i) => (
-          <div
-            key={i}
-            className="p-3 bg-gray-100 border rounded-md text-sm"
-          >
-            {m.text}
-          </div>
-        ))}
       </div>
 
       {loading && (
-        <div className="text-xs text-gray-400 mt-2">AI generating…</div>
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+          AI generating proposal content...
+        </div>
       )}
+
+      {messages.length > 0 && (
+        <div className="space-y-4">
+          {messages.map((m, i) => (
+            <div
+              key={i}
+              className="bg-slate-900 border border-slate-800 rounded-2xl p-6 whitespace-pre-wrap"
+            >
+              {m.text}
+            </div>
+          ))}
+        </div>
+      )}
+
     </div>
-  );
+  </div>
+);
 }

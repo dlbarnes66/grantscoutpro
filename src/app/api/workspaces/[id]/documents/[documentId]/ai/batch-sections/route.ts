@@ -4,18 +4,48 @@ import { callUnifiedModel } from "@/app/api/ai/autoeditor/_lib/unifiedModel";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(req, { params }) {
-  const { workspaceId, documentId } = params;
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export async function POST(
+  req: NextRequest,
+  context: {
+    params: Promise<{
+      id: string;
+      documentId: string;
+    }>;
+  }
+) {
+  try {
+    const params = await context.params;
 
-  const { sections = [] } = await req.json().catch(() => ({}));
+    const workspaceId = params.id;
+    const documentId = params.documentId;
 
-  const prompt = `
+    const { userId } = await auth();
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const body = await req.json().catch(() => ({}));
+
+    const sections = body.sections || [];
+
+    console.log(
+      "BATCH SECTIONS ROUTE HIT",
+      workspaceId,
+      documentId
+    );
+
+    const prompt = `
 Multi-Section Batch Processing
 
-Workspace: ${workspaceId}
-Document: ${documentId}
+Workspace:
+${workspaceId}
+
+Document:
+${documentId}
 
 Sections:
 ${JSON.stringify(sections, null, 2)}
@@ -26,6 +56,32 @@ Return JSON with:
 - errors
 `;
 
-  const result = await callUnifiedModel(prompt);
-  return NextResponse.json({ success: true, batchSections: result });
+    const result = await callUnifiedModel(prompt);
+
+    console.log(
+      "BATCH SECTIONS RESPONSE RECEIVED"
+    );
+
+    return NextResponse.json({
+      success: true,
+      batchSections: result,
+    });
+  } catch (error) {
+    console.error(
+      "BATCH SECTIONS ERROR:",
+      error
+    );
+
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unknown error",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
 }

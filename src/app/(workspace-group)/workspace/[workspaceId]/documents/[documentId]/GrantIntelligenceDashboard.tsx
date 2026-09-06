@@ -70,11 +70,11 @@ export default function GrantIntelligenceDashboard({
     <div className="flex flex-col h-full w-full bg-gray-50">
       <div className="px-6 py-4 border-b bg-white flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold">
+          <h1 className="text-3xl font-bold text-white">
             Grant Intelligence Dashboard
           </h1>
 
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-slate-400">
             Workspace {workspaceId} • Document {documentId}
           </p>
         </div>

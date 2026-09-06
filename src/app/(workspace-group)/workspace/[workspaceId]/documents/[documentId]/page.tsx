@@ -9,6 +9,11 @@ export default function DocumentPage() {
   const workspaceId = params.workspaceId as string;
   const documentId = params.documentId as string;
 
+  console.log("DOCUMENT PAGE PARAMS", {
+    workspaceId,
+    documentId,
+  });
+
   return (
     <div className="h-screen w-screen">
       <GrantIntelligenceDashboard

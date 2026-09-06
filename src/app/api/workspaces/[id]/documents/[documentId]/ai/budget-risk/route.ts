@@ -1,70 +1,81 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
+import { callUnifiedModel } from "@/app/api/ai/autoeditor/_lib/unifiedModel";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Record<string, string> }
-) {
-  const { userId } = await auth();
-
-  if (!userId) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    );
-  }
-
-  try {
-    const url = new URL(req.url);
-
-    return NextResponse.json({
-      success: true,
-      params,
-      query: Object.fromEntries(
-        url.searchParams.entries()
-      ),
-    });
-  } catch (err: any) {
-    console.error("GET ERROR:", err);
-
-    return NextResponse.json(
-      { error: err.message },
-      { status: 500 }
-    );
-  }
-}
-
 export async function POST(
   req: NextRequest,
-  { params }: { params: Record<string, string> }
-) {
-  const { userId } = await auth();
-
-  if (!userId) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    );
+  context: {
+    params: Promise<{
+      id: string;
+      documentId: string;
+    }>;
   }
-
+) {
   try {
-    const body = await req.json().catch(
-      () => ({})
+    const { userId } = await auth();
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const params = await context.params;
+
+    console.log(
+      "BUDGET RISK ROUTE HIT",
+      params.id,
+      params.documentId
     );
+
+    const body = await req.json().catch(() => ({}));
+
+    const text = body.text ?? "";
+
+    const prompt = `
+Budget Risk Analysis
+
+Workspace: ${params.id}
+Document: ${params.documentId}
+
+Content:
+${text}
+
+Return JSON with:
+- overallRisk
+- issues
+- recommendations
+`;
+
+    console.log("CALLING OPENAI");
+
+    const result = await callUnifiedModel(prompt);
+
+    console.log("OPENAI RESPONSE RECEIVED");
 
     return NextResponse.json({
       success: true,
-      params,
-      body,
+      budgetRisk: result,
     });
-  } catch (err: any) {
-    console.error("POST ERROR:", err);
+  } catch (error) {
+    console.error(
+      "BUDGET RISK ERROR:",
+      error
+    );
 
     return NextResponse.json(
-      { error: err.message },
-      { status: 500 }
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unknown error",
+      },
+      {
+        status: 500,
+      }
     );
   }
 }

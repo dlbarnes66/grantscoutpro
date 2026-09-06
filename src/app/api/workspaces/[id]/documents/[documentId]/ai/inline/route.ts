@@ -4,14 +4,33 @@ import { callUnifiedModel } from "@/app/api/ai/autoeditor/_lib/unifiedModel";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(req: NextRequest, { params }) {
-  const { workspaceId, documentId } = params;
+export async function POST(
+  req: NextRequest,
+  context: {
+    params: Promise<{
+      id: string;
+      documentId: string;
+    }>;
+  }
+) {
+  const params = await context.params;
+
+  const workspaceId = params.id;
+  const documentId = params.documentId;
 
   const { userId } = await auth();
-  if (!userId)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { text = "", instruction = "" } = await req.json().catch(() => ({}));
+  if (!userId) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 }
+    );
+  }
+
+  const {
+    text = "",
+    instruction = "",
+  } = await req.json().catch(() => ({}));
 
   const prompt = `
 Inline Edit Workspace Document
@@ -31,6 +50,18 @@ Return JSON with:
 - reasoning
 `;
 
+  console.log(
+    "INLINE ROUTE HIT",
+    workspaceId,
+    documentId
+  );
+
   const result = await callUnifiedModel(prompt);
-  return NextResponse.json({ success: true, inline: result });
+
+  console.log("OPENAI RESPONSE RECEIVED");
+
+  return NextResponse.json({
+    success: true,
+    inline: result,
+  });
 }

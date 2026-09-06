@@ -33,6 +33,12 @@ export async function POST(req: NextRequest) {
         role: "owner",
       },
     });
+    await prisma.workspaceBilling.create({
+  data: {
+    workspaceId: workspace.id,
+    plan: "free",
+  },
+});
 
     return NextResponse.json({ success: true, workspace });
   } catch (err: any) {

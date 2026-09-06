@@ -21,14 +21,14 @@ export default function ComplianceCheckerPanel({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            userId,
-            content: JSON.parse(content)
-          })
+  userId,
+  text: content
+})
         }
       );
 
       const data = await res.json();
-      setReport(data.report || null);
+      setReport(data.compliance || null);
     } catch (err) {
       console.error("Compliance check failed:", err);
     }

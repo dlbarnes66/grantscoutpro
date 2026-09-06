@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import GrantRiskAssessmentPanel from "./GrantRiskAssessmentPanel";
 import GrantBudgetRiskPanel from "./GrantBudgetRiskPanel";
@@ -11,6 +11,7 @@ import GrantMultiYearImpactForecasterPanel from "./GrantMultiYearImpactForecaste
 import GrantReviewerPanel from "./GrantReviewerPanel";
 import GrantFunderMatchPanel from "./GrantFunderMatchPanel";
 import GrantInlineAISuggestionsPanel from "./GrantInlineAISuggestionsPanel";
+import SectionGeneratorPanel from "./SectionGeneratorPanel";
 
 export default function PanelSwitcher({
   activePanel,
@@ -19,7 +20,7 @@ export default function PanelSwitcher({
   userId,
   content,
   profile,
-  cursorContext
+  cursorContext,
 }) {
   switch (activePanel) {
     case "risk":
@@ -111,6 +112,17 @@ export default function PanelSwitcher({
           documentId={documentId}
           content={content}
           profile={profile}
+        />
+      );
+
+    case "application":
+      return (
+        <SectionGeneratorPanel
+          workspaceId={workspaceId}
+          documentId={documentId}
+          userId={userId}
+          content={content}
+          setContent={() => {}}
         />
       );
 

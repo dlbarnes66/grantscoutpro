@@ -14,11 +14,6 @@ export async function POST(
   }
 ) {
   try {
-    const params = await context.params;
-
-    const workspaceId = params.id;
-    const documentId = params.documentId;
-
     const { userId } = await auth();
 
     if (!userId) {
@@ -28,44 +23,64 @@ export async function POST(
       );
     }
 
+    const params = await context.params;
+
     const body = await req.json().catch(() => ({}));
 
-    const text = body.text ?? "";
+    const type = body?.type ?? "outline";
+    const prompt = body?.prompt ?? "";
+    const content = body?.content ?? {};
 
     console.log(
-      "MULTI YEAR IMPACT ROUTE HIT",
-      workspaceId,
-      documentId
+      "SECTION GENERATOR ROUTE HIT",
+      params.id,
+      params.documentId,
+      type
     );
 
-    const prompt = `
-Multi Year Impact Forecast
+    const aiPrompt = `
+Grant Writing Section Generator
 
-Workspace: ${workspaceId}
-Document: ${documentId}
+Workspace:
+${params.id}
 
-Text:
-${text}
+Document:
+${params.documentId}
 
-Return JSON with:
-- yearOneImpact
-- yearThreeImpact
-- yearFiveImpact
-- risks
-- recommendations
+Section Type:
+${type}
+
+Custom Prompt:
+${prompt}
+
+Existing Content:
+${JSON.stringify(content, null, 2)}
+
+Generate a strong grant section.
+
+Return JSON:
+
+{
+  "title": "",
+  "content": ""
+}
 `;
 
-    const result = await callUnifiedModel(prompt);
+    const result =
+      await callUnifiedModel(aiPrompt);
 
-    console.log("OPENAI RESPONSE RECEIVED");
+    console.log(
+      "SECTION GENERATOR RESPONSE RECEIVED"
+    );
 
     return NextResponse.json({
       success: true,
-      forecast: result,
+      output: result,
+      message: `${type} section generated.`,
     });
   } catch (error) {
     console.error(
-      "MULTI YEAR IMPACT ERROR:",
+      "SECTION GENERATOR ERROR:",
       error
     );
 

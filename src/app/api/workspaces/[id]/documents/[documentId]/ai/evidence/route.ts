@@ -4,14 +4,41 @@ import { callUnifiedModel } from "@/app/api/ai/autoeditor/_lib/unifiedModel";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(req: NextRequest, { params }) {
-  const { workspaceId, documentId } = params;
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export async function POST(
+  req: NextRequest,
+  context: {
+    params: Promise<{
+      id: string;
+      documentId: string;
+    }>;
+  }
+) {
+  try {
+    const params = await context.params;
 
-  const { text = "" } = await req.json().catch(() => ({}));
+    const workspaceId = params.id;
+    const documentId = params.documentId;
 
-  const prompt = `
+    const { userId } = await auth();
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const body = await req.json().catch(() => ({}));
+
+    const text = body.text ?? "";
+
+    console.log(
+      "EVIDENCE ROUTE HIT",
+      workspaceId,
+      documentId
+    );
+
+    const prompt = `
 Evidence Strength Analysis
 
 Workspace: ${workspaceId}
@@ -22,11 +49,37 @@ ${text}
 
 Return JSON with:
 - evidenceScore
-- evidenceTypes
-- missingEvidence
-- recommendedSources
+- strengths
+- weaknesses
+- unsupportedClaims
+- recommendations
 `;
 
-  const result = await callUnifiedModel(prompt);
-  return NextResponse.json({ success: true, evidence: result });
+    const result = await callUnifiedModel(prompt);
+
+    console.log("OPENAI RESPONSE RECEIVED");
+
+    return NextResponse.json({
+      success: true,
+      evidence: result,
+    });
+  } catch (error) {
+    console.error(
+      "EVIDENCE ERROR:",
+      error
+    );
+
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unknown error",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
 }
+``

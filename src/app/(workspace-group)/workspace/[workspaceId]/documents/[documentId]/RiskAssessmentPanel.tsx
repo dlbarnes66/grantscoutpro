@@ -20,14 +20,16 @@ export default function RiskAssessmentPanel({
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userId,
-            content // ← FIXED: no JSON.parse()
-          })
+        body: JSON.stringify({
+  userId,
+  text: content
+})
+ 
         }
       );
 
       const data = await res.json();
+      console.log("RISK RESPONSE", data);
       setRiskReport(data.risk || null);
     } catch (err) {
       console.error("Risk assessment failed:", err);
@@ -37,7 +39,7 @@ export default function RiskAssessmentPanel({
   }
 
   return (
-    <div className="w-96 h-full border-l bg-white p-4 flex flex-col">
+    <div className="flex-1 h-full bg-slate-900 p-8 flex flex-col text-white">
       <h2 className="text-lg font-semibold mb-4">AI Risk Assessment</h2>
 
       <button

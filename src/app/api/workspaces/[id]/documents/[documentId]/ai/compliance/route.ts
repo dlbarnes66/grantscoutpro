@@ -4,18 +4,43 @@ import { callUnifiedModel } from "@/app/api/ai/autoeditor/_lib/unifiedModel";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(req: NextRequest, { params }) {
-  const { workspaceId, documentId } = params;
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export async function POST(
+  req: NextRequest,
+  context: {
+    params: Promise<{
+      id: string;
+      documentId: string;
+    }>;
+  }
+) {
+  try {
+    const { userId } = await auth();
 
-  const { text = "", requirements = "" } = await req.json().catch(() => ({}));
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
 
-  const prompt = `
+    const params = await context.params;
+
+    console.log(
+      "COMPLIANCE ROUTE HIT",
+      params.id,
+      params.documentId
+    );
+
+    const body = await req.json().catch(() => ({}));
+
+    const text = body.text ?? "";
+    const requirements = body.requirements ?? "";
+
+    const prompt = `
 Workspace Document Compliance Check
 
-Workspace: ${workspaceId}
-Document: ${documentId}
+Workspace: ${params.id}
+Document: ${params.documentId}
 
 Requirements:
 ${requirements}
@@ -30,6 +55,32 @@ Return JSON with:
 - recommendedFixes
 `;
 
-  const result = await callUnifiedModel(prompt);
-  return NextResponse.json({ success: true, compliance: result });
+    console.log("CALLING OPENAI");
+
+    const result = await callUnifiedModel(prompt);
+
+    console.log("OPENAI RESPONSE RECEIVED");
+
+    return NextResponse.json({
+      success: true,
+      compliance: result,
+    });
+  } catch (error) {
+    console.error(
+      "COMPLIANCE API ERROR:",
+      error
+    );
+
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unknown error",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
 }

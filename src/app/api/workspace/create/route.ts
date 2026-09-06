@@ -25,7 +25,7 @@ export async function POST(req: Request) {
 
       billing: {
   create: {
-    plan: "starter",
+   plan: "basic",
     seats: 1,
     aiTokensMonthly: 50000,
     aiTokensUsed: 0,
