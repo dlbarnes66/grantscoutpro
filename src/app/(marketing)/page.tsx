@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { PLANS, getSeatLimitLabel } from "@/lib/plans";
 
 export default function MarketingHomePage() {
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
@@ -706,6 +707,16 @@ export default function MarketingHomePage() {
               Federal Grant Search
             </p>
 
+            <p
+              style={{
+                color: "#F5C542",
+                fontWeight: 700,
+                fontSize: "14px",
+              }}
+            >
+              {getSeatLimitLabel(PLANS.basic)}
+            </p>
+
             <p>✓ Federal Opportunities</p>
             <p>✓ Grant Match Scoring</p>
             <p>✓ Proposal Templates</p>
@@ -758,6 +769,16 @@ export default function MarketingHomePage() {
               }}
             >
               Federal + State Grant Search
+            </p>
+
+            <p
+              style={{
+                color: "#F5C542",
+                fontWeight: 700,
+                fontSize: "14px",
+              }}
+            >
+              {getSeatLimitLabel(PLANS.team)}
             </p>
 
             <p>✓ Everything in Basic</p>
@@ -826,6 +847,16 @@ export default function MarketingHomePage() {
               Federal + State + Foundation Search
             </p>
 
+            <p
+              style={{
+                color: "#F5C542",
+                fontWeight: 700,
+                fontSize: "14px",
+              }}
+            >
+              {getSeatLimitLabel(PLANS.business)}
+            </p>
+
             <p>✓ Everything in Team</p>
             <p>✓ Private Foundation Search</p>
             <p>✓ AI Proposal Writer</p>
@@ -881,6 +912,16 @@ export default function MarketingHomePage() {
               }}
             >
               Complete Grant Operations Platform
+            </p>
+
+            <p
+              style={{
+                color: "#F5C542",
+                fontWeight: 700,
+                fontSize: "14px",
+              }}
+            >
+              {getSeatLimitLabel(PLANS.enterprise)}
             </p>
 
             <p>✓ Everything in Business</p>
