@@ -1,5 +1,6 @@
 "use client";
 
+import { useParams } from "next/navigation";
 import { useWorkspaceLocations } from "@/hooks/useWorkspaceLocations";
 import LocationIntelligenceCard from "@/components/intelligence/LocationIntelligenceCard";
 import WorkspaceShell from "@/components/workspace/WorkspaceShell";
@@ -9,7 +10,8 @@ export default function WorkspaceIntelligencePage({
 }: {
   params: { workspaceId: string };
 }) {
-  const { workspaceId } = params;
+  const routeParams = useParams();
+  const workspaceId = routeParams.workspaceId as string;
 
   const { location, loading } = useWorkspaceLocations(workspaceId);
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { useParams } from "next/navigation";
 import { useState } from "react";
 import { useSemanticSearch } from "@/hooks/useSemanticSearch";
 import Input from "@/components/ui/Input";
@@ -12,7 +13,8 @@ export default function WorkspaceSearchPage({
 }: {
   params: { workspaceId: string };
 }) {
-  const { workspaceId } = params;
+  const routeParams = useParams();
+  const workspaceId = routeParams.workspaceId as string;
   const [query, setQuery] = useState("");
 
   const { results, loading, search } = useSemanticSearch();

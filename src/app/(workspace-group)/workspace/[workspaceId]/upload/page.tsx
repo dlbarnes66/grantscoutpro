@@ -1,5 +1,6 @@
 "use client";
 
+import { useParams } from "next/navigation";
 import WorkspaceShell from "@/components/workspace/WorkspaceShell";
 import Card from "@/components/ui/Card";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
@@ -9,7 +10,8 @@ export default function WorkspaceUploadPage({
 }: {
   params: { workspaceId: string };
 }) {
-  const { workspaceId } = params;
+  const routeParams = useParams();
+  const workspaceId = routeParams.workspaceId as string;
 
   return (
     <WorkspaceShell title="Upload Documents" workspaceId={workspaceId}>

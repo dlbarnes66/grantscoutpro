@@ -1,5 +1,6 @@
 "use client";
 
+import { useParams } from "next/navigation";
 import WorkspaceShell from "@/components/workspace/WorkspaceShell";
 import Card from "@/components/ui/Card";
 import { WorkspaceLocation } from "@/types/workspace";
@@ -9,7 +10,8 @@ export default function WorkspaceGrantsPage({
 }: {
   params: { workspaceId: string };
 }) {
-  const { workspaceId } = params;
+  const routeParams = useParams();
+  const workspaceId = routeParams.workspaceId as string;
 
   // Replace with real fetch later
   const location: WorkspaceLocation = {

@@ -1,19 +1,12 @@
-"use client"
-import { auth } from "@clerk/nextjs/server";
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
+"use client";
 
-
-
-
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import WorkspaceShell from "@/components/workspace/WorkspaceShell";
 
-export default function UsagePage({
-  params,
-}: {
-  params: { workspaceId: string };
-}) {
-  const { workspaceId } = params;
+export default function UsagePage() {
+  const routeParams = useParams();
+  const workspaceId = routeParams.workspaceId as string;
 
   const [usage, setUsage] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -30,19 +23,21 @@ export default function UsagePage({
   }, [workspaceId]);
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
-      <h1 className="text-3xl font-bold">Usage</h1>
+    <WorkspaceShell title="Usage" workspaceId={workspaceId}>
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold">Usage</h1>
 
-      {loading && <p>Loading...</p>}
+        {loading && <p>Loading...</p>}
 
-      {usage && (
-        <div className="border rounded-lg p-4 bg-white shadow-sm space-y-3">
-          <p className="text-lg font-semibold">Searches: {usage.searches}</p>
-          <p className="text-lg font-semibold">Uploads: {usage.uploads}</p>
-          <p className="text-lg font-semibold">Members: {usage.members}</p>
-          <p className="text-lg font-semibold">AI Messages: {usage.ai}</p>
-        </div>
-      )}
-    </div>
+        {usage && (
+          <div className="border rounded-lg p-4 bg-white shadow-sm space-y-3">
+            <p className="text-lg font-semibold">Searches: {usage.searches}</p>
+            <p className="text-lg font-semibold">Uploads: {usage.uploads}</p>
+            <p className="text-lg font-semibold">Members: {usage.members}</p>
+            <p className="text-lg font-semibold">AI Messages: {usage.ai}</p>
+          </div>
+        )}
+      </div>
+    </WorkspaceShell>
   );
 }

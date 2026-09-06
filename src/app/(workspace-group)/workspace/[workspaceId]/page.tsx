@@ -1,3 +1,5 @@
+import WorkspaceShell from "@/components/workspace/WorkspaceShell";
+
 interface PageProps {
   params: Promise<{
     workspaceId: string;
@@ -10,11 +12,7 @@ export default async function WorkspacePage({
   const { workspaceId } = await params;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white p-8">
-      <h1 className="text-4xl font-bold mb-4">
-        Workspace Overview
-      </h1>
-
+    <WorkspaceShell title="Workspace Overview" workspaceId={workspaceId}>
       <p className="text-slate-400 mb-8">
         Manage grants, documents, collaboration,
         and AI-powered proposal development.
@@ -71,6 +69,6 @@ export default async function WorkspacePage({
           Workspace ID: {workspaceId}
         </p>
       </div>
-    </div>
+    </WorkspaceShell>
   );
 }

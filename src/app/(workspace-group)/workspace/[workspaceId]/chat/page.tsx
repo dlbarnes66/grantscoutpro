@@ -1,6 +1,7 @@
 // src/app/(workspace-group)/workspace/[workspaceId]/chat/page.tsx
 "use client";
 
+import { useParams } from "next/navigation";
 import { useState } from "react";
 import { useRagChat } from "@/hooks/useRagChat";
 import Card from "@/components/ui/Card";
@@ -9,7 +10,8 @@ import Textarea from "@/components/ui/Textarea";
 import WorkspaceShell from "@/components/workspace/WorkspaceShell";
 
 export default function WorkspaceChatPage({ params }: { params: { workspaceId: string } }) {
-  const { workspaceId } = params;
+  const routeParams = useParams();
+  const workspaceId = routeParams.workspaceId as string;
   const [message, setMessage] = useState("");
 
   const { messages, loading, sendMessage } = useRagChat(workspaceId);

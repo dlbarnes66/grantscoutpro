@@ -1,5 +1,6 @@
 "use client";
 
+import { useParams } from "next/navigation";
 import WorkspaceShell from "@/components/workspace/WorkspaceShell";
 import WorkspaceLocationSettings from "@/components/workspace/WorkspaceLocationSettings";
 import WorkspaceMultiLocationSettings from "@/components/workspace/WorkspaceMultiLocationSettings";
@@ -10,7 +11,8 @@ export default function WorkspaceLocationPage({
 }: {
   params: { workspaceId: string };
 }) {
-  const { workspaceId } = params;
+  const routeParams = useParams();
+  const workspaceId = routeParams.workspaceId as string;
 
   return (
     <WorkspaceShell title="Location Settings" workspaceId={workspaceId}>

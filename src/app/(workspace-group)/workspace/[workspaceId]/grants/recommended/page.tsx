@@ -1,9 +1,11 @@
 "use client"
 
+import { useParams } from "next/navigation";
 import { useState } from "react";
 
 export default function RecommendedGrantsPage({ params }) {
-  const workspaceId = params.workspaceId;
+  const routeParams = useParams();
+  const workspaceId = routeParams.workspaceId as string;
 
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);

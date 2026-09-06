@@ -1,11 +1,13 @@
 "use client"
-import { auth } from "@clerk/nextjs/server";
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
 
+import { useParams, useSearchParams } from "next/navigation";
 
-export default function AddonUpgradePage({ params }) {
-  const addon = params.addon;
+export default function AddonUpgradePage() {
+  const params = useParams();
+  const searchParams = useSearchParams();
+
+  const workspaceId = params.workspaceId as string;
+  const addon = searchParams.get("addon") ?? "This";
 
   return (
     <div className="p-10 text-center">
@@ -14,7 +16,7 @@ export default function AddonUpgradePage({ params }) {
         The <strong>{addon}</strong> addon is not active for this workspace.
       </p>
       <a
-        href={`/workspace/${params.id}/billing`}
+        href={`/workspace/${workspaceId}/workspace-billing`}
         className="px-6 py-3 bg-blue-600 text-white rounded-lg"
       >
         Upgrade Now

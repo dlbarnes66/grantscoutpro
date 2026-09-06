@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import WorkspaceShell from "@/components/workspace/WorkspaceShell";
 
 export default function NewDocumentPage() {
   const [title, setTitle] = useState("");
@@ -60,30 +61,32 @@ export default function NewDocumentPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-6">
-        Create Document
-      </h1>
+    <WorkspaceShell title="Create Document" workspaceId={workspaceId}>
+      <div className="max-w-2xl">
+        <h1 className="text-3xl font-bold mb-6">
+          Create Document
+        </h1>
 
-      <div className="space-y-4">
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Document Title"
-          className="w-full border rounded-md px-4 py-3"
-        />
+        <div className="space-y-4">
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Document Title"
+            className="w-full border rounded-md px-4 py-3 text-slate-900"
+          />
 
-        <button
-          onClick={createDocument}
-          disabled={loading}
-          className="px-6 py-3 rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
-        >
-          {loading
-            ? "Creating Document..."
-            : "Create Document"}
-        </button>
+          <button
+            onClick={createDocument}
+            disabled={loading}
+            className="px-6 py-3 rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+          >
+            {loading
+              ? "Creating Document..."
+              : "Create Document"}
+          </button>
+        </div>
       </div>
-    </div>
+    </WorkspaceShell>
   );
 }
