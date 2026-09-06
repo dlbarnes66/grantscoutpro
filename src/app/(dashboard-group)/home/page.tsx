@@ -3,7 +3,15 @@
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
-import { Sparkles, Search, FileText, SendHorizonal, PlusCircle } from "lucide-react";
+import {
+  Sparkles,
+  Search,
+  FileText,
+  SendHorizonal,
+  PlusCircle,
+  Building2,
+  ArrowRight,
+} from "lucide-react";
 
 interface Workspace {
   id: string;
@@ -80,6 +88,33 @@ export default function DashboardHomePage() {
           workspace.
         </p>
       </div>
+
+      <section>
+        <Link
+          href="/onboarding"
+          className="flex items-center justify-between gap-6 bg-gradient-to-r from-[#11233F] to-[#0F2A4A] border border-[#00E5FF]/30 rounded-2xl p-6 hover:border-[#00E5FF] transition"
+        >
+          <div className="flex items-center gap-4">
+            <div className="bg-[#00E5FF]/10 p-3 rounded-xl">
+              <Building2 className="w-6 h-6 text-[#00E5FF]" />
+            </div>
+            <div>
+              <p className="text-lg font-semibold">
+                Set up your organization profile
+              </p>
+              <p className="text-sm text-slate-400 mt-1">
+                Tell us about your organization so we can match you with the
+                right federal, state, and foundation grants.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 text-[#00E5FF] font-medium whitespace-nowrap">
+            Start Onboarding
+            <ArrowRight className="w-4 h-4" />
+          </div>
+        </Link>
+      </section>
 
       <section>
         <div className="flex items-center justify-between mb-4">

@@ -25,6 +25,7 @@ export default function DashboardShell({
 
         <nav className="flex flex-col gap-3">
           <Link href="/home">Dashboard</Link>
+          <Link href="/onboarding">Onboarding</Link>
           <Link href="/compare">Compare Grants</Link>
           <Link href="/recommendations">Recommendations</Link>
           <Link href="/workspace">Workspaces</Link>
