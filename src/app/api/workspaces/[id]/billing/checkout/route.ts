@@ -12,9 +12,11 @@ type Params = { id: string };
 // once one exists, plan changes/cancellation go through the Stripe
 // Customer Portal (see ../portal) so Stripe handles proration instead of
 // this app guessing at it.
-export async function POST(req: NextRequest, { params }: { params: Params }) {
+export async function POST(req: NextRequest, context: { params: Promise<Params> }) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const params = await context.params;
 
   const workspace = await prisma.workspace.findUnique({
     where: { id: params.id },

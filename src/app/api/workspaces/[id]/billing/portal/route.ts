@@ -12,9 +12,11 @@ type Params = { id: string };
 // upgrade/downgrade/proration logic here -- Stripe's portal already does
 // this correctly and stays in sync via the same webhook this app listens
 // on (see /api/webhooks/stripe).
-export async function POST(req: NextRequest, { params }: { params: Params }) {
+export async function POST(req: NextRequest, context: { params: Promise<Params> }) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const params = await context.params;
 
   const workspace = await prisma.workspace.findUnique({
     where: { id: params.id },

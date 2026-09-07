@@ -9,14 +9,16 @@ type Params = { id: string };
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: Params }
+  context: { params: Promise<Params> }
 ) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
+    const { id } = await context.params;
+
     const workspace = await prisma.workspace.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         billing: true,
         addons: true,
@@ -30,7 +32,7 @@ export async function GET(
 
     const isOwner = workspace.ownerId === userId;
     const isAdmin = await prisma.workspaceMember.findFirst({
-      where: { workspaceId: params.id, userId, role: "admin" },
+      where: { workspaceId: id, userId, role: "admin" },
     });
 
     if (!isOwner && !isAdmin) {
