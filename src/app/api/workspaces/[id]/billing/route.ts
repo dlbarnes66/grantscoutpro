@@ -42,6 +42,7 @@ export async function GET(
       billing: workspace.billing,
       addons: workspace.addons,
       addonBillings: workspace.addonBillings,
+      isOwner,
     });
   } catch (err: any) {
     console.error("WORKSPACE BILLING ROOT ERROR:", err);

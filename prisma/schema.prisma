@@ -466,6 +466,13 @@ model WorkspaceBilling {
   manualSearchCount   Int      @default(0)
   manualSearchResetAt DateTime @default(now())
 
+  // Stripe subscription status ("active" | "trialing" | "past_due" |
+  // "canceled" | "unpaid" | "incomplete"), synced from the
+  // customer.subscription.* / invoice.payment_* webhook events.
+  // Defaults to "active" for the free tier and existing rows.
+  status           String  @default("active")
+  cancelAtPeriodEnd Boolean @default(false)
+
   workspace Workspace @relation("WorkspaceToBilling", fields: [workspaceId], references: [id])
 }
 
