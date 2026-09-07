@@ -1102,6 +1102,7 @@ export default function MarketingHomePage() {
           >
             <a href="#features" style={{ color: "#CBD5E1", textDecoration: "none" }}>Features</a>
             <a href="#pricing" style={{ color: "#CBD5E1", textDecoration: "none" }}>Pricing</a>
+            <a href="/integrations" style={{ color: "#CBD5E1", textDecoration: "none" }}>Integrations</a>
             <a
               href="https://calendly.com/dlbarnes-dbglobalinvestments/new-meeting-1"
               target="_blank"
