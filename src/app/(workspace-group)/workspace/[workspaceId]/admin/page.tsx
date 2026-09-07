@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import AdminSection from "@/components/workspace/admin/AdminSection";
+import MembersSection from "@/components/workspace/admin/MembersSection";
 import WorkspaceShell from "@/components/workspace/WorkspaceShell";
 
 export default function AdminConsolePage() {
@@ -33,7 +34,7 @@ export default function AdminConsolePage() {
         {data && (
           <div className="space-y-8">
             <AdminSection title="Workspace Summary" data={data.summary} />
-            <AdminSection title="Members" data={data.members} />
+            <MembersSection workspaceId={workspaceId} />
             <AdminSection title="Billing" data={data.billing} />
             <AdminSection title="Usage" data={data.usage} />
             <AdminSection title="Recent Activity" data={data.activity} />
