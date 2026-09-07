@@ -860,7 +860,7 @@ export default function MarketingHomePage() {
             <p>✓ Everything in Team</p>
             <p>✓ Private Foundation Search</p>
             <p>✓ AI Proposal Writer</p>
-            <p>✓ GrantScout CRM</p>
+            <p>✓ GrantScout CRM <span style={{ color: "#94A3B8", fontWeight: 400, fontSize: "13px" }}>(Coming Soon)</span></p>
             <p>✓ Submission Tracking</p>
             <p>✓ Advanced Reporting</p>
             <a
@@ -926,7 +926,7 @@ export default function MarketingHomePage() {
 
             <p>✓ Everything in Business</p>
             <p>✓ Unlimited Users</p>
-            <p>✓ GrantScout CRM</p>
+            <p>✓ GrantScout CRM <span style={{ color: "#94A3B8", fontWeight: 400, fontSize: "13px" }}>(Coming Soon)</span></p>
             <p>✓ API Access</p>
             <p>✓ Custom Integrations</p>
             <p>✓ Dedicated Success Manager</p>
