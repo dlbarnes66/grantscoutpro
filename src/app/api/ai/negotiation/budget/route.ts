@@ -1,32 +1,57 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
-import { callUnifiedModel } from "@/app/api/ai/autoeditor/_lib/unifiedModel";
+import {
+  assertGrantWorkspaceAccess,
+  buildNegotiationContext,
+  generateNegotiationSection,
+  saveNegotiationSection,
+} from "@/lib/ai/negotiation";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
+const SYSTEM_PROMPT =
+  "You are a senior grants negotiation advisor for a nonprofit. Always respond with a single JSON object, no prose outside the JSON.";
+
+// POST /api/ai/negotiation/budget  { workspaceId, grantId, orgNotes? }
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { budget = {}, grant = {} } = await req.json().catch(() => ({}));
+  const body = await req.json().catch(() => ({}));
+  const workspaceId = body?.workspaceId as string | undefined;
+  const grantId = body?.grantId as string | undefined;
+  const orgNotes = typeof body?.orgNotes === "string" ? body.orgNotes.trim() : "";
 
-  const prompt = `
-Prepare a negotiation plan for this grant budget.
+  if (!workspaceId || !grantId) {
+    return NextResponse.json({ error: "workspaceId and grantId are required" }, { status: 400 });
+  }
 
-Budget:
-${JSON.stringify(budget, null, 2)}
+  const allowed = await assertGrantWorkspaceAccess(workspaceId, grantId, userId);
+  if (!allowed) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-Grant:
-${JSON.stringify(grant, null, 2)}
+  const context = await buildNegotiationContext(grantId);
+  if (!context) return NextResponse.json({ error: "Grant not found" }, { status: 404 });
 
-Return JSON with:
-- negotiationPlan
-- justificationPoints
-- riskAreas
-- fallbackBudgetOptions
-`;
+  const userPrompt = `
+Prepare a negotiation plan for this grant's budget.
 
-  const result = await callUnifiedModel(prompt);
+Grant (including award floor/ceiling if known):
+${JSON.stringify(context.grant, null, 2)}
 
-  return NextResponse.json({ success: true, budget: result });
+Organization (${context.workspaceName ?? "unnamed workspace"}):
+${JSON.stringify(context.orgProfile ?? {}, null, 2)}
+${orgNotes ? `\nAdditional context from the user (e.g. current draft budget):\n${orgNotes}` : ""}
+
+Respond with a JSON object with these keys:
+- negotiationPlan (array of strings)
+- justificationPoints (array of strings)
+- riskAreas (array of strings)
+- fallbackBudgetOptions (array of strings)
+`.trim();
+
+  const { parsed, raw } = await generateNegotiationSection(SYSTEM_PROMPT, userPrompt);
+  await saveNegotiationSection(userId, grantId, "budget", raw);
+
+  return NextResponse.json({ success: true, budget: parsed ?? raw });
 }

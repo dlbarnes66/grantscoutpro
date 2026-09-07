@@ -21,6 +21,8 @@ import {
   Puzzle,
   Settings,
   ShieldCheck,
+  Handshake,
+  Contact,
   type LucideIcon,
 } from "lucide-react";
 
@@ -68,6 +70,13 @@ export default function WorkspaceSidebar({ workspaceId }: { workspaceId: string 
         { label: "Assistant Chat", href: `${base}/chat`, icon: MessageSquare },
         { label: "Location Intelligence", href: `${base}/intelligence`, icon: MapPin },
         { label: "AI Insights", href: `${base}/insights`, icon: Lightbulb },
+      ],
+    },
+    {
+      label: "CRM",
+      items: [
+        { label: "Pipeline", href: `${base}/crm`, icon: Handshake, exact: true },
+        { label: "Contacts", href: `${base}/crm/contacts`, icon: Contact },
       ],
     },
     {

@@ -218,6 +218,11 @@ model Workspace {
 
   integrations WorkspaceIntegration[]
 
+  crmContacts CrmContact[]  @relation("WorkspaceToCrmContact")
+  crmDeals    CrmDeal[]     @relation("WorkspaceToCrmDeal")
+  crmNotes    CrmNote[]     @relation("WorkspaceToCrmNote")
+  crmActivity CrmActivity[] @relation("WorkspaceToCrmActivity")
+
   grants      Grant[]           @relation("WorkspaceToGrant")
   comparisons GrantComparison[]
 
@@ -2128,4 +2133,66 @@ model WorkspaceIntegration {
 }
 
 
+model CrmContact {
+  id           String   @id @default(cuid())
+  workspaceId  String
+  name         String
+  email        String?
+  phone        String?
+  organization String?
+  title        String?
+  createdById  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
+  workspace Workspace @relation("WorkspaceToCrmContact", fields: [workspaceId], references: [id], onDelete: Cascade)
+  deals     CrmDeal[] @relation("CrmContactToDeal")
+  notes     CrmNote[] @relation("CrmContactToNote")
+}
+
+model CrmDeal {
+  id            String    @id @default(cuid())
+  workspaceId   String
+  contactId     String?
+  title         String
+  organization  String?
+  // "lead" | "contacted" | "pipeline" | "negotiating" | "won" | "lost"
+  stage         String    @default("lead")
+  amount        Float?
+  expectedClose DateTime?
+  createdById   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  workspace Workspace     @relation("WorkspaceToCrmDeal", fields: [workspaceId], references: [id], onDelete: Cascade)
+  contact   CrmContact?   @relation("CrmContactToDeal", fields: [contactId], references: [id])
+  notes     CrmNote[]     @relation("CrmDealToNote")
+  activity  CrmActivity[] @relation("CrmDealToActivity")
+}
+
+model CrmNote {
+  id          String   @id @default(cuid())
+  workspaceId String
+  dealId      String?
+  contactId   String?
+  authorId    String?
+  body        String
+  createdAt   DateTime @default(now())
+
+  workspace Workspace   @relation("WorkspaceToCrmNote", fields: [workspaceId], references: [id], onDelete: Cascade)
+  deal      CrmDeal?    @relation("CrmDealToNote", fields: [dealId], references: [id], onDelete: Cascade)
+  contact   CrmContact? @relation("CrmContactToNote", fields: [contactId], references: [id], onDelete: Cascade)
+}
+
+model CrmActivity {
+  id          String   @id @default(cuid())
+  workspaceId String
+  dealId      String?
+  userId      String?
+  type        String
+  description String
+  createdAt   DateTime @default(now())
+
+  workspace Workspace @relation("WorkspaceToCrmActivity", fields: [workspaceId], references: [id], onDelete: Cascade)
+  deal      CrmDeal?  @relation("CrmDealToActivity", fields: [dealId], references: [id], onDelete: Cascade)
+}

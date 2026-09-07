@@ -1,32 +1,57 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
-import { callUnifiedModel } from "@/app/api/ai/autoeditor/_lib/unifiedModel";
+import {
+  assertGrantWorkspaceAccess,
+  buildNegotiationContext,
+  generateNegotiationSection,
+  saveNegotiationSection,
+} from "@/lib/ai/negotiation";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
+const SYSTEM_PROMPT =
+  "You are a senior grants negotiation advisor for a nonprofit. Always respond with a single JSON object, no prose outside the JSON.";
+
+// POST /api/ai/negotiation/strategy  { workspaceId, grantId, orgNotes? }
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { grant = {}, org = {} } = await req.json().catch(() => ({}));
+  const body = await req.json().catch(() => ({}));
+  const workspaceId = body?.workspaceId as string | undefined;
+  const grantId = body?.grantId as string | undefined;
+  const orgNotes = typeof body?.orgNotes === "string" ? body.orgNotes.trim() : "";
 
-  const prompt = `
-Create a negotiation strategy for this grant.
+  if (!workspaceId || !grantId) {
+    return NextResponse.json({ error: "workspaceId and grantId are required" }, { status: 400 });
+  }
+
+  const allowed = await assertGrantWorkspaceAccess(workspaceId, grantId, userId);
+  if (!allowed) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const context = await buildNegotiationContext(grantId);
+  if (!context) return NextResponse.json({ error: "Grant not found" }, { status: 404 });
+
+  const userPrompt = `
+Create an overall negotiation strategy for this grant.
 
 Grant:
-${JSON.stringify(grant, null, 2)}
+${JSON.stringify(context.grant, null, 2)}
 
-Organization:
-${JSON.stringify(org, null, 2)}
+Organization (${context.workspaceName ?? "unnamed workspace"}):
+${JSON.stringify(context.orgProfile ?? {}, null, 2)}
+${orgNotes ? `\nAdditional context from the user:\n${orgNotes}` : ""}
 
-Return JSON with:
-- strategyPlan
-- talkingPoints
-- riskMitigation
-- fallbackOptions
-`;
+Respond with a JSON object with these keys:
+- strategyPlan (array of strings, ordered steps)
+- talkingPoints (array of strings)
+- riskMitigation (array of strings)
+- fallbackOptions (array of strings)
+`.trim();
 
-  const result = await callUnifiedModel(prompt);
+  const { parsed, raw } = await generateNegotiationSection(SYSTEM_PROMPT, userPrompt);
+  await saveNegotiationSection(userId, grantId, "strategy", raw);
 
-  return NextResponse.json({ success: true, strategy: result });
+  return NextResponse.json({ success: true, strategy: parsed ?? raw });
 }

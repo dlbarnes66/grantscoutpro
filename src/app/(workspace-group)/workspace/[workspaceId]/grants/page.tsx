@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import WorkspaceShell from "@/components/workspace/WorkspaceShell";
 import Card from "@/components/ui/Card";
+import Link from "next/link";
 import { Search, RefreshCw } from "lucide-react";
 
 interface Grant {
@@ -216,6 +217,13 @@ export default function WorkspaceGrantsPage() {
                     View on Grants.gov
                   </a>
                 )}
+
+                <Link
+                  href={`/workspace/${workspaceId}/grants/${grant.id}/negotiation`}
+                  className="text-sm text-[#00E5FF] hover:underline inline-block ml-4"
+                >
+                  Negotiation Prep &rarr;
+                </Link>
               </Card>
             ))}
           </div>

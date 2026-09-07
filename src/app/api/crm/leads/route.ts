@@ -1,48 +1,33 @@
+import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getWorkspaceRole } from "@/lib/crm/access";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
-type LeadStatus = "new" | "qualified" | "lost";
+// GET /api/crm/leads?workspaceId=...
+// A "lead" is just a CrmDeal sitting at the top of the funnel (stage =
+// "lead") - this is a thin, read-only view over the same deals table used
+// by /api/crm/deals and /api/crm/pipeline, not a separate concept.
+export async function GET(req: NextRequest) {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-type Lead = {
-  id: string;
-  name: string;
-  email: string;
-  organization?: string;
-  status: LeadStatus;
-  createdAt: string;
-};
+  const workspaceId = req.nextUrl.searchParams.get("workspaceId") || "";
+  const role = await getWorkspaceRole(workspaceId, userId);
+  if (!role) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-const leadStore: Lead[] = [];
+  try {
+    const leads = await prisma.crmDeal.findMany({
+      where: { workspaceId, stage: "lead" },
+      orderBy: { createdAt: "desc" },
+      include: { contact: { select: { id: true, name: true, email: true } } },
+    });
 
-export async function GET() {
-  return NextResponse.json({ leads: leadStore });
-}
-
-export async function POST(req: NextRequest) {
-  const body = await req.json().catch(() => ({}));
-
-  const name = body.name;
-  const email = body.email;
-  const organization = body.organization;
-
-  if (!name || !email) {
-    return NextResponse.json(
-      { error: "name and email required" },
-      { status: 400 }
-    );
+    return NextResponse.json({ success: true, leads });
+  } catch (err: any) {
+    console.error("CRM LEADS GET ERROR:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
-
-  const lead: Lead = {
-    id: crypto.randomUUID(),
-    name,
-    email,
-    organization,
-    status: "new",
-    createdAt: new Date().toISOString()
-  };
-
-  leadStore.push(lead);
-
-  return NextResponse.json({ lead });
 }

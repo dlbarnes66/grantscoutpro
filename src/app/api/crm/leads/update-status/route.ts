@@ -1,50 +1,57 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getWorkspaceRole } from "@/lib/crm/access";
+import { isCrmStage, stageLabel } from "@/lib/crm/stages";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Record<string, string> }
-) {
+// POST /api/crm/leads/update-status  { workspaceId, dealId, stage }
+// Convenience wrapper around PATCH /api/crm/deals/[id] for moving a deal
+// to a new pipeline stage.
+export async function POST(req: NextRequest) {
   const { userId } = await auth();
-  if (!userId)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  try {
-    const url = new URL(req.url);
+  const body = await req.json().catch(() => null);
+  const workspaceId = body?.workspaceId as string | undefined;
+  const dealId = body?.dealId as string | undefined;
+  const stage = body?.stage;
 
-    return NextResponse.json({
-      success: true,
-      method: "GET",
-      params,
-      query: Object.fromEntries(url.searchParams.entries()),
-    });
-  } catch (err: any) {
-    console.error("GET ERROR:", err);
-    return NextResponse.json({ error: err?.message }, { status: 500 });
+  if (!workspaceId || !dealId) {
+    return NextResponse.json({ error: "workspaceId and dealId are required" }, { status: 400 });
   }
-}
+  if (!isCrmStage(stage)) {
+    return NextResponse.json({ error: "Invalid stage" }, { status: 400 });
+  }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Record<string, string> }
-) {
-  const { userId } = await auth();
-  if (!userId)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const role = await getWorkspaceRole(workspaceId, userId);
+  if (!role) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   try {
-    const body = await req.json().catch(() => ({}));
+    const existing = await prisma.crmDeal.findUnique({ where: { id: dealId } });
+    if (!existing || existing.workspaceId !== workspaceId) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
 
-    return NextResponse.json({
-      success: true,
-      method: "POST",
-      params,
-      body,
-    });
+    const updated = await prisma.crmDeal.update({ where: { id: dealId }, data: { stage } });
+
+    if (stage !== existing.stage) {
+      await prisma.crmActivity.create({
+        data: {
+          workspaceId,
+          dealId,
+          userId,
+          type: "stage_changed",
+          description: `"${updated.title}" moved from ${stageLabel(existing.stage)} to ${stageLabel(stage)}.`,
+        },
+      });
+    }
+
+    return NextResponse.json({ success: true, deal: updated });
   } catch (err: any) {
-    console.error("POST ERROR:", err);
-    return NextResponse.json({ error: err?.message }, { status: 500 });
+    console.error("CRM LEADS UPDATE-STATUS ERROR:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

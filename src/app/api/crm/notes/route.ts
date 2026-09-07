@@ -1,56 +1,80 @@
+import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getWorkspaceRole } from "@/lib/crm/access";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
-type Note = {
-  id: string;
-  entityType: "lead" | "contact" | "deal";
-  entityId: string;
-  text: string;
-  createdAt: string;
-};
-
-const noteStore: Note[] = [];
-
+// GET /api/crm/notes?workspaceId=...&dealId=...  (or &contactId=...)
 export async function GET(req: NextRequest) {
-  const url = new URL(req.url);
-  const entityId = url.searchParams.get("entityId");
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  if (!entityId) {
-    return NextResponse.json(
-      { error: "entityId required" },
-      { status: 400 }
-    );
+  const workspaceId = req.nextUrl.searchParams.get("workspaceId") || "";
+  const dealId = req.nextUrl.searchParams.get("dealId") || undefined;
+  const contactId = req.nextUrl.searchParams.get("contactId") || undefined;
+
+  if (!dealId && !contactId) {
+    return NextResponse.json({ error: "dealId or contactId is required" }, { status: 400 });
   }
 
-  const notes = noteStore.filter((n) => n.entityId === entityId);
+  const role = await getWorkspaceRole(workspaceId, userId);
+  if (!role) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  return NextResponse.json({ notes });
+  try {
+    const notes = await prisma.crmNote.findMany({
+      where: { workspaceId, ...(dealId ? { dealId } : {}), ...(contactId ? { contactId } : {}) },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return NextResponse.json({ success: true, notes });
+  } catch (err: any) {
+    console.error("CRM NOTES GET ERROR:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
 }
 
+// POST /api/crm/notes  { workspaceId, dealId?, contactId?, body }
 export async function POST(req: NextRequest) {
-  const body = await req.json().catch(() => ({}));
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const entityType = body.entityType as Note["entityType"];
-  const entityId = body.entityId;
-  const text = body.text;
+  const body = await req.json().catch(() => null);
+  const workspaceId = body?.workspaceId as string | undefined;
+  const dealId = body?.dealId as string | undefined;
+  const contactId = body?.contactId as string | undefined;
+  const text = typeof body?.body === "string" ? body.body.trim() : "";
 
-  if (!entityType || !entityId || !text) {
-    return NextResponse.json(
-      { error: "entityType, entityId, and text required" },
-      { status: 400 }
-    );
+  if (!workspaceId) return NextResponse.json({ error: "workspaceId is required" }, { status: 400 });
+  if (!dealId && !contactId) {
+    return NextResponse.json({ error: "dealId or contactId is required" }, { status: 400 });
   }
+  if (!text) return NextResponse.json({ error: "body is required" }, { status: 400 });
 
-  const note: Note = {
-    id: crypto.randomUUID(),
-    entityType,
-    entityId,
-    text,
-    createdAt: new Date().toISOString()
-  };
+  const role = await getWorkspaceRole(workspaceId, userId);
+  if (!role) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  noteStore.push(note);
+  try {
+    const note = await prisma.crmNote.create({
+      data: { workspaceId, dealId: dealId || null, contactId: contactId || null, authorId: userId, body: text },
+    });
 
-  return NextResponse.json({ note });
+    if (dealId) {
+      await prisma.crmActivity.create({
+        data: {
+          workspaceId,
+          dealId,
+          userId,
+          type: "note_added",
+          description: "A note was added.",
+        },
+      });
+    }
+
+    return NextResponse.json({ success: true, note });
+  } catch (err: any) {
+    console.error("CRM NOTES POST ERROR:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
 }

@@ -1,47 +1,32 @@
+import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getWorkspaceRole } from "@/lib/crm/access";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
-type Activity = {
-  id: string;
-  type: string;
-  entityType: "lead" | "contact" | "deal";
-  entityId: string;
-  description: string;
-  createdAt: string;
-};
+// GET /api/crm/activity?workspaceId=...&dealId=... (dealId optional)
+export async function GET(req: NextRequest) {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-const activityStore: Activity[] = [];
+  const workspaceId = req.nextUrl.searchParams.get("workspaceId") || "";
+  const dealId = req.nextUrl.searchParams.get("dealId") || undefined;
 
-export async function GET() {
-  return NextResponse.json({ activity: activityStore });
-}
+  const role = await getWorkspaceRole(workspaceId, userId);
+  if (!role) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-export async function POST(req: NextRequest) {
-  const body = await req.json().catch(() => ({}));
+  try {
+    const activity = await prisma.crmActivity.findMany({
+      where: { workspaceId, ...(dealId ? { dealId } : {}) },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+    });
 
-  const type = body.type;
-  const entityType = body.entityType as Activity["entityType"];
-  const entityId = body.entityId;
-  const description = body.description ?? "";
-
-  if (!type || !entityType || !entityId) {
-    return NextResponse.json(
-      { error: "type, entityType, and entityId required" },
-      { status: 400 }
-    );
+    return NextResponse.json({ success: true, activity });
+  } catch (err: any) {
+    console.error("CRM ACTIVITY GET ERROR:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
-
-  const activity: Activity = {
-    id: crypto.randomUUID(),
-    type,
-    entityType,
-    entityId,
-    description,
-    createdAt: new Date().toISOString()
-  };
-
-  activityStore.push(activity);
-
-  return NextResponse.json({ activity });
 }

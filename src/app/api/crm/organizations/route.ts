@@ -1,47 +1,48 @@
+import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getWorkspaceRole } from "@/lib/crm/access";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
-type Organization = {
-  id: string;
-  name: string;
-  ein?: string;
-  mission?: string;
-  annualBudget?: number;
-  createdAt: string;
-};
+// GET /api/crm/organizations?workspaceId=...
+// There's no standalone "organization" entity - this returns the distinct
+// organization names already on file across contacts and deals, for
+// autocomplete when adding a new contact or deal.
+export async function GET(req: NextRequest) {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-const orgStore: Organization[] = [];
+  const workspaceId = req.nextUrl.searchParams.get("workspaceId") || "";
+  const role = await getWorkspaceRole(workspaceId, userId);
+  if (!role) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-export async function GET() {
-  return NextResponse.json({ organizations: orgStore });
-}
+  try {
+    const [contacts, deals] = await Promise.all([
+      prisma.crmContact.findMany({
+        where: { workspaceId, organization: { not: null } },
+        select: { organization: true },
+        distinct: ["organization"],
+      }),
+      prisma.crmDeal.findMany({
+        where: { workspaceId, organization: { not: null } },
+        select: { organization: true },
+        distinct: ["organization"],
+      }),
+    ]);
 
-export async function POST(req: NextRequest) {
-  const body = await req.json().catch(() => ({}));
+    const names = Array.from(
+      new Set(
+        [...contacts, ...deals]
+          .map((r) => r.organization)
+          .filter((n): n is string => !!n)
+      )
+    ).sort((a, b) => a.localeCompare(b));
 
-  const name = body.name;
-  const ein = body.ein;
-  const mission = body.mission;
-  const annualBudget = body.annualBudget;
-
-  if (!name) {
-    return NextResponse.json(
-      { error: "name required" },
-      { status: 400 }
-    );
+    return NextResponse.json({ success: true, organizations: names });
+  } catch (err: any) {
+    console.error("CRM ORGANIZATIONS GET ERROR:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
-
-  const org: Organization = {
-    id: crypto.randomUUID(),
-    name,
-    ein,
-    mission,
-    annualBudget,
-    createdAt: new Date().toISOString()
-  };
-
-  orgStore.push(org);
-
-  return NextResponse.json({ organization: org });
 }
