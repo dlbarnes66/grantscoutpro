@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { Plus, X, Loader2 } from "lucide-react";
 import WorkspaceShell from "@/components/workspace/WorkspaceShell";
 import Card from "@/components/ui/Card";
+import CrmUpgradePrompt from "@/components/crm/CrmUpgradePrompt";
 
 interface Contact {
   id: string;
@@ -55,6 +56,7 @@ export default function CrmPipelinePage() {
   const [columns, setColumns] = useState<Column[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [needsUpgrade, setNeedsUpgrade] = useState(false);
 
   const [showNewDeal, setShowNewDeal] = useState(false);
   const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
@@ -65,6 +67,10 @@ export default function CrmPipelinePage() {
     try {
       const res = await fetch(`/api/crm/pipeline?workspaceId=${workspaceId}`);
       const json = await res.json();
+      if (res.status === 402) {
+        setNeedsUpgrade(true);
+        return;
+      }
       if (!res.ok) throw new Error(json?.error || "Failed to load pipeline");
       setColumns(json.columns || []);
     } catch (err: any) {
@@ -80,6 +86,14 @@ export default function CrmPipelinePage() {
   }, [workspaceId]);
 
   const totalDeals = useMemo(() => columns.reduce((sum, c) => sum + c.deals.length, 0), [columns]);
+
+  if (!loading && needsUpgrade) {
+    return (
+      <WorkspaceShell title="CRM Pipeline" workspaceId={workspaceId}>
+        <CrmUpgradePrompt workspaceId={workspaceId} />
+      </WorkspaceShell>
+    );
+  }
 
   return (
     <WorkspaceShell title="CRM Pipeline" workspaceId={workspaceId}>
