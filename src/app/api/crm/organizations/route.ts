@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getWorkspaceRole } from "@/lib/crm/access";
+import { hasCrmAccess } from "@/lib/crm/entitlement";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -17,6 +18,13 @@ export async function GET(req: NextRequest) {
   const workspaceId = req.nextUrl.searchParams.get("workspaceId") || "";
   const role = await getWorkspaceRole(workspaceId, userId);
   if (!role) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  if (!(await hasCrmAccess(workspaceId))) {
+    return NextResponse.json(
+      { error: "CRM isn't included in this workspace's plan. Upgrade to Enterprise or add the CRM addon.", upgrade: true },
+      { status: 402 }
+    );
+  }
 
   try {
     const [contacts, deals] = await Promise.all([

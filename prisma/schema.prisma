@@ -488,12 +488,21 @@ model WorkspaceAddon {
   workspaceId String
   addonType   String
   active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+
+  // Set only for a self-serve, separately-billed addon (e.g. the CRM
+  // addon purchased outside the Enterprise plan). An addon that's simply
+  // included with a plan tier has no Stripe records of its own here.
+  stripeSubscriptionId String? @unique
+  stripeCustomerId     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   workspace Workspace @relation("WorkspaceToAddon", fields: [workspaceId], references: [id])
 
   addonBillings AddonBilling[]
+
+  @@unique([workspaceId, addonType])
 }
 
 model AddonBilling {

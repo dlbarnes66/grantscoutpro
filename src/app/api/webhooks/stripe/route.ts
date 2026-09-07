@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
-import { verifyStripeSignature, getPlanIdFromPriceId } from "@/lib/stripe";
+import { stripe, verifyStripeSignature, getPlanIdFromPriceId } from "@/lib/stripe";
 import { logActivity } from "@/lib/ai/activity-log";
 
 export const dynamic = "force-dynamic";
@@ -39,6 +39,69 @@ async function findBillingRowForSubscription(sub: Stripe.Subscription) {
   return prisma.workspaceBilling.findFirst({ where: { stripeSubscriptionId: sub.id } });
 }
 
+// Addons (currently just CRM) are billed as their own separate Stripe
+// subscription, tagged with metadata.kind === "addon" at checkout time -
+// this keeps them from ever being mistaken for the plan subscription in
+// the handlers above.
+function isAddonSubscription(sub: Stripe.Subscription): boolean {
+  return sub.metadata?.kind === "addon";
+}
+
+async function upsertAddonFromSubscription(sub: Stripe.Subscription) {
+  const workspaceId = sub.metadata?.workspaceId;
+  const addonType = sub.metadata?.addonType;
+  if (!workspaceId || !addonType) {
+    console.warn("Stripe webhook: addon subscription missing workspaceId/addonType metadata", sub.id);
+    return;
+  }
+
+  const active = sub.status === "active" || sub.status === "trialing";
+  const item = sub.items.data[0];
+
+  const addon = await prisma.workspaceAddon.upsert({
+    where: { workspaceId_addonType: { workspaceId, addonType } },
+    update: {
+      active,
+      stripeSubscriptionId: sub.id,
+      stripeCustomerId: typeof sub.customer === "string" ? sub.customer : sub.customer.id,
+    },
+    create: {
+      workspaceId,
+      addonType,
+      active,
+      stripeSubscriptionId: sub.id,
+      stripeCustomerId: typeof sub.customer === "string" ? sub.customer : sub.customer.id,
+    },
+  });
+
+  if (item?.price) {
+    await prisma.addonBilling.create({
+      data: {
+        workspaceId,
+        addonId: addon.id,
+        amount: item.price.unit_amount ?? 0,
+        period: item.price.recurring?.interval === "year" ? "yearly" : "monthly",
+        status: sub.status,
+      },
+    });
+  }
+
+  await logActivitySafe(workspaceId, active ? "addon_activated" : "addon_deactivated", { addonType });
+}
+
+async function deactivateAddonFromSubscription(sub: Stripe.Subscription) {
+  const workspaceId = sub.metadata?.workspaceId;
+  const addonType = sub.metadata?.addonType;
+  if (!workspaceId || !addonType) return;
+
+  await prisma.workspaceAddon.updateMany({
+    where: { workspaceId, addonType },
+    data: { active: false },
+  });
+
+  await logActivitySafe(workspaceId, "addon_canceled", { addonType });
+}
+
 export const POST = async (req: NextRequest) => {
   const sig = req.headers.get("stripe-signature");
 
@@ -68,6 +131,14 @@ export const POST = async (req: NextRequest) => {
         const subscriptionId =
           typeof session.subscription === "string" ? session.subscription : session.subscription?.id;
 
+        if (session.metadata?.kind === "addon") {
+          if (subscriptionId) {
+            const sub = await stripe.subscriptions.retrieve(subscriptionId);
+            await upsertAddonFromSubscription(sub);
+          }
+          break;
+        }
+
         if (workspaceId && subscriptionId) {
           await prisma.workspaceBilling.upsert({
             where: { workspaceId },
@@ -87,6 +158,12 @@ export const POST = async (req: NextRequest) => {
       case "customer.subscription.created":
       case "customer.subscription.updated": {
         const sub = event.data.object as Stripe.Subscription;
+
+        if (isAddonSubscription(sub)) {
+          await upsertAddonFromSubscription(sub);
+          break;
+        }
+
         const billing = await findBillingRowForSubscription(sub);
         if (!billing) {
           console.warn("Stripe webhook: no WorkspaceBilling found for subscription", sub.id);
@@ -123,6 +200,12 @@ export const POST = async (req: NextRequest) => {
 
       case "customer.subscription.deleted": {
         const sub = event.data.object as Stripe.Subscription;
+
+        if (isAddonSubscription(sub)) {
+          await deactivateAddonFromSubscription(sub);
+          break;
+        }
+
         const billing = await findBillingRowForSubscription(sub);
         if (!billing) break;
 

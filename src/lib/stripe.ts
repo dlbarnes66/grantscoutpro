@@ -84,3 +84,43 @@ export function getPlanIdFromPriceId(priceId: string | undefined | null): PlanId
   if (!priceId) return null;
   return PLAN_BY_PRICE_ID[priceId] ?? null;
 }
+
+
+// --- Addon <-> Stripe Price ID mapping --------------------------------
+//
+// Addons are billed as their own separate Stripe subscription (not a line
+// item added to the plan subscription), so the plan-sync logic in the
+// webhook never needs to know about them. Right now only the CRM addon is
+// wired up end to end; STATE/FOUNDATIONS price IDs exist in .env but
+// aren't sold as standalone addons yet.
+
+export type AddonType = "crm";
+
+const ADDON_PRICE_ENV: Record<AddonType, Record<BillingInterval, string | undefined>> = {
+  crm: {
+    monthly: process.env.STRIPE_PRICE_ADDON_CRM_MONTHLY,
+    yearly: process.env.STRIPE_PRICE_ADDON_CRM_YEARLY,
+  },
+};
+
+export function getAddonPriceId(addonType: AddonType, interval: BillingInterval): string {
+  const priceId = ADDON_PRICE_ENV[addonType]?.[interval];
+  if (!priceId) {
+    throw new Error(
+      `No Stripe price configured for the "${addonType}" addon (${interval}). Check your .env STRIPE_PRICE_ADDON_* vars.`
+    );
+  }
+  return priceId;
+}
+
+const ADDON_BY_PRICE_ID: Record<string, AddonType> = {};
+for (const [addonType, intervals] of Object.entries(ADDON_PRICE_ENV)) {
+  for (const priceId of Object.values(intervals)) {
+    if (priceId) ADDON_BY_PRICE_ID[priceId] = addonType as AddonType;
+  }
+}
+
+export function getAddonTypeFromPriceId(priceId: string | undefined | null): AddonType | null {
+  if (!priceId) return null;
+  return ADDON_BY_PRICE_ID[priceId] ?? null;
+}
