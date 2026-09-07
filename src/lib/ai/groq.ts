@@ -1,5 +1,11 @@
 // src/lib/ai/groq.ts
+import { checkRateLimit } from "@/lib/rateLimit";
+
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+
+// Same blanket safety net as callUnifiedModel (src/lib/ai/...unifiedModel.ts)
+// -- app-wide cap so a runaway caller can't quietly run up spend here either.
+const GLOBAL_CALLS_PER_MINUTE = Number(process.env.GROQ_GLOBAL_CALLS_PER_MINUTE ?? 120);
 
 export async function groqChat({
   system,
@@ -12,6 +18,11 @@ export async function groqChat({
 }) {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) throw new Error("GROQ_API_KEY is not set");
+
+  const rl = await checkRateLimit("groq:global", GLOBAL_CALLS_PER_MINUTE, 60);
+  if (!rl.allowed) {
+    throw new Error("AI request volume is unusually high right now. Please try again in a moment.");
+  }
 
   const res = await fetch(GROQ_API_URL, {
     method: "POST",

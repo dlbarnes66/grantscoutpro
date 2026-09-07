@@ -6,6 +6,12 @@ function isBuild() {
   return process.env.NEXT_PHASE === "phase-production-build";
 }
 
+// Reused across calls -- checkRateLimit() now runs on most mutating
+// requests (AI panels, manual search, workspace creation), so a fresh
+// ioredis connection per call would leak connections under real
+// traffic instead of reusing one.
+let redisClient: Redis | null = null;
+
 // Lazy Redis initializer
 export function getRedis() {
   if (isBuild()) {
@@ -18,7 +24,14 @@ export function getRedis() {
     return null;
   }
 
-  return new Redis(process.env.REDIS_URL);
+  if (!redisClient) {
+    redisClient = new Redis(process.env.REDIS_URL);
+    redisClient.on("error", (err) => {
+      console.error("Redis client error:", err);
+    });
+  }
+
+  return redisClient;
 }
 
 // Lazy BullMQ connection

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { groqChat } from "@/lib/ai/groq";
 import { getWorkspaceDocumentWithAcl } from "@/lib/documents/acl";
+import { checkRateLimit } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,14 @@ export async function POST(req: NextRequest, { params }: { params: Params }) {
 
   const doc = await getWorkspaceDocumentWithAcl(params.id, params.documentId, userId);
   if (!doc) return NextResponse.json({ error: "Forbidden or document not found" }, { status: 404 });
+
+  const __rl = await checkRateLimit(`ai-panel:${params.id}`, 60, 60 * 60);
+  if (!__rl.allowed) {
+    return NextResponse.json(
+      { error: "This workspace has hit its AI usage limit (60 calls/hour). Please try again shortly." },
+      { status: 429 }
+    );
+  }
 
   const tone = (body.tone as string | undefined) ?? "clear, compelling, and funder‑aligned";
 

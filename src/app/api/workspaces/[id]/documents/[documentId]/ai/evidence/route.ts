@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { callUnifiedModel } from "@/app/api/ai/autoeditor/_lib/unifiedModel";
+import { guardAIRequest } from "@/lib/ai/guardAIRequest";
 
 export const dynamic = "force-dynamic";
 
@@ -54,6 +55,9 @@ Return JSON with:
 - unsupportedClaims
 - recommendations
 `;
+
+    const __aiGuard = await guardAIRequest(params.id, userId);
+    if (__aiGuard) return __aiGuard;
 
     const result = await callUnifiedModel(prompt);
 
