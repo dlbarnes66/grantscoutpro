@@ -4,8 +4,9 @@ import { requireWorkspaceMember } from "@/lib/auth";
 
 export async function GET(
   req: Request,
-  { params }: { params: { workspaceId: string } }
+  context: { params: Promise<{ workspaceId: string }> }
 ) {
+  const params = await context.params;
   try {
     const { workspaceId } = params;
 

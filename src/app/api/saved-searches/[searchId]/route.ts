@@ -9,8 +9,9 @@ type Params = { searchId: string };
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: Params }
+  context: { params: Promise<Params> }
 ) {
+  const params = await context.params;
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -32,8 +33,9 @@ export async function GET(
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: Params }
+  context: { params: Promise<Params> }
 ) {
+  const params = await context.params;
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -60,8 +62,9 @@ export async function POST(
 
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: Params }
+  context: { params: Promise<Params> }
 ) {
+  const params = await context.params;
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

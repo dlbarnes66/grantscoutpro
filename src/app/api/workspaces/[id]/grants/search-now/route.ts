@@ -35,8 +35,9 @@ async function loadWorkspaceForMember(workspaceId: string, userId: string) {
 // today" indicator in the UI.
 export async function GET(
   _req: NextRequest,
-  { params }: { params: Params }
+  context: { params: Promise<Params> }
 ) {
+  const params = await context.params;
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -70,8 +71,9 @@ export async function GET(
 // this workspace's Grant table, and drops a notification.
 export async function POST(
   req: NextRequest,
-  { params }: { params: Params }
+  context: { params: Promise<Params> }
 ) {
+  const params = await context.params;
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
