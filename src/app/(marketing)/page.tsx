@@ -53,10 +53,17 @@ export default function MarketingHomePage() {
     color: "#CBD5E1",
   }}
 >
- <span>Features</span>
-<span>Pricing</span>
-<span>About</span>
-<span>Contact</span>
+ <a href="#features" style={{ color: "#CBD5E1", textDecoration: "none" }}>Features</a>
+<a href="#pricing" style={{ color: "#CBD5E1", textDecoration: "none" }}>Pricing</a>
+<a href="/about" style={{ color: "#CBD5E1", textDecoration: "none" }}>About</a>
+<a
+  href="https://calendly.com/dlbarnes-dbglobalinvestments/new-meeting-1"
+  target="_blank"
+  rel="noopener noreferrer"
+  style={{ color: "#CBD5E1", textDecoration: "none" }}
+>
+  Contact
+</a>
 <a
   href="/sign-in"
   style={{
@@ -415,6 +422,7 @@ export default function MarketingHomePage() {
      {/* FEATURES */}
 
       <div
+        id="features"
         style={{
           maxWidth: "1400px",
           margin: "0 auto",
@@ -558,6 +566,7 @@ export default function MarketingHomePage() {
                 {/* PRICING */}
 
       <div
+        id="pricing"
         style={{
           maxWidth: "1400px",
           margin: "0 auto",
@@ -1091,10 +1100,17 @@ export default function MarketingHomePage() {
               gap: "24px",
             }}
           >
-            <span>Features</span>
-            <span>Pricing</span>
-            <span>Contact</span>
-            <span>Privacy</span>
+            <a href="#features" style={{ color: "#CBD5E1", textDecoration: "none" }}>Features</a>
+            <a href="#pricing" style={{ color: "#CBD5E1", textDecoration: "none" }}>Pricing</a>
+            <a
+              href="https://calendly.com/dlbarnes-dbglobalinvestments/new-meeting-1"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: "#CBD5E1", textDecoration: "none" }}
+            >
+              Contact
+            </a>
+            <a href="/privacy" style={{ color: "#CBD5E1", textDecoration: "none" }}>Privacy</a>
           </div>
         </div>
 
