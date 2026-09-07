@@ -95,19 +95,19 @@ export default function WorkspaceSidebar({ workspaceId }: { workspaceId: string 
   }
 
   return (
-    <aside className="flex w-64 shrink-0 flex-col gap-6 overflow-y-auto border-r border-white/5 bg-[#0D1F38] p-5">
-      <Link href={base} className="flex items-center gap-2.5 px-2 py-1">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#00E5FF] to-[#0090B0] text-sm font-black text-[#06131F]">
+    <aside className="flex w-60 shrink-0 flex-col gap-5 overflow-y-auto border-r border-white/[0.06] bg-[#0B1B33] p-4">
+      <Link href={base} className="flex items-center gap-2 rounded-md px-1.5 py-1">
+        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-[#00E5FF] to-[#0090B0] text-[13px] font-bold text-[#06131F]">
           G
         </span>
-        <span className="text-lg font-bold tracking-tight text-white">GrantScout Pro</span>
+        <span className="text-[14px] font-semibold tracking-tight text-white">GrantScout Pro</span>
       </Link>
 
-      <nav className="flex flex-col gap-6 text-sm">
+      <nav className="flex flex-col gap-4 text-[13px]">
         {sections.map((section) => (
-          <div key={section.label || "root"} className="flex flex-col gap-1">
+          <div key={section.label || "root"} className="flex flex-col gap-0.5">
             {section.label && (
-              <p className="mb-1 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+              <p className="mb-1 px-2 text-[10.5px] font-medium uppercase tracking-wider text-slate-500/80">
                 {section.label}
               </p>
             )}
@@ -119,14 +119,14 @@ export default function WorkspaceSidebar({ workspaceId }: { workspaceId: string 
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`group flex items-center gap-3 rounded-lg border-l-2 px-3 py-2 transition-colors ${
+                  className={`group flex items-center gap-2.5 rounded-md px-2 py-[7px] transition-colors ${
                     active
-                      ? "border-[#00E5FF] bg-white/[0.06] font-medium text-[#00E5FF]"
-                      : "border-transparent text-slate-300 hover:border-white/20 hover:bg-white/[0.04] hover:text-white"
+                      ? "bg-white/[0.08] text-white"
+                      : "text-slate-400 hover:bg-white/[0.045] hover:text-slate-100"
                   }`}
                 >
                   <Icon
-                    size={17}
+                    size={15}
                     strokeWidth={2}
                     className={active ? "text-[#00E5FF]" : "text-slate-500 group-hover:text-slate-300"}
                   />

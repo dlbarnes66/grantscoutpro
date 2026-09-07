@@ -124,97 +124,98 @@ export default async function WorkspacePage({ params }: PageProps) {
   ];
 
   return (
-    <WorkspaceShell
-      title="Workspace Overview"
-      subtitle="Manage grants, documents, collaboration, and AI-powered proposal development."
-      workspaceId={workspaceId}
-    >
-      <div className="grid grid-cols-2 gap-3 mb-8 sm:grid-cols-4">
+    <WorkspaceShell title="Workspace Overview" workspaceId={workspaceId}>
+      <p className="mb-6 text-[13px] text-slate-500">
+        Manage grants, documents, collaboration, and AI-powered proposal development.
+      </p>
+
+      <div className="grid grid-cols-2 gap-2 mb-7 sm:grid-cols-4">
         {quickActions.map((action) => (
           <Link
             key={action.href}
             href={action.href}
-            className="flex w-full min-w-0 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-slate-200 transition-colors hover:border-[#00E5FF]/40 hover:bg-white/[0.06] hover:text-white"
+            className="flex w-full min-w-0 items-center gap-2 rounded-md border border-white/[0.07] bg-white/[0.02] px-3 py-2 text-[13px] font-medium text-slate-300 transition-colors hover:border-white/[0.14] hover:bg-white/[0.05] hover:text-white"
           >
-            <action.icon size={16} className="shrink-0 text-[#00E5FF]" />
+            <action.icon size={14} className="shrink-0 text-[#00E5FF]" />
             <span className="truncate">{action.label}</span>
           </Link>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 mb-7 md:grid-cols-4">
         {stats.map((stat) => (
           <div
             key={stat.label}
-            className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-6 transition-transform hover:-translate-y-0.5"
+            className="relative overflow-hidden rounded-lg border border-white/[0.07] bg-white/[0.02] p-4 transition-colors hover:border-white/[0.14]"
           >
-            <div
-              className="absolute inset-x-0 top-0 h-0.5"
-              style={{ background: stat.accent }}
-            />
+            <div className="absolute inset-x-0 top-0 h-px" style={{ background: stat.accent, opacity: 0.6 }} />
             <div className="flex items-center justify-between">
-              <p className="text-sm text-slate-400">{stat.label}</p>
-              <stat.icon size={18} style={{ color: stat.accent }} />
+              <p className="text-[12px] text-slate-500">{stat.label}</p>
+              <stat.icon size={14} style={{ color: stat.accent }} />
             </div>
-            <p className="mt-3 text-4xl font-bold text-white">{stat.value.toLocaleString()}</p>
+            <p className="mt-2 text-[26px] font-semibold tabular-nums text-white">
+              {stat.value.toLocaleString()}
+            </p>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Card className="p-6 lg:col-span-2">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-white">Recent Activity</h2>
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+        <Card className="p-5 lg:col-span-2">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-[13px] font-medium text-slate-300">Recent Activity</h2>
             <Link
               href={`/workspace/${workspaceId}/activity`}
-              className="text-sm text-[#00E5FF] hover:underline"
+              className="text-[12px] text-[#00E5FF] hover:underline"
             >
               View all
             </Link>
           </div>
 
           {recentActivity.length === 0 ? (
-            <p className="text-sm text-slate-400">
+            <p className="text-[13px] text-slate-500">
               Nothing here yet — activity across this workspace will show up as your team works.
             </p>
           ) : (
-            <ul className="space-y-4">
+            <ul className="divide-y divide-white/[0.06]">
               {recentActivity.map((entry) => (
-                <li key={entry.id} className="flex items-start justify-between gap-4 text-sm">
+                <li key={entry.id} className="flex items-start justify-between gap-4 py-2.5 first:pt-0 last:pb-0">
                   <div>
-                    <p className="text-slate-200">{describeActivity(entry.action, entry.metadata)}</p>
-                    <p className="mt-0.5 text-xs text-slate-500">
+                    <p className="text-[13px] text-slate-300">
+                      {describeActivity(entry.action, entry.metadata)}
+                    </p>
+                    <p className="mt-0.5 text-[11.5px] text-slate-500">
                       {entry.user?.name || entry.user?.email || "System"}
                     </p>
                   </div>
-                  <span className="shrink-0 text-xs text-slate-500">{timeAgo(entry.createdAt)}</span>
+                  <span className="shrink-0 text-[11.5px] text-slate-500">{timeAgo(entry.createdAt)}</span>
                 </li>
               ))}
             </ul>
           )}
         </Card>
 
-        <Card className="p-6">
-          <h2 className="mb-4 text-lg font-semibold text-white">{workspace.name}</h2>
-          <dl className="space-y-3 text-sm">
-            <div className="flex items-center justify-between">
-              <dt className="text-slate-400">Plan</dt>
+        <Card className="p-5">
+          <h2 className="mb-3 text-[13px] font-medium text-slate-300">{workspace.name}</h2>
+          <dl className="divide-y divide-white/[0.06] text-[13px]">
+            <div className="flex items-center justify-between py-2 first:pt-0">
+              <dt className="text-slate-500">Plan</dt>
               <dd className="font-medium text-white">{plan.name}</dd>
             </div>
-            <div className="flex items-center justify-between">
-              <dt className="text-slate-400">Seats</dt>
+            <div className="flex items-center justify-between py-2">
+              <dt className="text-slate-500">Seats</dt>
               <dd className="font-medium text-white">
                 {plan.maxSeats === null
                   ? `${workspace.currentSeats} used`
                   : `${workspace.currentSeats} / ${plan.maxSeats} used`}
               </dd>
             </div>
-            <div className="flex items-center justify-between">
-              <dt className="text-slate-400">Status</dt>
+            <div className="flex items-center justify-between py-2">
+              <dt className="text-slate-500">Status</dt>
               <dd className="font-medium capitalize text-white">{workspace.billingStatus}</dd>
             </div>
-            <div className="flex items-center justify-between">
-              <dt className="text-slate-400">Created</dt>
+            <div className="flex items-center justify-between py-2 last:pb-0">
+              <dt className="text-slate-500">Created</dt>
               <dd className="font-medium text-white">
                 {workspace.createdAt.toLocaleDateString()}
               </dd>
@@ -223,7 +224,7 @@ export default async function WorkspacePage({ params }: PageProps) {
 
           <Link
             href={`/workspace/${workspaceId}/workspace-billing`}
-            className="mt-5 block text-center text-sm font-medium text-[#00E5FF] hover:underline"
+            className="mt-4 block rounded-md border border-white/[0.07] py-2 text-center text-[12.5px] font-medium text-slate-300 transition-colors hover:border-white/[0.14] hover:text-white"
           >
             Manage Billing
           </Link>
