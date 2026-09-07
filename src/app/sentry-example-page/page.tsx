@@ -1,11 +1,4 @@
 "use client"
-import { auth } from "@clerk/nextjs/server";
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
-
-
-
-
 import * as Sentry from "@sentry/nextjs";
 import Head from "next/head";
 import { useEffect, useState } from "react";

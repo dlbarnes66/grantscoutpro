@@ -1,45 +1,18 @@
-import { auth } from "@clerk/nextjs/server";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: NextRequest, context: any): Promise<Response> {
-  const { userId } = await auth();
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  try {
-    const url = new URL(req.url);
-    return NextResponse.json({
-      success: true,
-      method: "GET",
-      params: context?.params ?? {},
-      query: Object.fromEntries(url.searchParams.entries())
-    });
-  } catch (err: any) {
-    console.error("GET ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+class SentryExampleAPIError extends Error {
+  constructor(message: string | undefined) {
+    super(message);
+    this.name = "SentryExampleAPIError";
   }
 }
 
-export async function POST(req: NextRequest, context: any): Promise<Response> {
-  const { userId } = await auth();
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  try {
-    const body = await req.json().catch(() => ({}));
-
-    return NextResponse.json({
-      success: true,
-      method: "POST",
-      params: context?.params ?? {},
-      body
-    });
-  } catch (err: any) {
-    console.error("POST ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
-  }
+// A faulty API route used to test that server-side errors actually
+// reach Sentry (sentry.server.config.ts / instrumentation.ts).
+// Intentionally unauthenticated and intentionally throws -- this is
+// the standard Sentry-generated diagnostic route, not a real feature.
+export async function GET() {
+  throw new SentryExampleAPIError("This error is raised on the backend called by the example page.");
 }
