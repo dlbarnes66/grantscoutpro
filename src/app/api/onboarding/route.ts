@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { getFirecrawl } from "@/lib/firecrawl";
 import { discoverOrganization } from "@/lib/organization-discovery";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
@@ -57,6 +58,25 @@ export async function POST(
    const profile = await discoverOrganization(
   body.website
 );
+
+// Persist the discovered profile so it survives past this one response -
+// previously this endpoint scraped the site and threw the result away.
+await prisma.userProfile.upsert({
+  where: { userId },
+  update: {
+    organizationName: profile.organizationName,
+    mission: profile.mission,
+    website: profile.website,
+    focusAreas: profile.keywords,
+  },
+  create: {
+    userId,
+    organizationName: profile.organizationName,
+    mission: profile.mission,
+    website: profile.website,
+    focusAreas: profile.keywords,
+  },
+});
 
 return NextResponse.json(profile);
   } catch (err: any) {

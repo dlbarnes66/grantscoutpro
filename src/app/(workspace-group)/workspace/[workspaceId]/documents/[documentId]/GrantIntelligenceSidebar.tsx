@@ -18,7 +18,7 @@ export default function GrantIntelligenceSidebar({
     { id: "impact", label: "🎯 Impact Analysis" },
     { id: "review", label: "📝 Grant Review" },
     { id: "funders", label: "🤝 Funder Match" },
-    { id: "application", label: "🚀 Application Builder" },
+    { id: "application", label: "✍️ AI Proposal Writer" },
     { id: "inline", label: "💡 Suggestions" },
   ];
 

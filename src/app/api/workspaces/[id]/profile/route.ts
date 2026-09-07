@@ -1,5 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
@@ -13,14 +14,23 @@ export async function GET() {
     );
   }
 
+  const profile = await prisma.userProfile.findUnique({
+    where: { userId },
+  });
+
   return NextResponse.json({
     success: true,
     profile: {
-      organizationName: "",
-      mission: "",
-      programs: [],
-      serviceAreas: [],
-      annualBudget: null,
+      organizationName: profile?.organizationName ?? "",
+      organizationType: profile?.organizationType ?? "",
+      mission: profile?.mission ?? "",
+      website: profile?.website ?? "",
+      programs: profile?.focusAreas ?? [],
+      serviceAreas: profile?.geographicService ?? [],
+      populationsServed: profile?.populationsServed ?? [],
+      annualBudget: profile?.annualBudget ?? null,
+      staffSize: profile?.staffSize ?? null,
+      grantExperience: profile?.grantExperience ?? "",
     },
   });
 }

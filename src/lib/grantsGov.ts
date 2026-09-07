@@ -4,7 +4,7 @@
 // Docs: https://wiki.simpler.grants.gov/product/api
 // Requires a free API key from a Login.gov account - see
 // https://wiki.simpler.grants.gov/product/api/simpler-grants-api-tutorial/create-your-account-and-get-your-api-key
-// Set it as GRANTS_GOV_API_KEY in your environment.
+// Reads GRANTSGOV_API_KEY (falls back to GRANTS_GOV_API_KEY for compatibility).
 
 const SEARCH_URL = "https://api.simpler.grants.gov/v1/opportunities/search";
 
@@ -33,11 +33,11 @@ export async function searchFederalGrants(
   query: string,
   pageSize = 25
 ): Promise<GrantsGovOpportunity[]> {
-  const apiKey = process.env.GRANTS_GOV_API_KEY;
+  const apiKey = process.env.GRANTSGOV_API_KEY || process.env.GRANTS_GOV_API_KEY;
 
   if (!apiKey) {
     throw new GrantsGovConfigError(
-      "GRANTS_GOV_API_KEY is not set. Get a free key from Login.gov and add it to your environment - see wiki.simpler.grants.gov."
+      "GRANTSGOV_API_KEY is not set. Get a free key from Login.gov and add it to your environment - see wiki.simpler.grants.gov."
     );
   }
 

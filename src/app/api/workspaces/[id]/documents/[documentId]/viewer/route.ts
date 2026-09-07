@@ -1,5 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
@@ -23,23 +24,54 @@ export async function GET(
     }
 
     const params = await context.params;
+    const workspaceId = params.id;
+    const documentId = params.documentId;
 
-    const url = new URL(req.url);
+    const workspace = await prisma.workspace.findUnique({
+      where: { id: workspaceId },
+      include: {
+        members: { where: { userId } },
+      },
+    });
+
+    if (!workspace) {
+      return NextResponse.json(
+        { error: "Workspace not found" },
+        { status: 404 }
+      );
+    }
+
+    const isMember =
+      workspace.ownerId === userId || workspace.members.length > 0;
+
+    if (!isMember) {
+      return NextResponse.json(
+        { error: "Access denied to workspace" },
+        { status: 403 }
+      );
+    }
+
+    const document = await prisma.workspaceDocument.findFirst({
+      where: { id: documentId, workspaceId },
+    });
+
+    if (!document) {
+      return NextResponse.json(
+        { error: "Document not found in workspace" },
+        { status: 404 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
-      workspaceId: params.id,
-      documentId: params.documentId,
-      content: "",
-      query: Object.fromEntries(
-        url.searchParams.entries()
-      ),
+      workspaceId: document.workspaceId,
+      documentId: document.id,
+      title: document.title,
+      content: document.content ?? "",
+      updatedAt: document.updatedAt,
     });
   } catch (error) {
-    console.error(
-      "WORKSPACE DOCUMENT VIEWER ERROR:",
-      error
-    );
+    console.error("WORKSPACE DOCUMENT VIEWER ERROR:", error);
 
     return NextResponse.json(
       {
@@ -54,4 +86,3 @@ export async function GET(
     );
   }
 }
-``

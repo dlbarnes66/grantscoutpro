@@ -57,7 +57,7 @@ async function getWorkspaceAndDocument(
 // GET — fetch a single workspace document
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { _id: string; documentId: string } }
+  { params }: { params: { id: string; documentId: string } }
 ) {
   try {
     const { userId } = await auth();
@@ -65,7 +65,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const workspaceId = params._id;
+    const workspaceId = params.id;
     const documentId = params.documentId;
 
     const { document } = await getWorkspaceAndDocument(
@@ -98,7 +98,7 @@ export async function GET(
 // PATCH — update title/content of a workspace document
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { _id: string; documentId: string } }
+  { params }: { params: { id: string; documentId: string } }
 ) {
   try {
     const { userId } = await auth();
@@ -106,7 +106,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const workspaceId = params._id;
+    const workspaceId = params.id;
     const documentId = params.documentId;
 
     const body = await req.json();
@@ -154,7 +154,7 @@ export async function PATCH(
 // DELETE — remove a workspace document
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: { _id: string; documentId: string } }
+  { params }: { params: { id: string; documentId: string } }
 ) {
   try {
     const { userId } = await auth();
@@ -162,7 +162,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const workspaceId = params._id;
+    const workspaceId = params.id;
     const documentId = params.documentId;
 
     const { document } = await getWorkspaceAndDocument(
