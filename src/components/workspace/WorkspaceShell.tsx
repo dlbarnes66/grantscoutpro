@@ -15,10 +15,10 @@ export default function WorkspaceShell({
   workspaceId: string;
 }) {
   return (
-    <div className="flex min-h-screen bg-[#0A1A2F] text-white">
+    <div className="flex min-h-screen overflow-x-hidden bg-[#0A1A2F] text-white">
       <WorkspaceSidebar workspaceId={workspaceId} />
 
-      <div className="relative flex flex-1 flex-col">
+      <div className="relative flex min-w-0 flex-1 flex-col">
         <div
           className="pointer-events-none absolute inset-x-0 top-0 h-72 opacity-40"
           style={{

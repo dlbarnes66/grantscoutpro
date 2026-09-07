@@ -129,15 +129,15 @@ export default async function WorkspacePage({ params }: PageProps) {
       subtitle="Manage grants, documents, collaboration, and AI-powered proposal development."
       workspaceId={workspaceId}
     >
-      <div className="flex flex-wrap gap-3 mb-8">
+      <div className="grid grid-cols-2 gap-3 mb-8 sm:grid-cols-4">
         {quickActions.map((action) => (
           <Link
             key={action.href}
             href={action.href}
-            className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-slate-200 transition-colors hover:border-[#00E5FF]/40 hover:bg-white/[0.06] hover:text-white"
+            className="flex w-full min-w-0 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-slate-200 transition-colors hover:border-[#00E5FF]/40 hover:bg-white/[0.06] hover:text-white"
           >
-            <action.icon size={16} className="text-[#00E5FF]" />
-            {action.label}
+            <action.icon size={16} className="shrink-0 text-[#00E5FF]" />
+            <span className="truncate">{action.label}</span>
           </Link>
         ))}
       </div>

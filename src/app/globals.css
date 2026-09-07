@@ -1,3 +1,16 @@
+/*
+ * This project runs Tailwind v4 (@tailwindcss/postcss) but still has a
+ * v3-style tailwind.config.js (content globs + theme.extend for
+ * borderRadius/fontSize/brand colors). Tailwind v4 does NOT auto-load
+ * that file - without this @config line it silently falls back to its
+ * own zero-config content scan, which is why some pages (especially
+ * ones under bracketed/grouped route folders like
+ * (workspace-group)/workspace/[workspaceId]) were missing utility
+ * classes like gap-*, rounded-2xl, and grid-cols-4 even though the
+ * classes were spelled correctly in the source.
+ */
+@config "../../tailwind.config.js";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
