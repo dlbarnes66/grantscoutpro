@@ -2,6 +2,8 @@ import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logActivity } from "@/lib/ai/activity-log";
+import { sendEmailSafe } from "@/lib/email/sendgrid";
+import { workspaceInviteEmail } from "@/lib/email/templates";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -173,6 +175,24 @@ export async function POST(
         { targetUserId: invitedUser.id, targetEmail: invitedUser.email, role },
         userId
       );
+
+      if (invitedUser.email) {
+        const inviter = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { name: true },
+        });
+
+        const { subject, html, text } = workspaceInviteEmail({
+          workspaceName: workspace.name,
+          inviterName: inviter?.name ?? null,
+          role,
+          workspaceId: params.id,
+        });
+
+        // Don't let a slow/failed email block the response - the member is
+        // already added either way.
+        void sendEmailSafe({ to: invitedUser.email, subject, html, text });
+      }
 
       return NextResponse.json({
         success: true,

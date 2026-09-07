@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Webhook } from "svix";
 import { prisma } from "@/lib/prisma";
+import { sendEmailSafe } from "@/lib/email/sendgrid";
+import { welcomeEmail } from "@/lib/email/templates";
 
 export const dynamic = "force-dynamic";
 
@@ -60,7 +62,37 @@ export async function POST(req: NextRequest) {
 
   try {
     switch (event.type) {
-      case "user.created":
+      case "user.created": {
+        const data = event.data;
+        const email = primaryEmail(data);
+        const name = [data.first_name, data.last_name].filter(Boolean).join(" ") || null;
+
+        await prisma.user.upsert({
+          where: { id: data.id },
+          update: {
+            ...(email ? { email } : {}),
+            ...(name ? { name } : {}),
+            ...(data.image_url ? { image: data.image_url } : {}),
+          },
+          create: {
+            id: data.id,
+            email,
+            name,
+            image: data.image_url ?? null,
+          },
+        });
+
+        // Clerk's own hosted flow already verifies the email address before
+        // the account is usable - this is a separate, branded "you're set
+        // up" email, not the verification step itself.
+        if (email) {
+          const { subject, html, text } = welcomeEmail({ name });
+          void sendEmailSafe({ to: email, subject, html, text });
+        }
+
+        break;
+      }
+
       case "user.updated": {
         const data = event.data;
         const email = primaryEmail(data);
