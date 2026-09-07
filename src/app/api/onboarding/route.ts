@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getFirecrawl } from "@/lib/firecrawl";
 import { discoverOrganization } from "@/lib/organization-discovery";
 import { prisma } from "@/lib/prisma";
+import { ensureUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -40,6 +41,10 @@ export async function POST(
   }
 
   try {
+    // Make sure our User table actually has a row for this Clerk user before
+    // the profile upsert below tries to point a foreign key at it.
+    await ensureUser();
+
     const body = await req.json().catch(() => ({}));
 
     const firecrawl = await getFirecrawl();

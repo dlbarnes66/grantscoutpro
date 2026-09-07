@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { ensureUser } from "@/lib/auth";
 import slugify from "slugify";
 
 export const dynamic = "force-dynamic";
@@ -11,6 +12,10 @@ export async function POST(req: NextRequest) {
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
+    // Make sure our User table actually has a row for this Clerk user before
+    // anything below tries to point a foreign key at it.
+    await ensureUser();
+
     const body = await req.json().catch(() => null);
     if (!body || !body.name) {
       return NextResponse.json({ error: "Missing workspace name" }, { status: 400 });

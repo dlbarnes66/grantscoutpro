@@ -1,26 +1,55 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 
 /**
- * Require an authenticated Clerk user.
- * Returns the User record from your database.
+ * Ensure a User row exists in our database for the current Clerk session,
+ * creating/updating it from the live Clerk profile if needed. Clerk's
+ * webhook (which is supposed to keep this table in sync) can't reach
+ * localhost in local dev, so without this, every foreign key that points
+ * at User (Workspace.ownerId, UserProfile.userId, etc.) fails for anyone
+ * whose row was never created.
  */
-export async function requireUser() {
+export async function ensureUser() {
   const { userId } = await auth();
 
   if (!userId) {
     throw new Error("Unauthorized: No Clerk user found.");
   }
 
-  const user = await prisma.user.findUnique({
+  const clerkUser = await currentUser();
+
+  const email =
+    clerkUser?.primaryEmailAddress?.emailAddress ??
+    clerkUser?.emailAddresses?.[0]?.emailAddress ??
+    null;
+
+  const name = clerkUser
+    ? [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ") || null
+    : null;
+
+  return prisma.user.upsert({
     where: { id: userId },
+    update: {
+      ...(email ? { email } : {}),
+      ...(name ? { name } : {}),
+      ...(clerkUser?.imageUrl ? { image: clerkUser.imageUrl } : {}),
+    },
+    create: {
+      id: userId,
+      email,
+      name,
+      image: clerkUser?.imageUrl ?? null,
+    },
   });
+}
 
-  if (!user) {
-    throw new Error("User not found in database.");
-  }
-
-  return user;
+/**
+ * Require an authenticated Clerk user.
+ * Returns the User record from your database, creating it on first
+ * sight if this is the first time we've seen this Clerk user.
+ */
+export async function requireUser() {
+  return ensureUser();
 }
 
 /**
