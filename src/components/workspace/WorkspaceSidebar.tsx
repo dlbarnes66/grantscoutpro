@@ -60,6 +60,7 @@ export default function WorkspaceSidebar({ workspaceId }: { workspaceId: string 
       items: [
         { label: "Usage", href: `${base}/usage` },
         { label: "Billing", href: `${base}/workspace-billing` },
+        { label: "Integrations", href: `${base}/settings/integrations` },
         { label: "Settings", href: `${base}/settings` },
         { label: "Admin", href: `${base}/admin` },
       ],

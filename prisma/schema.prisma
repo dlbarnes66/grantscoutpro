@@ -216,6 +216,8 @@ model Workspace {
   members WorkspaceMember[] @relation("WorkspaceToMember")
   invites WorkspaceInvite[] @relation("WorkspaceToInvite")
 
+  integrations WorkspaceIntegration[]
+
   grants      Grant[]           @relation("WorkspaceToGrant")
   comparisons GrantComparison[]
 
@@ -2088,6 +2090,41 @@ model Presence {
 
   workspace Workspace @relation("WorkspacePresence", fields: [workspaceId], references: [id])
   user      User      @relation("UserPresence", fields: [userId], references: [id])
+}
+
+// A workspace's own credentials for a third-party integration (Slack,
+// Stripe, Airtable, etc.) - "bring your own API key" model. The client
+// pastes their own key/token, we encrypt it before it ever touches the
+// database (see src/lib/integrations/secretBox.ts), and store it here.
+// We never write a plaintext key to this table.
+model WorkspaceIntegration {
+  id          String @id @default(cuid())
+  workspaceId String
+
+  // Matches an id in src/lib/integrations/providers.ts, e.g. "slack",
+  // "stripe", "airtable". Not a foreign key - the catalog lives in code.
+  provider String
+  category String
+
+  // AES-256-GCM ciphertext (base64) of a JSON object holding every
+  // field the provider needs (e.g. {"apiKey":"..."} or, for
+  // multi-field providers like Trello, {"key":"...","token":"..."}).
+  encryptedData String
+
+  // "saved"     - key stored, no automated way to verify it yet
+  // "connected" - we called the provider's API and the key works
+  // "invalid"   - we called the provider's API and it rejected the key
+  status        String    @default("saved")
+  lastCheckedAt DateTime?
+  lastError     String?
+  connectedById String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, provider])
 }
 
 

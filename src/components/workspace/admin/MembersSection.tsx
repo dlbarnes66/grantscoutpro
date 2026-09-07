@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import MemberProfileModal from "./MemberProfileModal";
 
 type Member = {
   id: string;
@@ -25,6 +26,7 @@ export default function MembersSection({ workspaceId }: { workspaceId: string })
   const [newRole, setNewRole] = useState<(typeof ASSIGNABLE_ROLES)[number]>("member");
   const [adding, setAdding] = useState(false);
   const [busyUserId, setBusyUserId] = useState<string | null>(null);
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -48,6 +50,7 @@ export default function MembersSection({ workspaceId }: { workspaceId: string })
   }, [workspaceId]);
 
   const isOwnerViewer = viewerRole === "owner";
+  const isAdminOrOwnerViewer = viewerRole === "owner" || viewerRole === "admin";
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -152,6 +155,7 @@ export default function MembersSection({ workspaceId }: { workspaceId: string })
                 <th className="py-2 pr-4">Email</th>
                 <th className="py-2 pr-4">Role</th>
                 <th className="py-2 pr-4">Status</th>
+                {isAdminOrOwnerViewer && <th className="py-2 pr-4">Profile</th>}
                 {isOwnerViewer && <th className="py-2 pr-4">Actions</th>}
               </tr>
             </thead>
@@ -179,6 +183,17 @@ export default function MembersSection({ workspaceId }: { workspaceId: string })
                     )}
                   </td>
                   <td className="py-2 pr-4 capitalize">{m.status}</td>
+                  {isAdminOrOwnerViewer && (
+                    <td className="py-2 pr-4">
+                      <button
+                        type="button"
+                        onClick={() => setEditingUserId(m.userId)}
+                        className="text-blue-700 hover:underline"
+                      >
+                        Edit Profile
+                      </button>
+                    </td>
+                  )}
                   {isOwnerViewer && (
                     <td className="py-2 pr-4 space-x-2">
                       {!m.isOwner && (
@@ -249,6 +264,15 @@ export default function MembersSection({ workspaceId }: { workspaceId: string })
             invite-email step yet, so have them sign up first if they don't.
           </p>
         </form>
+      )}
+
+      {editingUserId && (
+        <MemberProfileModal
+          workspaceId={workspaceId}
+          userId={editingUserId}
+          onClose={() => setEditingUserId(null)}
+          onSaved={load}
+        />
       )}
     </div>
   );
