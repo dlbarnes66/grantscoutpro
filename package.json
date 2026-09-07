@@ -49,6 +49,7 @@
     "require-in-the-middle": "^8.0.1",
     "slugify": "1.6.9",
     "stripe": "^22.5.0",
+    "svix": "^2.3.0",
     "swr": "2.5.1",
     "undici": "^8.10.0",
     "uuid": "14.0.2",
