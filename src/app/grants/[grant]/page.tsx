@@ -1,17 +1,17 @@
-"use client"
-import { auth } from "@clerk/nextjs/server";
+import { prisma } from "@/lib/prisma";
+
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-import { prisma } from "@/lib/prisma";
-
 type Props = {
-  params: { grant: string };
+  params: Promise<{ grant: string }>;
 };
 
 export default async function GrantPage({ params }: Props) {
+  const { grant: grantId } = await params;
+
   const grant = await prisma.grant.findUnique({
-    where: { id: params.grant },
+    where: { id: grantId },
   });
 
   if (!grant) {
@@ -31,7 +31,7 @@ export default async function GrantPage({ params }: Props) {
       )}
 
       <div className="space-y-2 text-sm text-gray-400">
-        {grant.amount && (
+        {grant.amount != null && (
           <p>Amount: ${grant.amount.toLocaleString()}</p>
         )}
 

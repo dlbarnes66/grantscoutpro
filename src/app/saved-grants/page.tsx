@@ -1,28 +1,51 @@
-"use client"
-import { auth } from "@clerk/nextjs/server";
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
-
-
-
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
+interface SavedGrantEntry {
+  id: string;
+  grantId: string;
+  createdAt: string;
+  grant: {
+    id: string;
+    workspaceId: string;
+    title: string;
+    agency: string | null;
+    amount: number | null;
+    deadline: string | null;
+    summary: string | null;
+  };
+}
+
 export default function SavedGrantsPage() {
-  const [grants, setGrants] = useState<any[]>([]);
+  const [entries, setEntries] = useState<SavedGrantEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadSaved = async () => {
-      const res = await fetch("/api/saved-grants");
-      const data = await res.json();
-      setGrants(data || []);
-      setLoading(false);
+      try {
+        const res = await fetch("/api/saved-grant");
+        const data = await res.json();
+        setEntries(data?.savedGrants || []);
+      } catch (err) {
+        console.error("Failed to load saved grants", err);
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadSaved();
   }, []);
+
+  async function removeSaved(grantId: string) {
+    await fetch(`/api/saved-grant/delete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ grantId }),
+    });
+    setEntries((prev) => prev.filter((e) => e.grantId !== grantId));
+  }
 
   if (loading) {
     return (
@@ -35,56 +58,50 @@ export default function SavedGrantsPage() {
   return (
     <div className="min-h-screen bg-gray-100 px-6 py-12">
       <div className="max-w-5xl mx-auto">
-
-        {/* Page Title */}
         <h1 className="text-3xl font-bold text-gray-900">Saved Grants</h1>
         <p className="text-muted mt-2">
           View and manage grants you've saved for later review.
         </p>
 
-        {/* Empty State */}
-        {grants.length === 0 && (
+        {entries.length === 0 && (
           <div className="card mt-10 text-center py-12">
-            <p className="text-muted text-lg">You haven’t saved any grants yet.</p>
-            <Link href="/search" className="btn btn-primary mt-6">
-              Search Grants
+            <p className="text-muted text-lg">You haven't saved any grants yet.</p>
+            <Link href="/workspace" className="btn btn-primary mt-6">
+              Go to Your Workspaces
             </Link>
           </div>
         )}
 
-        {/* Saved Grants List */}
         <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {grants.map((grant) => (
+          {entries.map(({ grant }) => (
             <div key={grant.id} className="card hover-card">
-
-              {/* Title */}
               <h2 className="text-lg font-semibold text-gray-900 leading-tight">
                 {grant.title}
               </h2>
 
-              {/* Agency */}
               {grant.agency && (
                 <p className="text-muted mt-1">{grant.agency}</p>
               )}
 
-              {/* Metadata */}
               <div className="mt-4 space-y-1 text-sm text-gray-700">
                 <p>
                   <span className="font-semibold">Amount:</span>{" "}
-                  {grant.amount || "N/A"}
+                  {grant.amount != null
+                    ? `$${grant.amount.toLocaleString()}`
+                    : "N/A"}
                 </p>
                 <p>
                   <span className="font-semibold">Deadline:</span>{" "}
-                  {grant.deadline || "N/A"}
+                  {grant.deadline
+                    ? new Date(grant.deadline).toLocaleDateString()
+                    : "N/A"}
                 </p>
               </div>
 
-              {/* Summary */}
               <p className="mt-4 text-gray-700 text-sm leading-relaxed line-clamp-4">
                 {grant.summary || "No summary available."}
               </p>
 
-              {/* Buttons */}
               <div className="mt-6 flex flex-col gap-3">
                 <Link
                   href={`/grants/${grant.id}`}
@@ -94,20 +111,14 @@ export default function SavedGrantsPage() {
                 </Link>
 
                 <Link
-                  href={`/grants/${grant.id}/write`}
+                  href={`/workspace/${grant.workspaceId}/documents`}
                   className="btn btn-primary w-full text-center"
                 >
                   Write with AI
                 </Link>
 
                 <button
-                  onClick={async () => {
-                    await fetch(`/api/saved-grants/delete`, {
-                      method: "POST",
-                      body: JSON.stringify({ id: grant.id }),
-                    });
-                    setGrants((prev) => prev.filter((g) => g.id !== grant.id));
-                  }}
+                  onClick={() => removeSaved(grant.id)}
                   className="btn btn-danger w-full"
                 >
                   Remove
@@ -117,10 +128,9 @@ export default function SavedGrantsPage() {
           ))}
         </div>
 
-        {/* Back Link */}
         <div className="mt-12">
-          <Link href="/search" className="text-muted underline">
-            ← Back to Search
+          <Link href="/workspace" className="text-muted underline">
+            ← Back to Workspaces
           </Link>
         </div>
       </div>
