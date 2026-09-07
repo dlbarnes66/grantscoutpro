@@ -29,6 +29,58 @@ async function loadWorkspaceForMember(workspaceId: string, userId: string) {
   return { workspace, isMember };
 }
 
+// Atomically consumes one manual search against the workspace's daily
+// allowance, or refuses if it's already used up. Uses a row lock
+// (SELECT ... FOR UPDATE) inside a transaction so concurrent requests
+// against the same workspace serialize on the check-then-increment
+// instead of racing: without this, two requests that both read the
+// count before either had written it back could both pass the limit
+// check and both proceed, so a limit of N could let through more than
+// N searches (and N calls to the Grants.gov API) if fired
+// concurrently. The row lock also means we know whether the request
+// is allowed *before* paying for the external API call, not after.
+async function tryConsumeManualSearch(
+  workspaceId: string,
+  dailyLimit: number | null
+): Promise<{ ok: boolean; used: number; resetAt: Date }> {
+  return prisma.$transaction(async (tx) => {
+    const rows = await tx.$queryRaw<
+      { id: string; manualSearchCount: number; manualSearchResetAt: Date }[]
+    >`SELECT "id", "manualSearchCount", "manualSearchResetAt" FROM "WorkspaceBilling" WHERE "workspaceId" = ${workspaceId} FOR UPDATE`;
+
+    let row = rows[0];
+    if (!row) {
+      const created = await tx.workspaceBilling.create({ data: { workspaceId } });
+      row = {
+        id: created.id,
+        manualSearchCount: created.manualSearchCount,
+        manualSearchResetAt: created.manualSearchResetAt,
+      };
+    }
+
+    let used = row.manualSearchCount;
+    let resetAt = row.manualSearchResetAt;
+
+    if (isManualSearchResetDue(resetAt)) {
+      used = 0;
+      resetAt = new Date();
+    }
+
+    if (dailyLimit !== null && used >= dailyLimit) {
+      return { ok: false, used, resetAt };
+    }
+
+    used += 1;
+
+    await tx.workspaceBilling.update({
+      where: { id: row.id },
+      data: { manualSearchCount: used, manualSearchResetAt: resetAt },
+    });
+
+    return { ok: true, used, resetAt };
+  });
+}
+
 // Returns today's manual-search allowance and how much of it is used,
 // resetting the counter first if the 24h window has rolled over.
 // Does not consume a search - safe to call to render a "3 of 5 used
@@ -90,25 +142,21 @@ export async function POST(
     );
   }
 
-  let used = workspace.billing?.manualSearchCount ?? 0;
-  let resetAt = workspace.billing?.manualSearchResetAt ?? new Date();
+  const consumption = await tryConsumeManualSearch(workspace.id, plan.manualSearchesPerDay);
 
-  if (isManualSearchResetDue(resetAt)) {
-    used = 0;
-    resetAt = new Date();
-  }
-
-  if (plan.manualSearchesPerDay !== null && used >= plan.manualSearchesPerDay) {
+  if (!consumption.ok) {
     return NextResponse.json(
       {
         error: `Your ${plan.name} plan is limited to ${plan.manualSearchesPerDay} manual search${
           plan.manualSearchesPerDay === 1 ? "" : "es"
-        } per day. Try again after ${resetAt.toISOString()}, or upgrade your plan.`,
-        resetAt,
+        } per day. Try again after ${consumption.resetAt.toISOString()}, or upgrade your plan.`,
+        resetAt: consumption.resetAt,
       },
       { status: 429 }
     );
   }
+
+  const { used, resetAt } = consumption;
 
   const body = await req.json().catch(() => ({}));
   const query: string = typeof body.query === "string" ? body.query : "";
@@ -126,20 +174,6 @@ export async function POST(
     console.error("MANUAL GRANT SEARCH ERROR:", err);
     return NextResponse.json({ error: "Grant search failed unexpectedly." }, { status: 500 });
   }
-
-  // Record the search attempt regardless of how many results came back,
-  // so a zero-result search still counts against the daily allowance.
-  used += 1;
-
-  await prisma.workspaceBilling.upsert({
-    where: { workspaceId: workspace.id },
-    update: { manualSearchCount: used, manualSearchResetAt: resetAt },
-    create: {
-      workspaceId: workspace.id,
-      manualSearchCount: used,
-      manualSearchResetAt: resetAt,
-    },
-  });
 
   let newCount = 0;
   for (const opp of opportunities) {
