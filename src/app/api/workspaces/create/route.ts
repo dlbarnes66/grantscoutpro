@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ensureUser } from "@/lib/auth";
+import { logActivity } from "@/lib/ai/activity-log";
 import slugify from "slugify";
 
 export const dynamic = "force-dynamic";
@@ -39,11 +40,15 @@ export async function POST(req: NextRequest) {
       },
     });
     await prisma.workspaceBilling.create({
-  data: {
-    workspaceId: workspace.id,
-    plan: "free",
-  },
-});
+      data: {
+        workspaceId: workspace.id,
+        plan: "free",
+      },
+    });
+
+    await logActivity(workspace.id, "workspace_created", { name: workspace.name }, userId).catch(
+      (err) => console.error("Failed to log workspace activity \"workspace_created\":", err)
+    );
 
     return NextResponse.json({ success: true, workspace });
   } catch (err: any) {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 import { verifyStripeSignature, getPlanIdFromPriceId } from "@/lib/stripe";
+import { logActivity } from "@/lib/ai/activity-log";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,16 @@ export const dynamic = "force-dynamic";
 // legacy scaffolding from an earlier Clerk-Organizations-based billing
 // design that doesn't match how workspaces/billing actually work here;
 // don't register either of those URLs in Stripe.
+
+// Activity logging should never fail webhook processing -- Stripe
+// retries on non-2xx responses, and we don't want a logging hiccup to
+// turn into duplicate subscription updates.
+function logActivitySafe(workspaceId: string | null | undefined, action: string, metadata: any) {
+  if (!workspaceId) return Promise.resolve();
+  return logActivity(workspaceId, action, metadata).catch((err) => {
+    console.error(`Failed to log workspace activity "${action}":`, err);
+  });
+}
 
 function invoiceSubscriptionId(invoice: Stripe.Invoice): string | undefined {
   const sub = invoice.parent?.subscription_details?.subscription;
@@ -63,6 +74,11 @@ export const POST = async (req: NextRequest) => {
             update: { stripeSubscriptionId: subscriptionId },
             create: { workspaceId, stripeSubscriptionId: subscriptionId },
           });
+
+          await logActivitySafe(workspaceId, "checkout_completed", {
+            subscriptionId,
+            planId: session.metadata?.planId,
+          });
         }
 
         break;
@@ -96,6 +112,12 @@ export const POST = async (req: NextRequest) => {
           },
         });
 
+        await logActivitySafe(
+          billing.workspaceId,
+          event.type === "customer.subscription.created" ? "subscription_created" : "subscription_updated",
+          { plan: planId, status: sub.status, seats, cancelAtPeriodEnd: sub.cancel_at_period_end ?? false }
+        );
+
         break;
       }
 
@@ -112,12 +134,18 @@ export const POST = async (req: NextRequest) => {
           },
         });
 
+        await logActivitySafe(billing.workspaceId, "subscription_canceled", { plan: billing.plan });
+
         break;
       }
 
       case "invoice.payment_failed": {
         const invoice = event.data.object as Stripe.Invoice;
         const customerId = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
+
+        const billing = customerId
+          ? await prisma.workspaceBilling.findFirst({ where: { stripeCustomerId: customerId } })
+          : null;
 
         if (customerId) {
           await prisma.workspaceBilling.updateMany({
@@ -132,8 +160,11 @@ export const POST = async (req: NextRequest) => {
             message: `Invoice ${invoice.id} failed`,
             stripeCustomerId: customerId ?? undefined,
             stripeSubscriptionId: invoiceSubscriptionId(invoice),
+            workspaceId: billing?.workspaceId,
           },
         });
+
+        await logActivitySafe(billing?.workspaceId, "payment_failed", { invoiceId: invoice.id });
 
         break;
       }
@@ -141,6 +172,10 @@ export const POST = async (req: NextRequest) => {
       case "invoice.payment_succeeded": {
         const invoice = event.data.object as Stripe.Invoice;
         const customerId = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
+
+        const billing = customerId
+          ? await prisma.workspaceBilling.findFirst({ where: { stripeCustomerId: customerId } })
+          : null;
 
         // Covers the "card got fixed after a failed payment" recovery
         // case. A subscription.updated event normally follows too, but
@@ -159,8 +194,11 @@ export const POST = async (req: NextRequest) => {
             message: `Invoice ${invoice.id} paid`,
             stripeCustomerId: customerId ?? undefined,
             stripeSubscriptionId: invoiceSubscriptionId(invoice),
+            workspaceId: billing?.workspaceId,
           },
         });
+
+        await logActivitySafe(billing?.workspaceId, "payment_succeeded", { invoiceId: invoice.id });
 
         break;
       }

@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { logActivity } from "@/lib/ai/activity-log";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -9,6 +10,14 @@ type Params = { id: string };
 
 const ASSIGNABLE_ROLES = ["admin", "member"] as const;
 type AssignableRole = (typeof ASSIGNABLE_ROLES)[number];
+
+// Activity logging should never fail the actual member-management
+// action it's attached to, so failures are swallowed and logged.
+function logActivitySafe(workspaceId: string, action: string, metadata: any, userId?: string) {
+  return logActivity(workspaceId, action, metadata, userId).catch((err) => {
+    console.error(`Failed to log workspace activity "${action}":`, err);
+  });
+}
 
 async function loadWorkspaceAndRole(workspaceId: string, userId: string) {
   const workspace = await prisma.workspace.findUnique({
@@ -66,7 +75,7 @@ export async function GET(
       isOwner: m.userId === workspace.ownerId,
     }));
 
-    return NextResponse.json({ success: true, members });
+    return NextResponse.json({ success: true, members, viewerRole: me.role });
   } catch (err: any) {
     console.error("WORKSPACE ADMIN MEMBERS GET ERROR:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
@@ -158,6 +167,13 @@ export async function POST(
         },
       });
 
+      await logActivitySafe(
+        params.id,
+        "member_added",
+        { targetUserId: invitedUser.id, targetEmail: invitedUser.email, role },
+        userId
+      );
+
       return NextResponse.json({
         success: true,
         member: {
@@ -195,6 +211,13 @@ export async function POST(
         },
         data: { status },
       });
+
+      await logActivitySafe(
+        params.id,
+        body.action === "deactivate" ? "member_deactivated" : "member_activated",
+        { targetUserId: body.userId },
+        userId
+      );
 
       return NextResponse.json({ success: true, updated });
     }
@@ -257,6 +280,8 @@ export async function PATCH(
       data: { role },
     });
 
+    await logActivitySafe(params.id, "member_role_changed", { targetUserId, role }, userId);
+
     return NextResponse.json({ success: true, updated });
   } catch (err: any) {
     console.error("WORKSPACE ADMIN MEMBERS PATCH ERROR:", err);
@@ -306,6 +331,8 @@ export async function DELETE(
         },
       },
     });
+
+    await logActivitySafe(params.id, "member_removed", { targetUserId }, userId);
 
     return NextResponse.json({ success: true });
   } catch (err: any) {
