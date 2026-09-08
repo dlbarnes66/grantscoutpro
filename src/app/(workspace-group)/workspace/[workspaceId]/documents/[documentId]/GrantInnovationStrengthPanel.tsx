@@ -28,6 +28,12 @@ export default function GrantInnovationStrengthPanel({
         }
       );
 
+      if (!res.ok) {
+
+        throw new Error(`Request failed (${res.status})`);
+
+      }
+
       const data = await res.json();
       setInnovation(data.innovation || null);
 

@@ -28,6 +28,12 @@ export default function RiskAssessmentPanel({
         }
       );
 
+      if (!res.ok) {
+
+        throw new Error(`Request failed (${res.status})`);
+
+      }
+
       const data = await res.json();
       console.log("RISK RESPONSE", data);
       setRiskReport(data.risk || null);

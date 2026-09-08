@@ -13,10 +13,19 @@ export default function SearchAnalyticsPage() {
 
   useEffect(() => {
     const load = async () => {
-      const res = await fetch(`/api/workspaces/${workspaceId}/analytics/search`);
-      const json = await res.json();
-      setAnalytics(json.analytics || []);
-      setLoading(false);
+      try {
+        const res = await fetch(`/api/workspaces/${workspaceId}/analytics/search`);
+        if (!res.ok) {
+          throw new Error(`Request failed (${res.status})`);
+        }
+        const json = await res.json();
+        setAnalytics(json.analytics || []);
+      } catch (err) {
+        console.error("Failed to load search analytics:", err);
+        setAnalytics([]);
+      } finally {
+        setLoading(false);
+      }
     };
 
     load();

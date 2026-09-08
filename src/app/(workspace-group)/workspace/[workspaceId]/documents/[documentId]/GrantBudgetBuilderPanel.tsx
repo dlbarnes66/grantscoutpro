@@ -30,6 +30,12 @@ export default function GrantBudgetBuilderPanel({
         }
       );
 
+      if (!res.ok) {
+
+        throw new Error(`Request failed (${res.status})`);
+
+      }
+
       const data = await res.json();
       setBudget(data.budget || null);
 

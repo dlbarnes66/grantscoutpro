@@ -13,10 +13,18 @@ export default function UsagePage() {
 
   useEffect(() => {
     const load = async () => {
-      const res = await fetch(`/api/workspaces/${workspaceId}/usage`);
-      const json = await res.json();
-      setUsage(json.usage);
-      setLoading(false);
+      try {
+        const res = await fetch(`/api/workspaces/${workspaceId}/usage`);
+        if (!res.ok) {
+          throw new Error(`Request failed (${res.status})`);
+        }
+        const json = await res.json();
+        setUsage(json.usage);
+      } catch (err) {
+        console.error("Failed to load usage:", err);
+      } finally {
+        setLoading(false);
+      }
     };
 
     load();

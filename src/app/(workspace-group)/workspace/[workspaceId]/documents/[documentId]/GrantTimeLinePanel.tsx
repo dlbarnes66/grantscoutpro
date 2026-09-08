@@ -28,6 +28,12 @@ export default function GrantTimelinePanel({
         }
       );
 
+      if (!res.ok) {
+
+        throw new Error(`Request failed (${res.status})`);
+
+      }
+
       const data = await res.json();
       setTimeline(data.timeline || null);
 

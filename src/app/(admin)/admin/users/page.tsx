@@ -1,5 +1,4 @@
 "use client"
-import { auth } from "@clerk/nextjs/server";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -11,9 +10,16 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     async function load() {
-      const res = await fetch("/api/admin/users");
-      const json = await res.json();
-      setUsers(json);
+      try {
+        const res = await fetch("/api/admin/users");
+        if (!res.ok) {
+          throw new Error(`Request failed (${res.status})`);
+        }
+        const json = await res.json();
+        setUsers(json);
+      } catch (err) {
+        console.error("Failed to load users:", err);
+      }
     }
     load();
   }, []);

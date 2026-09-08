@@ -12,6 +12,9 @@ export default function FilesPanel({ workspaceId, documentId, userId }) {
       const res = await fetch(
         `/api/workspaces/${workspaceId}/documents/${documentId}/files`
       );
+      if (!res.ok) {
+        throw new Error(`Request failed (${res.status})`);
+      }
       const data = await res.json();
       setFiles(data.files || []);
     } catch (err) {

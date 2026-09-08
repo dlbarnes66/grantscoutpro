@@ -10,6 +10,7 @@ export default function MatchingPage() {
   async function runMatch() {
     setLoading(true);
 
+    try {
     const project = {
       title: "Community Youth STEM Program",
       focus: "STEM education",
@@ -34,13 +35,23 @@ export default function MatchingPage() {
 
     const res = await fetch("/api/ai/match", {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ project, grants }),
     });
+
+    if (!res.ok) {
+      throw new Error(`Request failed (${res.status})`);
+    }
 
     const data = await res.json();
 
     setResults(data.results ?? []);
-    setLoading(false);
+    } catch (err) {
+      console.error("Grant matching failed:", err);
+      setResults([]);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

@@ -1,5 +1,4 @@
 "use client"
-import { auth } from "@clerk/nextjs/server";
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -19,6 +18,9 @@ export default function BillingLogsPage() {
           : `/api/admin/billing/logs`;
 
         const res = await fetch(url);
+        if (!res.ok) {
+          throw new Error(`Request failed (${res.status})`);
+        }
         const data = await res.json();
         setLogs(data.logs || []);
       } catch (err) {

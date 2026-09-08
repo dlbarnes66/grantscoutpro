@@ -18,6 +18,12 @@ export default function GrantReviewerSimulationPanel() {
         })
       });
 
+      if (!res.ok) {
+
+        throw new Error(`Request failed (${res.status})`);
+
+      }
+
       const data = await res.json();
       setSimulation(data.simulation || null);
     } catch (err) {

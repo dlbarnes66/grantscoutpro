@@ -16,6 +16,12 @@ export default function GrantBudgetRiskAnalyzerPanel() {
         body: JSON.stringify({ content: "Grant budget content goes here" })
       });
 
+      if (!res.ok) {
+
+        throw new Error(`Request failed (${res.status})`);
+
+      }
+
       const data = await res.json();
       setAnalysis(data.analysis || null);
     } catch (err) {

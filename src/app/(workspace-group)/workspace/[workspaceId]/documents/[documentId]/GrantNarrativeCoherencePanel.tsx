@@ -23,6 +23,12 @@ export default function GrantNarrativeCoherencePanel({
         }
       );
 
+      if (!res.ok) {
+
+        throw new Error(`Request failed (${res.status})`);
+
+      }
+
       const data = await res.json();
       setCoherence(data.coherence || null);
     } catch (err) {

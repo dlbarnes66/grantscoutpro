@@ -27,6 +27,12 @@ export default function GrantScorePredictorPanel({
         }
       );
 
+      if (!res.ok) {
+
+        throw new Error(`Request failed (${res.status})`);
+
+      }
+
       const data = await res.json();
       setPrediction(data.prediction || null);
     } catch (err) {

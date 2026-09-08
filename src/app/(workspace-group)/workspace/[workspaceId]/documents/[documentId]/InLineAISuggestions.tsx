@@ -29,6 +29,12 @@ export default function InlineAISuggestions({
         }
       );
 
+      if (!res.ok) {
+
+        throw new Error(`Request failed (${res.status})`);
+
+      }
+
       const data = await res.json();
       setSuggestion(data.suggestion || "");
     } catch (err) {

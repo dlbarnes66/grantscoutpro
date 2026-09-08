@@ -13,10 +13,19 @@ export default function InsightsPage() {
   const [generating, setGenerating] = useState(false);
 
   const load = async () => {
-    const res = await fetch(`/api/workspaces/${workspaceId}/insights`);
-    const json = await res.json();
-    setInsights(json.insights || []);
-    setLoading(false);
+    try {
+      const res = await fetch(`/api/workspaces/${workspaceId}/insights`);
+      if (!res.ok) {
+        throw new Error(`Request failed (${res.status})`);
+      }
+      const json = await res.json();
+      setInsights(json.insights || []);
+    } catch (err) {
+      console.error("Failed to load insights:", err);
+      setInsights([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {

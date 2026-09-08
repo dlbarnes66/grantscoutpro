@@ -12,6 +12,9 @@ export default function EmbeddingsPanel({ workspaceId, documentId, userId }) {
       const res = await fetch(
         `/api/workspaces/${workspaceId}/documents/${documentId}/embeddings`
       );
+      if (!res.ok) {
+        throw new Error(`Request failed (${res.status})`);
+      }
       const data = await res.json();
       setEmbeddings(data.embeddings || null);
     } catch (err) {

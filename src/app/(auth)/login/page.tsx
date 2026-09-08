@@ -1,5 +1,4 @@
 "use client"
-import { auth } from "@clerk/nextjs/server";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";

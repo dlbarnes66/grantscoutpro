@@ -1,5 +1,4 @@
 "use client"
-import { auth } from "@clerk/nextjs/server";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
@@ -15,10 +14,19 @@ export default function SavedSearchesPage() {
 
   useEffect(() => {
     const loadSaved = async () => {
-      const res = await fetch("/api/saved-searches");
-      const data = await res.json();
-      setSearches(data || []);
-      setLoading(false);
+      try {
+        const res = await fetch("/api/saved-searches");
+        if (!res.ok) {
+          throw new Error(`Request failed (${res.status})`);
+        }
+        const data = await res.json();
+        setSearches(data || []);
+      } catch (err) {
+        console.error("Failed to load saved searches:", err);
+        setSearches([]);
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadSaved();

@@ -16,6 +16,12 @@ export default function GrantSustainabilityAnalyzerPanel() {
         body: JSON.stringify({ content: "Grant content goes here" })
       });
 
+      if (!res.ok) {
+
+        throw new Error(`Request failed (${res.status})`);
+
+      }
+
       const data = await res.json();
       setSustainability(data.sustainability || null);
     } catch (err) {

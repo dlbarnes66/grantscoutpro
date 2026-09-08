@@ -28,6 +28,12 @@ export default function GrantImpactProjectionPanel({
         }
       );
 
+      if (!res.ok) {
+
+        throw new Error(`Request failed (${res.status})`);
+
+      }
+
       const data = await res.json();
       setImpact(data.impact || null);
 

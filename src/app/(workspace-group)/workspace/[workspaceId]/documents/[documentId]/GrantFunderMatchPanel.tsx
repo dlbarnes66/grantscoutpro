@@ -24,6 +24,12 @@ export default function GrantFunderMatchPanel({
         }
       );
 
+      if (!res.ok) {
+
+        throw new Error(`Request failed (${res.status})`);
+
+      }
+
       const data = await res.json();
       setFunders(data.funders || null);
     } catch (err) {

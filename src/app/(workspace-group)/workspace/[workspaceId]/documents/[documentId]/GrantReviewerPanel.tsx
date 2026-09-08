@@ -23,6 +23,12 @@ export default function GrantReviewerPanel({
         }
       );
 
+      if (!res.ok) {
+
+        throw new Error(`Request failed (${res.status})`);
+
+      }
+
       const data = await res.json();
       setReview(data.review || null);
     } catch (err) {

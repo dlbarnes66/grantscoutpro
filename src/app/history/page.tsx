@@ -19,6 +19,9 @@ export default function SearchHistoryPage() {
   const loadHistory = async () => {
     try {
       const res = await fetch("/api/saved-searches");
+      if (!res.ok) {
+        throw new Error(`Request failed (${res.status})`);
+      }
       const data = await res.json();
       setSearches(data?.searches || []);
     } catch (err) {
@@ -44,6 +47,9 @@ export default function SearchHistoryPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ searchId: id }),
       });
+      if (!res.ok) {
+        throw new Error(`Request failed (${res.status})`);
+      }
       const data = await res.json();
       if (data?.query) {
         // Real grant search happens inside a workspace - hand the saved

@@ -27,6 +27,12 @@ export default function GrantBudgetRiskPanel({
         }
       );
 
+      if (!res.ok) {
+
+        throw new Error(`Request failed (${res.status})`);
+
+      }
+
       const data = await res.json();
 
       console.log("BUDGET RISK RESPONSE", data);

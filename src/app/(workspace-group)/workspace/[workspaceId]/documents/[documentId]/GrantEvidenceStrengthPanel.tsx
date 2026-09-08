@@ -23,6 +23,12 @@ export default function GrantEvidenceStrengthPanel({
         }
       );
 
+      if (!res.ok) {
+
+        throw new Error(`Request failed (${res.status})`);
+
+      }
+
       const data = await res.json();
       setEvidence(data.evidence || null);
     } catch (err) {

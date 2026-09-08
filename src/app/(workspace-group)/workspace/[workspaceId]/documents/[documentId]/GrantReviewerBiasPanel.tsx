@@ -28,6 +28,12 @@ export default function GrantReviewerBiasPanel({
         }
       );
 
+      if (!res.ok) {
+
+        throw new Error(`Request failed (${res.status})`);
+
+      }
+
       const data = await res.json();
       setBias(data.bias || null);
 

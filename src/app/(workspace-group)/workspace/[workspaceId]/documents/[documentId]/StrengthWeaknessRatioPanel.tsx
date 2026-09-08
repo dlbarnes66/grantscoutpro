@@ -27,6 +27,12 @@ export default function StrengthWeaknessRatioPanel({
         }
       );
 
+      if (!res.ok) {
+
+        throw new Error(`Request failed (${res.status})`);
+
+      }
+
       const data = await res.json();
       setRatio(data.ratio || null);
     } catch (err) {

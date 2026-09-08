@@ -25,6 +25,12 @@ export default function GrantIntelligenceDashboard({
           `/api/workspaces/${workspaceId}/documents/${documentId}/viewer`
         );
 
+        if (!res.ok) {
+
+          throw new Error(`Request failed (${res.status})`);
+
+        }
+
         const data = await res.json();
 
         setContent(data.content || "");
@@ -45,6 +51,12 @@ export default function GrantIntelligenceDashboard({
         const res = await fetch(
           `/api/workspaces/${workspaceId}/profile`
         );
+
+        if (!res.ok) {
+
+          throw new Error(`Request failed (${res.status})`);
+
+        }
 
         const data = await res.json();
 

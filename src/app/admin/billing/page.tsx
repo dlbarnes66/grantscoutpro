@@ -1,5 +1,4 @@
 "use client"
-import { auth } from "@clerk/nextjs/server";
 
 import { useEffect, useState } from "react";
 
@@ -11,6 +10,9 @@ export default function AdminBillingPage() {
     async function load() {
       try {
         const res = await fetch("/api/admin/billing/workspaces");
+        if (!res.ok) {
+          throw new Error(`Request failed (${res.status})`);
+        }
         const data = await res.json();
         setWorkspaces(data.workspaces || []);
       } catch (err) {

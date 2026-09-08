@@ -27,6 +27,12 @@ export default function MultiReviewerPanel({
         }
       );
 
+      if (!res.ok) {
+
+        throw new Error(`Request failed (${res.status})`);
+
+      }
+
       const data = await res.json();
       setReviewers(data.reviewers || null);
     } catch (err) {

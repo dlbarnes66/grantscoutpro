@@ -1,5 +1,4 @@
 "use client"
-import { auth } from "@clerk/nextjs/server";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -11,9 +10,16 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     async function load() {
-      const res = await fetch("/api/admin/dashboard/overview");
-      const json = await res.json();
-      setData(json);
+      try {
+        const res = await fetch("/api/admin/dashboard/overview");
+        if (!res.ok) {
+          throw new Error(`Request failed (${res.status})`);
+        }
+        const json = await res.json();
+        setData(json);
+      } catch (err) {
+        console.error("Failed to load admin dashboard:", err);
+      }
     }
     load();
   }, []);

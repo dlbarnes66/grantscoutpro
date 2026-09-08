@@ -26,6 +26,9 @@ export default function SavedGrantsPage() {
     const loadSaved = async () => {
       try {
         const res = await fetch("/api/saved-grant");
+        if (!res.ok) {
+          throw new Error(`Request failed (${res.status})`);
+        }
         const data = await res.json();
         setEntries(data?.savedGrants || []);
       } catch (err) {

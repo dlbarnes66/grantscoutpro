@@ -15,10 +15,18 @@ export default function AdminConsolePage() {
 
   useEffect(() => {
     const load = async () => {
-      const res = await fetch(`/api/workspaces/${workspaceId}/admin`);
-      const json = await res.json();
-      setData(json);
-      setLoading(false);
+      try {
+        const res = await fetch(`/api/workspaces/${workspaceId}/admin`);
+        if (!res.ok) {
+          throw new Error(`Request failed (${res.status})`);
+        }
+        const json = await res.json();
+        setData(json);
+      } catch (err) {
+        console.error("Failed to load admin console:", err);
+      } finally {
+        setLoading(false);
+      }
     };
 
     load();

@@ -24,6 +24,12 @@ export default function GrantInlineAISuggestionsPanel({
         }
       );
 
+      if (!res.ok) {
+
+        throw new Error(`Request failed (${res.status})`);
+
+      }
+
       const data = await res.json();
       setInline(data.inline || null);
     } catch (err) {

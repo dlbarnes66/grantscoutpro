@@ -12,6 +12,9 @@ export default function CommentsPanel({ workspaceId, documentId, userId }) {
       const res = await fetch(
         `/api/workspaces/${workspaceId}/documents/${documentId}/comments`
       );
+      if (!res.ok) {
+        throw new Error(`Request failed (${res.status})`);
+      }
       const data = await res.json();
       setComments(data.comments || []);
     } catch (err) {

@@ -25,6 +25,12 @@ export default function GrantReadabilityOptimizerPanel({
         }
       );
 
+      if (!res.ok) {
+
+        throw new Error(`Request failed (${res.status})`);
+
+      }
+
       const data = await res.json();
       setReadability(data.readability || null);
     } catch (err) {
