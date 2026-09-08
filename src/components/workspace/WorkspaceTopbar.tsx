@@ -1,14 +1,8 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { BookOpen } from "lucide-react";
 import WorkspaceNotificationBell from "./WorkspaceNotificationBell";
-
-const UserButton = dynamic(
-  () => import("@clerk/nextjs").then((mod) => mod.UserButton),
-  { ssr: false }
-);
 
 export default function WorkspaceTopbar({ title }: { title: string }) {
   const pathname = usePathname();
@@ -32,7 +26,6 @@ export default function WorkspaceTopbar({ title }: { title: string }) {
           <span className="hidden sm:inline">User Guide</span>
         </a>
         {workspaceId && <WorkspaceNotificationBell workspaceId={workspaceId} />}
-        <UserButton afterSignOutUrl="/" />
       </div>
     </header>
   );

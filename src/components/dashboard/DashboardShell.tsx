@@ -19,18 +19,25 @@ export default function DashboardShell({
 }: DashboardShellProps) {
   return (
     <div className="flex min-h-screen bg-[#0A1A2F] text-white">
-      <aside className="w-64 bg-[#11233F] p-6">
-        <h2 className="mb-6 text-2xl font-bold">
-          GrantScout Pro
-        </h2>
+      <aside className="flex w-64 flex-col justify-between bg-[#11233F] p-6">
+        <div>
+          <h2 className="mb-6 text-2xl font-bold">
+            GrantScout Pro
+          </h2>
 
-        <nav className="flex flex-col gap-3">
-          <Link href="/home">Dashboard</Link>
-          <Link href="/onboarding">Onboarding</Link>
-          <Link href="/compare">Compare Grants</Link>
-          <Link href="/recommendations">Recommendations</Link>
-          <Link href="/workspace">Workspaces</Link>
-        </nav>
+          <nav className="flex flex-col gap-3">
+            <Link href="/home">Dashboard</Link>
+            <Link href="/onboarding">Onboarding</Link>
+            <Link href="/compare">Compare Grants</Link>
+            <Link href="/recommendations">Recommendations</Link>
+            <Link href="/workspace">Workspaces</Link>
+          </nav>
+        </div>
+
+        <div className="flex items-center gap-3 border-t border-[#1F2F4F] pt-4">
+          <UserButton afterSignOutUrl="/" />
+          <span className="text-sm text-slate-300">Account</span>
+        </div>
       </aside>
 
       <div className="flex flex-1 flex-col">
@@ -39,19 +46,16 @@ export default function DashboardShell({
             Dashboard
           </h1>
 
-          <div className="flex items-center gap-4">
-            <a
-              href="/docs/grant-scout-pro-user-guide.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-              title="User Guide"
-              className="flex items-center gap-1.5 rounded-md border border-white/[0.08] px-3 py-1.5 text-sm text-slate-300 transition-colors hover:border-white/[0.16] hover:text-white"
-            >
-              <BookOpen size={16} />
-              User Guide
-            </a>
-            <UserButton afterSignOutUrl="/" />
-          </div>
+          <a
+            href="/docs/grant-scout-pro-user-guide.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="User Guide"
+            className="flex items-center gap-1.5 rounded-md border border-white/[0.08] px-3 py-1.5 text-sm text-slate-300 transition-colors hover:border-white/[0.16] hover:text-white"
+          >
+            <BookOpen size={16} />
+            User Guide
+          </a>
         </header>
 
         <main className="p-10">

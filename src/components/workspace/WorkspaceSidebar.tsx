@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -25,6 +26,11 @@ import {
   Contact,
   type LucideIcon,
 } from "lucide-react";
+
+const UserButton = dynamic(
+  () => import("@clerk/nextjs").then((mod) => mod.UserButton),
+  { ssr: false }
+);
 
 interface NavItem {
   label: string;
@@ -104,7 +110,7 @@ export default function WorkspaceSidebar({ workspaceId }: { workspaceId: string 
   }
 
   return (
-    <aside className="flex w-60 shrink-0 flex-col gap-5 overflow-y-auto border-r border-white/[0.06] bg-[#0B1B33] p-4">
+    <aside className="flex w-60 shrink-0 flex-col border-r border-white/[0.06] bg-[#0B1B33] p-4">
       <Link href={base} className="flex items-center gap-2 rounded-md px-1.5 py-1">
         <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-[#00E5FF] to-[#0090B0] text-[13px] font-bold text-[#06131F]">
           G
@@ -112,7 +118,7 @@ export default function WorkspaceSidebar({ workspaceId }: { workspaceId: string 
         <span className="text-[14px] font-semibold tracking-tight text-white">GrantScout Pro</span>
       </Link>
 
-      <nav className="flex flex-col gap-4 text-[13px]">
+      <nav className="mt-5 flex flex-1 flex-col gap-4 overflow-y-auto text-[13px]">
         {sections.map((section) => (
           <div key={section.label || "root"} className="flex flex-col gap-0.5">
             {section.label && (
@@ -146,6 +152,11 @@ export default function WorkspaceSidebar({ workspaceId }: { workspaceId: string 
           </div>
         ))}
       </nav>
+
+      <div className="mt-4 flex items-center gap-2.5 border-t border-white/[0.06] px-1.5 pt-4">
+        <UserButton afterSignOutUrl="/" />
+        <span className="text-[13px] text-slate-300">Account</span>
+      </div>
     </aside>
   );
 }
