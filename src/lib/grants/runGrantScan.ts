@@ -4,18 +4,26 @@ import { grantMatchEmail } from "@/lib/email/templates";
 import { rescanOrganizationWebsite } from "@/lib/ai/organizationScan";
 import { scoreGrantMatch } from "@/lib/ai/grantMatch";
 import { searchFederalGrants, grantsGovDetailUrl, GrantsGovConfigError, GrantsGovRequestError } from "@/lib/grantsGov";
+import { fetchStateGrants, type StateGrantRaw } from "@/lib/grants/state/fetchStateGrants";
+import { fetchFoundations } from "@/lib/grants/foundations/fetchFoundations";
 
 // The twice-daily (or whatever schedule you point a cron at) job behind
 // the notification bell: per workspace, refresh the owner's profile from
-// their website, pull in fresh federal grants matching their focus
-// areas, score any grants that haven't been scored recently, and notify
-// (in-app + email) on strong new matches. This does NOT count against a
-// workspace's manual-search daily limit - that's a separate, user-
-// initiated allowance (see grants/search-now/route.ts).
+// their website, pull in fresh grants matching their focus areas from
+// every source we have (federal, state where we have a source configured,
+// and foundation prospects), score anything that hasn't been scored yet,
+// and notify (in-app + email) on strong new matches. This does NOT count
+// against a workspace's manual-search daily limit - that's a separate,
+// user-initiated allowance (see grants/search-now/route.ts).
 //
-// State/Foundation sources aren't wired into this scan - see
-// src/lib/grants/state and src/lib/grants/foundations, which are still
-// stub code pointed at placeholder URLs.
+// State coverage is intentionally narrow right now (see
+// src/lib/grants/state/fetchStateGrants.ts - only AL and NC have a real
+// source configured; every other state returns nothing until one is
+// added). Foundation results are prospects sourced from IRS Form 990
+// filings via ProPublica (see src/lib/grants/foundations/fetchFoundations.ts)
+// - real organizations and real financials, but not live "open call for
+// proposals" listings the way federal/state grants are, since no free
+// source of those exists for foundations.
 
 const MATCH_NOTIFY_THRESHOLD = Number(process.env.GRANT_MATCH_NOTIFY_THRESHOLD ?? 75);
 const MAX_GRANTS_SCORED_PER_WORKSPACE = 15;
@@ -24,6 +32,8 @@ export type GrantScanResult = {
   workspacesScanned: number;
   websitesRescanned: number;
   grantsIngested: number;
+  stateGrantsIngested: number;
+  foundationsIngested: number;
   grantsScored: number;
   matchesNotified: number;
   errors: string[];
@@ -37,11 +47,36 @@ async function alreadyNotified(workspaceId: string, grantId: string): Promise<bo
   return !!existing;
 }
 
+// Shared upsert-by-(workspace, url) used by every source below, so a
+// re-run doesn't create duplicate rows for the same opportunity.
+async function upsertGrantOpportunity(workspaceId: string, url: string, data: Record<string, any>): Promise<boolean> {
+  const existing = await prisma.grant.findFirst({ where: { workspaceId, url }, select: { id: true } });
+  if (existing) {
+    await prisma.grant.update({ where: { id: existing.id }, data });
+    return false;
+  }
+  await prisma.grant.create({ data: { workspaceId, url, ...data } as any });
+  return true;
+}
+
+// State pages don't change several-times-a-day, and multiple workspaces
+// can share a state - cache scrape results per run instead of re-scraping
+// once per workspace.
+const stateGrantCache = new Map<string, Promise<StateGrantRaw[]>>();
+function getStateGrantsCached(stateCode: string): Promise<StateGrantRaw[]> {
+  if (!stateGrantCache.has(stateCode)) {
+    stateGrantCache.set(stateCode, fetchStateGrants(stateCode));
+  }
+  return stateGrantCache.get(stateCode)!;
+}
+
 export async function runGrantScan(): Promise<GrantScanResult> {
   const result: GrantScanResult = {
     workspacesScanned: 0,
     websitesRescanned: 0,
     grantsIngested: 0,
+    stateGrantsIngested: 0,
+    foundationsIngested: 0,
     grantsScored: 0,
     matchesNotified: 0,
     errors: [],
@@ -70,15 +105,14 @@ export async function runGrantScan(): Promise<GrantScanResult> {
       }
       if (!profile) continue;
 
-      // 2. Pull in fresh federal grants matching the org's focus areas.
       const query = (profile.focusAreas && profile.focusAreas.length > 0 ? profile.focusAreas : ["nonprofit"]).join(" ");
+
+      // 2. Pull in fresh federal grants matching the org's focus areas.
       try {
         const opportunities = await searchFederalGrants(query);
         for (const opp of opportunities) {
           const url = grantsGovDetailUrl(opp.opportunity_id);
-          const existing = await prisma.grant.findFirst({ where: { workspaceId: workspace.id, url }, select: { id: true } });
-          const data = {
-            workspaceId: workspace.id,
+          const created = await upsertGrantOpportunity(workspace.id, url, {
             title: opp.opportunity_title,
             agency: opp.agency_name ?? undefined,
             category: opp.funding_category ?? undefined,
@@ -90,15 +124,9 @@ export async function runGrantScan(): Promise<GrantScanResult> {
             expectedAwards: opp.expected_number_of_awards ?? undefined,
             deadline: opp.close_date ? new Date(opp.close_date) : undefined,
             openDate: opp.post_date ? new Date(opp.post_date) : undefined,
-            url,
             raw: opp as any,
-          };
-          if (existing) {
-            await prisma.grant.update({ where: { id: existing.id }, data });
-          } else {
-            await prisma.grant.create({ data });
-            result.grantsIngested += 1;
-          }
+          });
+          if (created) result.grantsIngested += 1;
         }
       } catch (err) {
         if (err instanceof GrantsGovConfigError || err instanceof GrantsGovRequestError) {
@@ -106,6 +134,73 @@ export async function runGrantScan(): Promise<GrantScanResult> {
         } else {
           throw err;
         }
+      }
+
+      // 2b. State grants - only does anything if we have a real source
+      // configured for this workspace's state (see fetchStateGrants.ts).
+      if (profile.state) {
+        try {
+          const stateGrants = await getStateGrantsCached(profile.state);
+          for (const g of stateGrants) {
+            if (!g.url) continue;
+            const created = await upsertGrantOpportunity(workspace.id, g.url, {
+              title: g.title,
+              agency: g.agency ?? `State of ${profile.state}`,
+              category: g.category ?? undefined,
+              status: "open",
+              summary: g.summary ?? undefined,
+              awardFloor: g.minAward ?? undefined,
+              awardCeiling: g.maxAward ?? undefined,
+              eligibleApplicants: g.eligibility ?? undefined,
+              eligibleStates: profile.state,
+              geographicFocus: profile.state,
+              deadline: g.deadline ? new Date(g.deadline) : undefined,
+              raw: g as any,
+            });
+            if (created) result.stateGrantsIngested += 1;
+          }
+        } catch (err: any) {
+          result.errors.push(`State grant scan failed for workspace ${workspace.id}: ${err?.message || err}`);
+        }
+      }
+
+      // 2c. Foundation prospects from IRS filings (ProPublica) - no
+      // deadline, these are funders to research and reach out to, not
+      // opportunities with an application window.
+      try {
+        const foundationQuery = profile.focusAreas?.[0] || profile.mission?.slice(0, 60) || query;
+        const foundations = await fetchFoundations(foundationQuery, profile.state);
+        for (const f of foundations) {
+          if (!f.url || !f.name) continue;
+          const filingNote =
+            f.totalRevenue != null || f.totalAssets != null
+              ? ` Most recent IRS filing${f.latestFilingYear ? ` (FY${f.latestFilingYear})` : ""}: ${
+                  f.totalRevenue != null ? `revenue $${f.totalRevenue.toLocaleString()}` : "revenue unknown"
+                }, ${f.totalAssets != null ? `assets $${f.totalAssets.toLocaleString()}` : "assets unknown"}.`
+              : "";
+          const created = await upsertGrantOpportunity(workspace.id, f.url, {
+            title: f.name,
+            agency: "Private Foundation (prospect)",
+            category: f.nteeCode ? `NTEE ${f.nteeCode}` : "Foundation Prospect",
+            status: "open",
+            summary: `Prospective funder identified from IRS Form 990 filings, based in ${
+              [f.city, f.state].filter(Boolean).join(", ") || "an unknown location"
+            }.${filingNote} Not a live open call for proposals - research fit and reach out directly.`,
+            geographicFocus: f.state ?? undefined,
+            eligibleStates: f.state ?? undefined,
+            foundationName: f.name,
+            foundationEIN: f.ein ?? undefined,
+            foundation990PF: {
+              totalRevenue: f.totalRevenue ?? null,
+              totalAssets: f.totalAssets ?? null,
+              latestFilingYear: f.latestFilingYear ?? null,
+            } as any,
+            raw: f as any,
+          });
+          if (created) result.foundationsIngested += 1;
+        }
+      } catch (err: any) {
+        result.errors.push(`Foundation prospecting failed for workspace ${workspace.id}: ${err?.message || err}`);
       }
 
       // 3. Score any open grants that haven't been scored yet, capped
