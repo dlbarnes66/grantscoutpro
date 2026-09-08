@@ -197,6 +197,13 @@ model UserProfile {
   strategicGoals String?
   priorityAreas  String?
 
+  // Populated by the twice-daily website re-scan (Firecrawl + AI
+  // extraction), not just the one-time onboarding scrape - keeps grant
+  // matching aware of newly announced programs/initiatives instead of
+  // only what was true when the org signed up.
+  currentProjects Json?
+  lastScannedAt   DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -541,6 +548,13 @@ model Application {
   content   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // AI-assisted submission package: status moves draft -> ready when the
+  // user reviews and finalizes it (this app never submits to a funder's
+  // own site - "ready" just means it's done and exported). budget holds
+  // the AI-generated line items separately from the narrative in content.
+  status String @default("draft")
+  budget Json?
 
   user  User  @relation(fields: [userId], references: [id])
   grant Grant @relation(fields: [grantId], references: [id])

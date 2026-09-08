@@ -103,6 +103,36 @@ export function deadlineReminderEmail(input: {
   return { subject, html, text };
 }
 
+export function grantMatchEmail(input: {
+  grantTitle: string;
+  score: number;
+  workspaceName: string;
+  workspaceId: string;
+  grantId: string;
+  deadline: string | null;
+}) {
+  const { grantTitle, score, workspaceName, workspaceId, grantId, deadline } = input;
+  const link = appUrl(`/workspace/${workspaceId}/grants/${grantId}`);
+  const deadlineLine = deadline ? ` Deadline: <strong style="color:#fff;">${deadline}</strong>.` : "";
+
+  const subject = `New grant match (${score}/100): ${grantTitle}`;
+
+  const html = wrap(
+    `<p style="margin:0 0 12px;color:#fff;font-size:16px;font-weight:600;">We found a match for your projects</p>
+     <p style="margin:0 0 12px;"><strong style="color:#fff;">${grantTitle}</strong> scored <strong style="color:${BRAND_COLOR};">${score}/100</strong> against your ${workspaceName} profile.${deadlineLine}</p>
+     ${button("View grant", link)}`,
+    `${grantTitle} scored ${score}/100 against your profile`
+  );
+
+  const text = `We found a match for your projects
+
+"${grantTitle}" scored ${score}/100 against your "${workspaceName}" profile.${deadline ? ` Deadline: ${deadline}.` : ""}
+
+View it here: ${link}`;
+
+  return { subject, html, text };
+}
+
 export function welcomeEmail(input: { name: string | null }) {
   const name = input.name?.split(" ")[0] || "there";
   const link = appUrl("/dashboard");
