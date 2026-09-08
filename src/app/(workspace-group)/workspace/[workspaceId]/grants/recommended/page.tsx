@@ -1,26 +1,39 @@
-"use client"
+"use client";
 
 import { useParams } from "next/navigation";
 import { useState } from "react";
 
-export default function RecommendedGrantsPage({ params }) {
+export default function RecommendedGrantsPage() {
   const routeParams = useParams();
   const workspaceId = routeParams.workspaceId as string;
 
-  const [results, setResults] = useState(null);
+  const [results, setResults] = useState<any[] | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const loadRecommendations = async () => {
     setLoading(true);
+    setError(null);
 
-    const res = await fetch("/api/grants/recommendations", {
-      method: "POST",
-      body: JSON.stringify({ workspaceId }),
-    });
+    try {
+      const res = await fetch("/api/grants/recommendations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspaceId }),
+      });
 
-    const data = await res.json();
-    setResults(data);
-    setLoading(false);
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        throw new Error(data?.error || `Failed to load recommendations (${res.status}).`);
+      }
+
+      setResults(Array.isArray(data) ? data : []);
+    } catch (err: any) {
+      setError(err?.message || "Failed to load recommendations.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -29,14 +42,19 @@ export default function RecommendedGrantsPage({ params }) {
 
       <button
         onClick={loadRecommendations}
-        className="px-4 py-2 bg-blue-600 text-white rounded"
+        disabled={loading}
+        className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
       >
-        Load Recommendations
+        {loading ? "Loading..." : "Load Recommendations"}
       </button>
 
-      {loading && <div>Loading recommendations…</div>}
+      {error && <p className="text-sm text-red-600">{error}</p>}
 
-      {results && (
+      {results && results.length === 0 && !error && (
+        <p className="text-sm text-gray-500">No recommendations yet.</p>
+      )}
+
+      {results && results.length > 0 && (
         <div className="space-y-4">
           {results.map((grant) => (
             <div key={grant.id} className="border p-4 rounded">
@@ -44,15 +62,15 @@ export default function RecommendedGrantsPage({ params }) {
               <p className="text-sm text-gray-600">{grant.agency}</p>
 
               <div className="mt-2 text-sm">
-                <strong>Score:</strong> {grant.score}
+                <strong>Score:</strong> {grant.score ?? "N/A"}
               </div>
 
               <div className="mt-2 text-xs text-gray-500">
-                Eligible States: {grant.eligibleStates}
+                Eligible States: {grant.eligibleStates || "N/A"}
               </div>
 
               <div className="mt-2 text-xs text-gray-500">
-                Geographic Focus: {grant.geographicFocus}
+                Geographic Focus: {grant.geographicFocus || "N/A"}
               </div>
 
               <div className="mt-2 text-xs text-gray-500">
