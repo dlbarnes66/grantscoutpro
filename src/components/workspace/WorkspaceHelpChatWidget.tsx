@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import { HelpCircle, X, Send, Loader2 } from "lucide-react";
 
@@ -39,6 +40,17 @@ export default function WorkspaceHelpChatWidget({ workspaceId }: { workspaceId: 
   const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Rendered via a portal straight onto document.body (see the return
+  // statement below) so this floating widget's `fixed` positioning can
+  // never be hijacked by an ancestor further up the tree (a transform,
+  // filter, or backdrop-blur anywhere between here and <body> would
+  // otherwise quietly turn "fixed" into "fixed relative to that
+  // ancestor" per the CSS spec, which is exactly the kind of thing that
+  // can land this in the wrong corner of the screen). Portals need
+  // `document` to exist, so it only renders client-side after mount.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, open]);
@@ -69,7 +81,9 @@ export default function WorkspaceHelpChatWidget({ workspaceId }: { workspaceId: 
     }
   }
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div className="fixed bottom-6 right-6 z-50">
       {open && (
         <div className="mb-3 flex h-[460px] w-[340px] max-w-[calc(100vw-48px)] flex-col overflow-hidden rounded-xl border border-white/[0.08] bg-[#0B1B33] shadow-2xl">
@@ -123,12 +137,15 @@ export default function WorkspaceHelpChatWidget({ workspaceId }: { workspaceId: 
 
       <button
         onClick={() => setOpen((v) => !v)}
-        className="ml-auto flex h-13 w-13 items-center justify-center rounded-full bg-[#00E5FF] text-[#06131F] shadow-xl"
+        className={`ml-auto flex h-13 w-13 items-center justify-center rounded-full bg-[#00E5FF] text-[#06131F] shadow-xl transition-opacity duration-300 ${
+          open ? "opacity-100" : "opacity-30 hover:opacity-100 focus:opacity-100"
+        }`}
         style={{ width: 52, height: 52 }}
         aria-label={open ? "Close help" : "Open help"}
       >
         {open ? <X size={20} /> : <HelpCircle size={20} />}
       </button>
-    </div>
+    </div>,
+    document.body
   );
 }
