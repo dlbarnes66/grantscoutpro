@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { PLANS, getSeatLimitLabel } from "@/lib/plans";
+import MarketingChatWidget from "@/components/marketing/MarketingChatWidget";
 
 export default function MarketingHomePage() {
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
@@ -1126,6 +1127,7 @@ export default function MarketingHomePage() {
         </div>
       </footer>
 
+      <MarketingChatWidget />
     </div>
   );
 }

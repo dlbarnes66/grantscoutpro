@@ -2,6 +2,7 @@
 
 import WorkspaceSidebar from "./WorkspaceSidebar";
 import WorkspaceTopbar from "./WorkspaceTopbar";
+import WorkspaceHelpChatWidget from "./WorkspaceHelpChatWidget";
 
 export default function WorkspaceShell({
   children,
@@ -22,6 +23,8 @@ export default function WorkspaceShell({
           <div className="mx-auto max-w-6xl">{children}</div>
         </main>
       </div>
+
+      <WorkspaceHelpChatWidget workspaceId={workspaceId} />
     </div>
   );
 }
