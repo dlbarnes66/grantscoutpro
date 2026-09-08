@@ -3,6 +3,7 @@
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { ReactNode } from "react";
+import { BookOpen } from "lucide-react";
 
 const UserButton = dynamic(
   () => import("@clerk/nextjs").then((mod) => mod.UserButton),
@@ -38,7 +39,19 @@ export default function DashboardShell({
             Dashboard
           </h1>
 
-          <UserButton afterSignOutUrl="/" />
+          <div className="flex items-center gap-4">
+            <a
+              href="/docs/grant-scout-pro-user-guide.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="User Guide"
+              className="flex items-center gap-1.5 rounded-md border border-white/[0.08] px-3 py-1.5 text-sm text-slate-300 transition-colors hover:border-white/[0.16] hover:text-white"
+            >
+              <BookOpen size={16} />
+              User Guide
+            </a>
+            <UserButton afterSignOutUrl="/" />
+          </div>
         </header>
 
         <main className="p-10">
