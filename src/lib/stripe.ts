@@ -90,16 +90,26 @@ export function getPlanIdFromPriceId(priceId: string | undefined | null): PlanId
 //
 // Addons are billed as their own separate Stripe subscription (not a line
 // item added to the plan subscription), so the plan-sync logic in the
-// webhook never needs to know about them. Right now only the CRM addon is
-// wired up end to end; STATE/FOUNDATIONS price IDs exist in .env but
-// aren't sold as standalone addons yet.
+// webhook never needs to know about them. CRM, State, and Foundations are
+// each sold the same way: included automatically once a workspace's plan
+// tier grants that access (see PLANS.*.access in src/lib/plans.ts), or
+// purchasable on its own by any workspace whose plan doesn't include it
+// yet - see src/app/api/workspaces/[id]/addons/[addonType]/checkout.
 
-export type AddonType = "crm";
+export type AddonType = "crm" | "state" | "foundations";
 
 const ADDON_PRICE_ENV: Record<AddonType, Record<BillingInterval, string | undefined>> = {
   crm: {
     monthly: process.env.STRIPE_PRICE_ADDON_CRM_MONTHLY,
     yearly: process.env.STRIPE_PRICE_ADDON_CRM_YEARLY,
+  },
+  state: {
+    monthly: process.env.STRIPE_PRICE_ADDON_STATE_MONTHLY,
+    yearly: process.env.STRIPE_PRICE_ADDON_STATE_YEARLY,
+  },
+  foundations: {
+    monthly: process.env.STRIPE_PRICE_ADDON_FOUNDATIONS_MONTHLY,
+    yearly: process.env.STRIPE_PRICE_ADDON_FOUNDATIONS_YEARLY,
   },
 };
 

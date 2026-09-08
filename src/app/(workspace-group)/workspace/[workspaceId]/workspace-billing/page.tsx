@@ -19,6 +19,39 @@ const STATUS_LABEL: Record<string, string> = {
   incomplete: "Incomplete",
 };
 
+// Whether a plan tier already includes a given source/module, mirroring
+// PLANS.*.access in src/lib/plans.ts (kept as a small local table here
+// since this is a client component). Federal search is on every plan, so
+// there's no addon for it - only State, Foundations, and CRM are sold
+// standalone for workspaces whose tier doesn't already include them.
+const ADDON_ACCESS_BY_PLAN: Record<string, { state: boolean; foundation: boolean; crm: boolean }> = {
+  basic: { state: false, foundation: false, crm: false },
+  team: { state: true, foundation: false, crm: false },
+  business: { state: true, foundation: true, crm: false },
+  enterprise: { state: true, foundation: true, crm: true },
+};
+
+const ADDONS = [
+  {
+    type: "state" as const,
+    accessKey: "state" as const,
+    label: "State grants",
+    description: "Search state-level grant opportunities alongside federal.",
+  },
+  {
+    type: "foundations" as const,
+    accessKey: "foundation" as const,
+    label: "Private foundations",
+    description: "Search private foundation and philanthropic funders.",
+  },
+  {
+    type: "crm" as const,
+    accessKey: "crm" as const,
+    label: "CRM",
+    description: "Track funder/donor relationships with a pipeline and contacts.",
+  },
+];
+
 export default function BillingPage() {
   const routeParams = useParams();
   const searchParams = useSearchParams();
@@ -26,6 +59,7 @@ export default function BillingPage() {
   const checkoutFlag = searchParams.get("checkout");
 
   const [billing, setBilling] = useState<any>(null);
+  const [addons, setAddons] = useState<any[]>([]);
   const [isOwner, setIsOwner] = useState(false);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -36,6 +70,7 @@ export default function BillingPage() {
       const res = await fetch(`/api/workspaces/${workspaceId}/billing`);
       const json = await res.json();
       setBilling(json.billing);
+      setAddons(json.addons || []);
       setIsOwner(!!json.isOwner);
     } catch (err) {
       console.error("Failed to load billing:", err);
@@ -75,6 +110,24 @@ export default function BillingPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not open billing portal");
+      window.location.href = data.url;
+    } catch (err: any) {
+      setError(err.message);
+      setActionLoading(null);
+    }
+  }
+
+  async function purchaseAddon(addonType: string) {
+    setActionLoading(`addon-${addonType}`);
+    setError(null);
+    try {
+      const res = await fetch(`/api/workspaces/${workspaceId}/addons/${addonType}/checkout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ interval: "monthly" }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Checkout failed");
       window.location.href = data.url;
     } catch (err: any) {
       setError(err.message);
@@ -166,6 +219,51 @@ export default function BillingPage() {
                 {actionLoading === "manage" ? "Opening..." : "Manage Billing (change plan, update card, cancel)"}
               </button>
             )}
+          </div>
+        )}
+
+        {isOwner && !loading && (
+          <div className="space-y-3">
+            <h2 className="text-lg font-semibold">Add-ons</h2>
+            <p className="text-sm text-gray-500">
+              Add a data source or module on its own without upgrading your whole plan.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {ADDONS.map((addon) => {
+                const planName = billing?.plan ?? "basic";
+                const includedByPlan = !!ADDON_ACCESS_BY_PLAN[planName]?.[addon.accessKey];
+                const activeAddon = addons.find((a) => a.addonType === addon.type && a.active);
+                const pendingAddon = addons.find((a) => a.addonType === addon.type && !a.active && a.stripeSubscriptionId);
+
+                return (
+                  <div key={addon.type} className="border rounded-lg p-4 bg-white shadow-sm space-y-2">
+                    <p className="text-lg font-semibold">{addon.label}</p>
+                    <p className="text-sm text-gray-500">{addon.description}</p>
+                    {includedByPlan ? (
+                      <span className="inline-block text-xs font-medium px-2 py-1 rounded-full bg-green-100 text-green-800">
+                        Included in your plan
+                      </span>
+                    ) : activeAddon ? (
+                      <span className="inline-block text-xs font-medium px-2 py-1 rounded-full bg-green-100 text-green-800">
+                        Active
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => purchaseAddon(addon.type)}
+                        disabled={actionLoading === `addon-${addon.type}` || !!pendingAddon}
+                        className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg text-sm disabled:opacity-50"
+                      >
+                        {actionLoading === `addon-${addon.type}`
+                          ? "Redirecting..."
+                          : pendingAddon
+                            ? "Pending..."
+                            : `Add ${addon.label}`}
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
