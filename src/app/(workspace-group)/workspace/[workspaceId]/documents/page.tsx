@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Download } from "lucide-react";
 import WorkspaceShell from "@/components/workspace/WorkspaceShell";
 
 interface WorkspaceDocument {
@@ -91,16 +92,25 @@ export default function DocumentsListPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {documents.map((doc) => (
-            <Link
+            <div
               key={doc.id}
-              href={`/workspace/${workspaceId}/documents/${doc.id}`}
-              className="bg-slate-900 border border-slate-800 rounded-2xl p-6 hover:border-[#00E5FF] transition"
+              className="relative bg-slate-900 border border-slate-800 rounded-2xl p-6 hover:border-[#00E5FF] transition"
             >
-              <p className="text-lg font-semibold">{doc.title}</p>
-              <p className="text-sm text-slate-400 mt-2">
-                Updated {new Date(doc.updatedAt).toLocaleString()}
-              </p>
-            </Link>
+              <Link href={`/workspace/${workspaceId}/documents/${doc.id}`} className="block">
+                <p className="text-lg font-semibold pr-8">{doc.title}</p>
+                <p className="text-sm text-slate-400 mt-2">
+                  Updated {new Date(doc.updatedAt).toLocaleString()}
+                </p>
+              </Link>
+              <a
+                href={`/api/workspaces/${workspaceId}/documents/${doc.id}/pdf`}
+                onClick={(e) => e.stopPropagation()}
+                title="Download as PDF"
+                className="absolute top-6 right-6 text-slate-500 hover:text-[#00E5FF]"
+              >
+                <Download size={16} />
+              </a>
+            </div>
           ))}
         </div>
       </div>
