@@ -57,16 +57,19 @@ export async function POST(req: Request) {
     }
 
     // No subscription → Checkout Session
+    // Falls back to the _MONTHLY price (or _YEARLY for enterprise, the only one
+    // configured) since there's no monthly/yearly selector wired into this endpoint
+    // yet. Set STRIPE_PRICE_<PLAN> directly if a plan should always use one price.
     const priceId = (() => {
       switch (billing.plan) {
         case "team":
-          return process.env.STRIPE_PRICE_TEAM!;
+          return (process.env.STRIPE_PRICE_TEAM || process.env.STRIPE_PRICE_TEAM_MONTHLY)!;
         case "business":
-          return process.env.STRIPE_PRICE_BUSINESS!;
+          return (process.env.STRIPE_PRICE_BUSINESS || process.env.STRIPE_PRICE_BUSINESS_MONTHLY)!;
         case "enterprise":
-          return process.env.STRIPE_PRICE_ENTERPRISE!;
+          return (process.env.STRIPE_PRICE_ENTERPRISE || process.env.STRIPE_PRICE_ENTERPRISE_YEARLY)!;
         default:
-          return process.env.STRIPE_PRICE_BASIC!;
+          return (process.env.STRIPE_PRICE_BASIC || process.env.STRIPE_PRICE_BASIC_MONTHLY)!;
       }
     })();
 
