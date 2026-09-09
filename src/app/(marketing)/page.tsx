@@ -1,15 +1,32 @@
 "use client";
 
-import { useState } from "react";
-import { PLANS, getSeatLimitLabel } from "@/lib/plans";
+import { useEffect, useState } from "react";
+import { PLANS, getSeatLimitLabel, getAnnualMonthlyEquivalent } from "@/lib/plans";
 import MarketingChatWidget from "@/components/marketing/MarketingChatWidget";
+
+// Shared with the in-app workspace billing page (src/app/(workspace-group)/
+// workspace/[workspaceId]/workspace-billing/page.tsx) - whichever cycle a
+// visitor picks here is remembered so their billing toggle is already set
+// to match once they sign up and reach the real checkout.
+const BILLING_INTERVAL_STORAGE_KEY = "gsp-preferred-billing-interval";
 
 export default function MarketingHomePage() {
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
 
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(
+        BILLING_INTERVAL_STORAGE_KEY,
+        billing === "annual" ? "yearly" : "monthly"
+      );
+    } catch {
+      // localStorage unavailable (private browsing, etc.) - display-only toggle still works.
+    }
+  }, [billing]);
+
   const getDisplayPrice = (monthlyPrice: number) => {
     if (billing === "annual") {
-      return (monthlyPrice * 0.85).toFixed(2);
+      return getAnnualMonthlyEquivalent(monthlyPrice).toString();
     }
     return monthlyPrice.toString();
   };

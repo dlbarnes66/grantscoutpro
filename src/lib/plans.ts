@@ -55,6 +55,16 @@ export const PLANS: Record<PlanId, PlanConfig> = {
   },
 };
 
+// Shared "Save X% billed annually" pitch, used by both the marketing
+// pricing toggle (src/app/(marketing)/page.tsx) and the in-app workspace
+// billing page (src/app/(workspace-group)/workspace/[workspaceId]/workspace-billing/page.tsx)
+// so the discount they advertise can't drift apart.
+export const ANNUAL_DISCOUNT_PERCENT = 15;
+
+export function getAnnualMonthlyEquivalent(monthlyPrice: number): number {
+  return Math.round(monthlyPrice * (1 - ANNUAL_DISCOUNT_PERCENT / 100));
+}
+
 const DEFAULT_PLAN: PlanId = "basic";
 
 export function getPlan(planId?: string | null): PlanConfig {

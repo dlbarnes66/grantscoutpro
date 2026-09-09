@@ -3,12 +3,15 @@
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import WorkspaceShell from "@/components/workspace/WorkspaceShell";
+import { ANNUAL_DISCOUNT_PERCENT, getAnnualMonthlyEquivalent } from "@/lib/plans";
 
 const SELF_SERVE_PLANS = [
   { id: "basic", name: "Basic", monthlyPrice: 29 },
   { id: "team", name: "Team", monthlyPrice: 49 },
   { id: "business", name: "Business", monthlyPrice: 99 },
 ];
+
+const BILLING_INTERVAL_STORAGE_KEY = "gsp-preferred-billing-interval";
 
 const STATUS_LABEL: Record<string, string> = {
   active: "Active",
@@ -64,6 +67,16 @@ export default function BillingPage() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [billingInterval, setBillingInterval] = useState<"monthly" | "yearly">("monthly");
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(BILLING_INTERVAL_STORAGE_KEY);
+      if (saved === "monthly" || saved === "yearly") setBillingInterval(saved);
+    } catch {
+      // localStorage unavailable (private browsing, etc.) - default to monthly.
+    }
+  }, []);
 
   async function load() {
     try {
@@ -90,7 +103,7 @@ export default function BillingPage() {
       const res = await fetch(`/api/workspaces/${workspaceId}/billing/checkout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planId, interval: "monthly" }),
+        body: JSON.stringify({ planId, interval: billingInterval }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Checkout failed");
@@ -124,7 +137,7 @@ export default function BillingPage() {
       const res = await fetch(`/api/workspaces/${workspaceId}/addons/${addonType}/checkout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ interval: "monthly" }),
+        body: JSON.stringify({ interval: billingInterval }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Checkout failed");
@@ -269,15 +282,42 @@ export default function BillingPage() {
 
         {isOwner && !hasActiveSubscription && !loading && (
           <div className="space-y-3">
-            <h2 className="text-lg font-semibold">Choose a plan</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Choose a plan</h2>
+              <div className="inline-flex items-center rounded-full border border-gray-300 bg-gray-50 p-1 text-sm">
+                <button
+                  type="button"
+                  onClick={() => setBillingInterval("monthly")}
+                  className={`px-3 py-1 rounded-full transition-colors ${
+                    billingInterval === "monthly" ? "bg-white shadow-sm font-medium text-gray-900" : "text-gray-500"
+                  }`}
+                >
+                  Monthly
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBillingInterval("yearly")}
+                  className={`px-3 py-1 rounded-full transition-colors ${
+                    billingInterval === "yearly" ? "bg-white shadow-sm font-medium text-gray-900" : "text-gray-500"
+                  }`}
+                >
+                  Annual <span className="text-green-600">Save {ANNUAL_DISCOUNT_PERCENT}%</span>
+                </button>
+              </div>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {SELF_SERVE_PLANS.map((plan) => (
                 <div key={plan.id} className="border rounded-lg p-4 bg-white shadow-sm space-y-2">
                   <p className="text-lg font-semibold">{plan.name}</p>
                   <p className="text-2xl font-bold">
-                    ${plan.monthlyPrice}
+                    ${billingInterval === "yearly" ? getAnnualMonthlyEquivalent(plan.monthlyPrice) : plan.monthlyPrice}
                     <span className="text-sm font-normal text-gray-500">/mo</span>
                   </p>
+                  {billingInterval === "yearly" && (
+                    <p className="text-xs text-gray-500">
+                      Billed annually (${getAnnualMonthlyEquivalent(plan.monthlyPrice) * 12}/yr)
+                    </p>
+                  )}
                   <button
                     onClick={() => subscribe(plan.id)}
                     disabled={actionLoading === plan.id}
