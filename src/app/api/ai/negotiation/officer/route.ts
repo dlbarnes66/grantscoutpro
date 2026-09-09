@@ -57,9 +57,14 @@ Respond with a JSON object with these keys:
   return NextResponse.json({ success: true, officer: parsed ?? raw });
   } catch (err) {
     console.error("Negotiation officer route crashed:", err);
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Something went wrong generating this section. Please try again." },
-      { status: 500 }
-    );
+    const message = err instanceof Error ? err.message : "Something went wrong generating this section. Please try again.";
+    // Temporary extra detail (name + first few stack frames) so a failure
+    // that reaches here is diagnosable from the UI alone, without needing
+    // to pull Vercel function logs.
+    const where =
+      err instanceof Error && err.stack
+        ? " [" + err.name + ": " + err.stack.split("\n").slice(1, 4).map((l) => l.trim()).join(" | ") + "]"
+        : "";
+    return NextResponse.json({ error: message + where }, { status: 500 });
   }
 }
