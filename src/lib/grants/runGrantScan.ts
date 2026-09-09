@@ -3,7 +3,7 @@ import { sendEmailSafe } from "@/lib/email/sendgrid";
 import { grantMatchEmail } from "@/lib/email/templates";
 import { rescanOrganizationWebsite } from "@/lib/ai/organizationScan";
 import { scoreGrantMatch } from "@/lib/ai/grantMatch";
-import { searchFederalGrants, grantsGovDetailUrl, GrantsGovConfigError, GrantsGovRequestError } from "@/lib/grantsGov";
+import { searchFederalGrants, grantsGovDetailUrl, stripHtml, GrantsGovConfigError, GrantsGovRequestError } from "@/lib/grantsGov";
 import { fetchStateGrants, type StateGrantRaw } from "@/lib/grants/state/fetchStateGrants";
 import { fetchFoundations } from "@/lib/grants/foundations/fetchFoundations";
 
@@ -112,18 +112,19 @@ export async function runGrantScan(): Promise<GrantScanResult> {
         const opportunities = await searchFederalGrants(query);
         for (const opp of opportunities) {
           const url = grantsGovDetailUrl(opp.opportunity_id);
+          const s = opp.summary;
           const created = await upsertGrantOpportunity(workspace.id, url, {
             title: opp.opportunity_title,
-            agency: opp.agency_name ?? undefined,
-            category: opp.funding_category ?? undefined,
+            agency: opp.agency_name ?? opp.top_level_agency_name ?? undefined,
+            category: s?.funding_categories?.[0] ?? opp.category ?? undefined,
             status: opp.opportunity_status ?? "open",
-            summary: opp.summary ?? undefined,
-            awardFloor: opp.award_floor ?? undefined,
-            awardCeiling: opp.award_ceiling ?? undefined,
-            totalFunding: opp.estimated_total_program_funding ?? undefined,
-            expectedAwards: opp.expected_number_of_awards ?? undefined,
-            deadline: opp.close_date ? new Date(opp.close_date) : undefined,
-            openDate: opp.post_date ? new Date(opp.post_date) : undefined,
+            summary: stripHtml(s?.summary_description) ?? undefined,
+            awardFloor: s?.award_floor ?? undefined,
+            awardCeiling: s?.award_ceiling ?? undefined,
+            totalFunding: s?.estimated_total_program_funding ?? undefined,
+            expectedAwards: s?.expected_number_of_awards ?? undefined,
+            deadline: s?.close_date ? new Date(s.close_date) : undefined,
+            openDate: s?.post_date ? new Date(s.post_date) : undefined,
             raw: opp as any,
           });
           if (created) result.grantsIngested += 1;

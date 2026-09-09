@@ -5,6 +5,7 @@ import { getPlan, isManualSearchResetDue } from "@/lib/plans";
 import {
   searchFederalGrants,
   grantsGovDetailUrl,
+  stripHtml,
   GrantsGovConfigError,
   GrantsGovRequestError,
   type GrantsGovOpportunity,
@@ -184,19 +185,24 @@ export async function POST(
       select: { id: true },
     });
 
+    // Most of the useful detail (deadline, award amounts, category,
+    // description) lives under opp.summary, not at the top level -- see
+    // the note in src/lib/grantsGov.ts.
+    const s = opp.summary;
+
     const data = {
       workspaceId: workspace.id,
       title: opp.opportunity_title,
-      agency: opp.agency_name ?? undefined,
-      category: opp.funding_category ?? undefined,
+      agency: opp.agency_name ?? opp.top_level_agency_name ?? undefined,
+      category: s?.funding_categories?.[0] ?? opp.category ?? undefined,
       status: opp.opportunity_status ?? "open",
-      summary: opp.summary ?? undefined,
-      awardFloor: opp.award_floor ?? undefined,
-      awardCeiling: opp.award_ceiling ?? undefined,
-      totalFunding: opp.estimated_total_program_funding ?? undefined,
-      expectedAwards: opp.expected_number_of_awards ?? undefined,
-      deadline: opp.close_date ? new Date(opp.close_date) : undefined,
-      openDate: opp.post_date ? new Date(opp.post_date) : undefined,
+      summary: stripHtml(s?.summary_description) ?? undefined,
+      awardFloor: s?.award_floor ?? undefined,
+      awardCeiling: s?.award_ceiling ?? undefined,
+      totalFunding: s?.estimated_total_program_funding ?? undefined,
+      expectedAwards: s?.expected_number_of_awards ?? undefined,
+      deadline: s?.close_date ? new Date(s.close_date) : undefined,
+      openDate: s?.post_date ? new Date(s.post_date) : undefined,
       url,
       raw: opp as any,
     };
