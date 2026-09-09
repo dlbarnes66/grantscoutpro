@@ -15,6 +15,7 @@ const SYSTEM_PROMPT =
 
 // POST /api/ai/negotiation/scope  { workspaceId, grantId, orgNotes? }
 export async function POST(req: NextRequest) {
+  try {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -55,4 +56,11 @@ Respond with a JSON object with these keys:
   await saveNegotiationSection(userId, grantId, "scope", raw);
 
   return NextResponse.json({ success: true, scope: parsed ?? raw });
+  } catch (err) {
+    console.error("Negotiation scope route crashed:", err);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Something went wrong generating this section. Please try again." },
+      { status: 500 }
+    );
+  }
 }

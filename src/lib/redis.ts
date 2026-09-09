@@ -25,10 +25,20 @@ export function getRedis() {
   }
 
   if (!redisClient) {
-    redisClient = new Redis(process.env.REDIS_URL);
-    redisClient.on("error", (err) => {
-      console.error("Redis client error:", err);
-    });
+    try {
+      redisClient = new Redis(process.env.REDIS_URL);
+      redisClient.on("error", (err) => {
+        console.error("Redis client error:", err);
+      });
+    } catch (err) {
+      // new Redis(url) parses REDIS_URL synchronously (ioredis uses the
+      // WHATWG URL parser internally) and throws immediately if it's
+      // malformed, instead of failing later on connect like most
+      // connection problems do. Treat that the same as "no Redis
+      // configured" rather than letting it crash every caller.
+      console.error("Failed to construct Redis client — check REDIS_URL formatting:", err);
+      return null;
+    }
   }
 
   return redisClient;
