@@ -90,7 +90,7 @@ export default function WorkspaceNotificationBell({ workspaceId }: { workspaceId
   }
 
   return (
-    <div className="relative" ref={ref}>
+    <div className="relative" ref={ref} style={{ position: "relative" }}>
       <button
         onClick={toggleOpen}
         className="relative rounded-md p-1.5 text-slate-500 transition-colors hover:bg-white/[0.06] hover:text-slate-200"
@@ -105,7 +105,17 @@ export default function WorkspaceNotificationBell({ workspaceId }: { workspaceId
       </button>
 
       {open && (
-        <div className="absolute right-0 z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-white/[0.08] bg-[#0B1B33] shadow-2xl">
+        <div
+          className="overflow-hidden rounded-xl border border-white/[0.08] bg-[#0B1B33] shadow-2xl"
+          style={{
+            position: "absolute",
+            top: "calc(100% + 8px)",
+            right: 0,
+            zIndex: 50,
+            width: 320,
+            maxWidth: "min(320px, calc(100vw - 2rem))",
+          }}
+        >
           <div className="border-b border-white/[0.08] px-4 py-3">
             <span className="text-[13px] font-semibold text-white">Notifications</span>
           </div>

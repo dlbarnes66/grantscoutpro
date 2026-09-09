@@ -110,15 +110,50 @@ export default function WorkspaceSidebar({ workspaceId }: { workspaceId: string 
   }
 
   return (
-    <aside className="flex w-60 shrink-0 flex-col border-r border-white/[0.06] bg-[#0B1B33] p-4">
-      <Link href={base} className="flex items-center gap-2 rounded-md px-1.5 py-1">
-        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-[#00E5FF] to-[#0090B0] text-[13px] font-bold text-[#06131F]">
+    <aside
+      className="flex w-60 shrink-0 flex-col border-r border-white/[0.06] bg-[#0B1B33] p-4"
+      style={{
+        display: "flex",
+        width: 240,
+        flexShrink: 0,
+        flexDirection: "column",
+        padding: 16,
+      }}
+    >
+      {/* "Home" link back to the workspace overview - the GrantScout Pro logo mark. */}
+      <Link
+        href={base}
+        className="flex items-center gap-2 rounded-md px-1.5 py-1"
+        style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 6px" }}
+      >
+        <span
+          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-[#00E5FF] to-[#0090B0] text-[13px] font-bold text-[#06131F]"
+          style={{
+            display: "flex",
+            width: 24,
+            height: 24,
+            flexShrink: 0,
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: 6,
+            background: "linear-gradient(to bottom right, #00E5FF, #0090B0)",
+            fontSize: 13,
+            fontWeight: 700,
+            color: "#06131F",
+          }}
+        >
           G
         </span>
         <span className="text-[14px] font-semibold tracking-tight text-white">GrantScout Pro</span>
       </Link>
 
-      <nav className="mt-5 flex flex-1 flex-col gap-4 overflow-y-auto text-[13px]">
+      {/* Account row moved directly under the nav (instead of being pushed to the
+          bottom of the viewport via flex-1) so it sits just below the last nav
+          item instead of far down the page. */}
+      <nav
+        className="mt-5 flex flex-col gap-4 overflow-y-auto text-[13px]"
+        style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 16, overflowY: "auto" }}
+      >
         {sections.map((section) => (
           <div key={section.label || "root"} className="flex flex-col gap-0.5">
             {section.label && (
@@ -153,7 +188,17 @@ export default function WorkspaceSidebar({ workspaceId }: { workspaceId: string 
         ))}
       </nav>
 
-      <div className="mt-4 flex items-center gap-2.5 border-t border-white/[0.06] px-1.5 pt-4">
+      <div
+        className="mt-4 flex items-center gap-2.5 border-t border-white/[0.06] px-1.5 pt-4"
+        style={{
+          marginTop: 16,
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          borderTop: "1px solid rgba(255,255,255,0.06)",
+          padding: "16px 6px 0",
+        }}
+      >
         <UserButton afterSignOutUrl="/" />
         <span className="text-[13px] text-slate-300">Account</span>
       </div>

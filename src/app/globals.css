@@ -1,19 +1,48 @@
 /*
- * This project runs Tailwind v4 (@tailwindcss/postcss) but still has a
- * v3-style tailwind.config.js (content globs + theme.extend for
- * borderRadius/fontSize/brand colors). Tailwind v4 does NOT auto-load
- * that file - without this @config line it silently falls back to its
- * own zero-config content scan, which is why some pages (especially
- * ones under bracketed/grouped route folders like
- * (workspace-group)/workspace/[workspaceId]) were missing utility
- * classes like gap-*, rounded-2xl, and grid-cols-4 even though the
- * classes were spelled correctly in the source.
+ * FOUND THE ACTUAL ROOT CAUSE (2026-09-09), verified with the
+ * standalone tailwindcss CLI:
+ *
+ * This project runs Tailwind v4 (@tailwindcss/postcss) but this file
+ * was still using the v3-style three-directive entry point
+ * (`@tailwind base/components/utilities`). That legacy form is only
+ * kept around in v4 as a compatibility shim, and that shim does NOT
+ * run v4's real content-detection pipeline properly - `@source`
+ * directives silently do nothing under it (confirmed: `@source
+ * inline("w-80")` produced no `.w-80` rule at all with the old
+ * `@tailwind` directives, but worked immediately after switching to
+ * `@import "tailwindcss"` below). That's why classes like gap-*,
+ * rounded-*, grid-cols-*, w-80, right-0, and min-w-0 kept randomly
+ * disappearing from the compiled CSS, especially on pages under
+ * bracketed/grouped route folders like
+ * (workspace-group)/workspace/[workspaceId].
+ *
+ * (An earlier pass added `@config` below, on the theory that v4
+ * wasn't loading the legacy tailwind.config.js. That was a red
+ * herring - @config only carries over theme/plugin settings, not
+ * content scanning, so it never actually fixed this.)
+ *
+ * Fix: use the real v4 entry point (`@import "tailwindcss"`), keep
+ * `@config` so the existing theme.extend colors/radii/sizes in
+ * tailwind.config.js still apply, and add explicit @source paths
+ * plus a small safelist as extra insurance for the utilities that
+ * bit us in production.
  */
+@import "tailwindcss";
 @config "../../tailwind.config.js";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@source "./**/*.{js,ts,jsx,tsx}";
+@source "../components/**/*.{js,ts,jsx,tsx}";
+@source "../lib/**/*.{js,ts,jsx,tsx}";
+
+@source inline("{,sm:,md:,lg:,xl:}{gap,p,px,py,pt,pb,pl,pr,m,mt,mb,ml,mr,w,h,min-w,max-w,min-h,max-h}-{0,0.5,1,1.5,2,2.5,3,3.5,4,5,6,7,8,9,10,12,14,16,20,24,28,32,36,40,44,48,52,56,60,64,72,80,96}");
+@source inline("{,sm:,md:,lg:,xl:}{rounded,rounded-sm,rounded-md,rounded-lg,rounded-xl,rounded-2xl,rounded-3xl,rounded-full}");
+@source inline("{,sm:,md:,lg:,xl:}grid-cols-{1,2,3,4,5,6,7,8,9,10,11,12}");
+@source inline("{,sm:,md:,lg:,xl:}{flex,grid,hidden,block,inline-flex,relative,absolute,fixed,sticky,overflow-hidden,overflow-x-hidden,overflow-y-auto,min-w-0,max-w-none,shrink-0,truncate}");
+@source inline("right-{0,0.5,1,2,4}");
+@source inline("left-{0,0.5,1,2,4}");
+@source inline("top-{0,0.5,1,2,4}");
+@source inline("z-{0,10,20,30,40,50}");
+@source inline("max-w-[calc(100vw-2rem)]");
 
 :root {
   --background: #071633;

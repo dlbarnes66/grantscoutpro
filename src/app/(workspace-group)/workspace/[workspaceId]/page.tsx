@@ -129,12 +129,26 @@ export default async function WorkspacePage({ params }: PageProps) {
         Manage grants, documents, collaboration, and AI-powered proposal development.
       </p>
 
-      <div className="grid grid-cols-2 gap-2 mb-7 sm:grid-cols-4">
+      <div
+        className="grid grid-cols-2 gap-2 mb-7 sm:grid-cols-4"
+        style={{ display: "grid", gap: 8, marginBottom: 28 }}
+      >
         {quickActions.map((action) => (
           <Link
             key={action.href}
             href={action.href}
             className="flex w-full min-w-0 items-center gap-2 rounded-md border border-white/[0.07] bg-white/[0.02] px-3 py-2 text-[13px] font-medium text-slate-300 transition-colors hover:border-white/[0.14] hover:bg-white/[0.05] hover:text-white"
+            style={{
+              display: "flex",
+              width: "100%",
+              minWidth: 0,
+              alignItems: "center",
+              gap: 8,
+              borderRadius: 6,
+              border: "1px solid rgba(255,255,255,0.07)",
+              background: "rgba(255,255,255,0.02)",
+              padding: "8px 12px",
+            }}
           >
             <action.icon size={14} className="shrink-0 text-[#00E5FF]" />
             <span className="truncate">{action.label}</span>
@@ -142,11 +156,22 @@ export default async function WorkspacePage({ params }: PageProps) {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-3 mb-7 md:grid-cols-4">
+      <div
+        className="grid grid-cols-1 gap-3 mb-7 md:grid-cols-4"
+        style={{ display: "grid", gap: 12, marginBottom: 28 }}
+      >
         {stats.map((stat) => (
           <div
             key={stat.label}
             className="relative overflow-hidden rounded-lg border border-white/[0.07] bg-white/[0.02] p-4 transition-colors hover:border-white/[0.14]"
+            style={{
+              position: "relative",
+              overflow: "hidden",
+              borderRadius: 8,
+              border: "1px solid rgba(255,255,255,0.07)",
+              background: "rgba(255,255,255,0.02)",
+              padding: 16,
+            }}
           >
             <div className="absolute inset-x-0 top-0 h-px" style={{ background: stat.accent, opacity: 0.6 }} />
             <div className="flex items-center justify-between">
@@ -160,7 +185,10 @@ export default async function WorkspacePage({ params }: PageProps) {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+      <div
+        className="grid grid-cols-1 gap-3 lg:grid-cols-3"
+        style={{ display: "grid", gap: 12 }}
+      >
         <Card className="p-5 lg:col-span-2">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-[13px] font-medium text-slate-300">Recent Activity</h2>
