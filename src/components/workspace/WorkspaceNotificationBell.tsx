@@ -105,7 +105,7 @@ export default function WorkspaceNotificationBell({ workspaceId }: { workspaceId
       </button>
 
       {open && (
-        <div className="absolute right-0 z-50 mt-2 w-80 overflow-hidden rounded-xl border border-white/[0.08] bg-[#0B1B33] shadow-2xl">
+        <div className="absolute right-0 z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-white/[0.08] bg-[#0B1B33] shadow-2xl">
           <div className="border-b border-white/[0.08] px-4 py-3">
             <span className="text-[13px] font-semibold text-white">Notifications</span>
           </div>
@@ -119,9 +119,9 @@ export default function WorkspaceNotificationBell({ workspaceId }: { workspaceId
                 <button
                   key={n.id}
                   onClick={() => handleClickNotification(n)}
-                  className="block w-full border-b border-white/[0.04] px-4 py-3 text-left transition-colors hover:bg-white/[0.04]"
+                  className="block w-full min-w-0 border-b border-white/[0.04] px-4 py-3 text-left transition-colors hover:bg-white/[0.04]"
                 >
-                  <p className="text-[12.5px] leading-snug text-slate-200">{n.message}</p>
+                  <p className="whitespace-normal break-words text-[12.5px] leading-snug text-slate-200">{n.message}</p>
                   <p className="mt-1 text-[11px] text-slate-500">{new Date(n.createdAt).toLocaleString()}</p>
                 </button>
               ))}
