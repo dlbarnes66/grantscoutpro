@@ -51,9 +51,27 @@ export async function generateNegotiationSection(
     }
 
     return { parsed, raw };
-  } catch (err) {
+  } catch (err: any) {
     console.error("Negotiation model error:", err);
-    return { parsed: null, raw: "The AI request failed. Please try again." };
+
+    // Surface the real reason instead of a generic message - OpenAI SDK
+    // errors carry a status/code/type that pin down exactly what's wrong
+    // (bad/expired key, no access to this model, quota exceeded, etc.),
+    // and a fully generic message here was hiding that from us the last
+    // time this broke.
+    const status = err?.status ?? err?.response?.status;
+    const code = err?.code ?? err?.error?.code;
+    const type = err?.type ?? err?.error?.type;
+    const detail = err?.error?.message || err?.message || "Unknown error";
+    const parts = [detail];
+    if (status) parts.push(`status ${status}`);
+    if (code) parts.push(`code ${code}`);
+    if (type) parts.push(`type ${type}`);
+
+    return {
+      parsed: null,
+      raw: `The AI request failed: ${parts.join(" — ")}. Please try again, or let us know if this keeps happening.`,
+    };
   }
 }
 
