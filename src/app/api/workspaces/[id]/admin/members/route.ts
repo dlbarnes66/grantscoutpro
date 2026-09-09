@@ -3,7 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logActivity } from "@/lib/ai/activity-log";
 import { sendEmailSafe } from "@/lib/email/sendgrid";
-import { workspaceInviteEmail } from "@/lib/email/templates";
+import { workspaceInviteEmail, workspaceInvitePendingEmail } from "@/lib/email/templates";
+import { getPlan, isAtSeatLimit, getSeatLimitLabel } from "@/lib/plans";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -24,7 +25,11 @@ function logActivitySafe(workspaceId: string, action: string, metadata: any, use
 async function loadWorkspaceAndRole(workspaceId: string, userId: string) {
   const workspace = await prisma.workspace.findUnique({
     where: { id: workspaceId },
-    include: { members: true },
+    include: {
+      members: true,
+      billing: true,
+      invites: { where: { status: "pending" } },
+    },
   });
 
   if (!workspace) return { workspace: null, me: null };
@@ -50,6 +55,7 @@ export async function GET(
       where: { id: params.id },
       include: {
         members: { include: { user: true } },
+        invites: { where: { status: "pending" }, orderBy: { createdAt: "desc" } },
       },
     });
 
@@ -77,7 +83,14 @@ export async function GET(
       isOwner: m.userId === workspace.ownerId,
     }));
 
-    return NextResponse.json({ success: true, members, viewerRole: me.role });
+    const invites = workspace.invites.map((i) => ({
+      id: i.id,
+      email: i.email,
+      role: i.role,
+      createdAt: i.createdAt,
+    }));
+
+    return NextResponse.json({ success: true, members, invites, viewerRole: me.role });
   } catch (err: any) {
     console.error("WORKSPACE ADMIN MEMBERS GET ERROR:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
@@ -136,13 +149,63 @@ export async function POST(
       });
 
       if (!invitedUser) {
-        return NextResponse.json(
-          {
-            error:
-              "No account found for that email. They need to sign up for Grant Scout Pro first, then you can add them.",
-          },
-          { status: 404 }
+        // No account yet - send a real invite instead of just failing.
+        // Whoever signs up with this email address gets added
+        // automatically by the Clerk webhook (see
+        // src/app/api/webhooks/clerk/route.ts, user.created).
+        const plan = getPlan(workspace.billing?.plan);
+        const seatsInUse = workspace.members.length + workspace.invites.length;
+
+        const existingInvite = workspace.invites.find(
+          (i) => i.email.toLowerCase() === email
         );
+
+        if (!existingInvite && isAtSeatLimit(plan, seatsInUse)) {
+          return NextResponse.json(
+            {
+              error: `Your ${plan.name} plan is limited to ${getSeatLimitLabel(
+                plan
+              ).toLowerCase()}. Upgrade your plan to invite more teammates.`,
+            },
+            { status: 403 }
+          );
+        }
+
+        const invite = existingInvite
+          ? await prisma.workspaceInvite.update({
+              where: { id: existingInvite.id },
+              data: { role },
+            })
+          : await prisma.workspaceInvite.create({
+              data: { workspaceId: params.id, email, role, invitedById: userId },
+            });
+
+        await logActivitySafe(
+          params.id,
+          existingInvite ? "invite_resent" : "invite_sent",
+          { targetEmail: email, role },
+          userId
+        );
+
+        const inviter = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { name: true },
+        });
+
+        const { subject, html, text } = workspaceInvitePendingEmail({
+          workspaceName: workspace.name,
+          inviterName: inviter?.name ?? null,
+          role,
+          email,
+        });
+
+        void sendEmailSafe({ to: email, subject, html, text });
+
+        return NextResponse.json({
+          success: true,
+          invited: true,
+          invite: { id: invite.id, email: invite.email, role: invite.role, createdAt: invite.createdAt },
+        });
       }
 
       if (invitedUser.id === workspace.ownerId) {
@@ -157,6 +220,19 @@ export async function POST(
         return NextResponse.json(
           { error: "That person is already a member of this workspace" },
           { status: 409 }
+        );
+      }
+
+      const planForExisting = getPlan(workspace.billing?.plan);
+      const seatsInUseForExisting = workspace.members.length + workspace.invites.length;
+      if (isAtSeatLimit(planForExisting, seatsInUseForExisting)) {
+        return NextResponse.json(
+          {
+            error: `Your ${planForExisting.name} plan is limited to ${getSeatLimitLabel(
+              planForExisting
+            ).toLowerCase()}. Upgrade your plan to add more teammates.`,
+          },
+          { status: 403 }
         );
       }
 
@@ -207,6 +283,36 @@ export async function POST(
           isOwner: false,
         },
       });
+    }
+
+    if (body.action === "revokeInvite") {
+      // Only the owner can add new members, so only the owner revokes
+      // pending invites too.
+      if (me.role !== "owner") {
+        return NextResponse.json(
+          { error: "Only the workspace owner can revoke invites" },
+          { status: 403 }
+        );
+      }
+
+      const inviteId = typeof body.inviteId === "string" ? body.inviteId : "";
+      if (!inviteId) {
+        return NextResponse.json({ error: "Missing inviteId" }, { status: 400 });
+      }
+
+      const invite = workspace.invites.find((i) => i.id === inviteId);
+      if (!invite) {
+        return NextResponse.json({ error: "Invite not found" }, { status: 404 });
+      }
+
+      await prisma.workspaceInvite.update({
+        where: { id: inviteId },
+        data: { status: "revoked" },
+      });
+
+      await logActivitySafe(params.id, "invite_revoked", { targetEmail: invite.email }, userId);
+
+      return NextResponse.json({ success: true });
     }
 
     if (body.action === "activate" || body.action === "deactivate") {

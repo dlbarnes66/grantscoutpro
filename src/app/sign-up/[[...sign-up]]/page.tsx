@@ -1,5 +1,16 @@
 import { SignUp } from "@clerk/nextjs";
 
-export default function SignUpPage() {
-  return <SignUp fallbackRedirectUrl="/home" />;
+export default async function SignUpPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ email?: string }>;
+}) {
+  const { email } = await searchParams;
+
+  return (
+    <SignUp
+      fallbackRedirectUrl="/home"
+      initialValues={email ? { emailAddress: email } : undefined}
+    />
+  );
 }

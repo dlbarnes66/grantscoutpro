@@ -342,6 +342,7 @@ model WorkspaceInvite {
   id          String   @id @default(cuid())
   workspaceId String
   email       String
+  role        String   @default("member")
   invitedById String
   status      String   @default("pending")
   createdAt   DateTime @default(now())

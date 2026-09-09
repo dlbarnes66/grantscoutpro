@@ -14,18 +14,28 @@ type Member = {
   isOwner: boolean;
 };
 
+type Invite = {
+  id: string;
+  email: string;
+  role: string;
+  createdAt: string;
+};
+
 const ASSIGNABLE_ROLES = ["member", "admin"] as const;
 
 export default function MembersSection({ workspaceId }: { workspaceId: string }) {
   const [members, setMembers] = useState<Member[] | null>(null);
+  const [invites, setInvites] = useState<Invite[]>([]);
   const [viewerRole, setViewerRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const [newEmail, setNewEmail] = useState("");
   const [newRole, setNewRole] = useState<(typeof ASSIGNABLE_ROLES)[number]>("member");
   const [adding, setAdding] = useState(false);
   const [busyUserId, setBusyUserId] = useState<string | null>(null);
+  const [busyInviteId, setBusyInviteId] = useState<string | null>(null);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
 
   const load = async () => {
@@ -36,6 +46,7 @@ export default function MembersSection({ workspaceId }: { workspaceId: string })
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Failed to load members");
       setMembers(json.members);
+      setInvites(json.invites || []);
       setViewerRole(json.viewerRole);
     } catch (err: any) {
       setError(err.message || "Failed to load members");
@@ -57,6 +68,7 @@ export default function MembersSection({ workspaceId }: { workspaceId: string })
     if (!newEmail.trim()) return;
     setAdding(true);
     setError(null);
+    setNotice(null);
     try {
       const res = await fetch(`/api/workspaces/${workspaceId}/admin/members`, {
         method: "POST",
@@ -65,6 +77,12 @@ export default function MembersSection({ workspaceId }: { workspaceId: string })
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Failed to add member");
+
+      setNotice(
+        json.invited
+          ? `Invite sent to ${json.invite.email} - they'll be added to this workspace automatically once they sign up.`
+          : `${newEmail.trim()} was added to the workspace.`
+      );
       setNewEmail("");
       setNewRole("member");
       await load();
@@ -72,6 +90,26 @@ export default function MembersSection({ workspaceId }: { workspaceId: string })
       setError(err.message || "Failed to add member");
     } finally {
       setAdding(false);
+    }
+  };
+
+  const handleRevokeInvite = async (inviteId: string) => {
+    setBusyInviteId(inviteId);
+    setError(null);
+    setNotice(null);
+    try {
+      const res = await fetch(`/api/workspaces/${workspaceId}/admin/members`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "revokeInvite", inviteId }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to revoke invite");
+      await load();
+    } catch (err: any) {
+      setError(err.message || "Failed to revoke invite");
+    } finally {
+      setBusyInviteId(null);
     }
   };
 
@@ -141,6 +179,12 @@ export default function MembersSection({ workspaceId }: { workspaceId: string })
       {error && (
         <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded p-3">
           {error}
+        </div>
+      )}
+
+      {notice && (
+        <div className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded p-3">
+          {notice}
         </div>
       )}
 
@@ -225,6 +269,47 @@ export default function MembersSection({ workspaceId }: { workspaceId: string })
         </div>
       )}
 
+      {!loading && isOwnerViewer && invites.length > 0 && (
+        <div className="pt-2">
+          <h3 className="text-sm font-semibold text-gray-700 mb-2">
+            Pending invites ({invites.length})
+          </h3>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="text-left border-b">
+                  <th className="py-2 pr-4">Email</th>
+                  <th className="py-2 pr-4">Role</th>
+                  <th className="py-2 pr-4">Invited</th>
+                  <th className="py-2 pr-4">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {invites.map((i) => (
+                  <tr key={i.id} className="border-b last:border-0">
+                    <td className="py-2 pr-4">{i.email}</td>
+                    <td className="py-2 pr-4 capitalize">{i.role}</td>
+                    <td className="py-2 pr-4 text-gray-500">
+                      {new Date(i.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="py-2 pr-4">
+                      <button
+                        type="button"
+                        disabled={busyInviteId === i.id}
+                        onClick={() => handleRevokeInvite(i.id)}
+                        className="text-red-700 hover:underline disabled:opacity-50"
+                      >
+                        Revoke
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {isOwnerViewer && (
         <form onSubmit={handleAdd} className="flex flex-wrap items-end gap-3 pt-4 border-t">
           <div className="flex flex-col">
@@ -260,8 +345,9 @@ export default function MembersSection({ workspaceId }: { workspaceId: string })
             {adding ? "Adding..." : "Add user"}
           </button>
           <p className="text-xs text-gray-500 w-full">
-            The person must already have a Grant Scout Pro account under this email — there's no
-            invite-email step yet, so have them sign up first if they don't.
+            If they already have a Grant Scout Pro account, they're added right away. If not,
+            we'll email them an invite to sign up, and they'll be added to this workspace
+            automatically the moment they do.
           </p>
         </form>
       )}

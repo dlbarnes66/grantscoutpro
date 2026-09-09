@@ -78,6 +78,37 @@ export function workspaceInviteEmail(input: {
   return { subject, html, text };
 }
 
+// Sent when an admin invites someone who does NOT have an account yet.
+// Unlike workspaceInviteEmail (which tells an EXISTING user they were
+// added), this one has to get the person to create an account first -
+// the actual workspace membership is granted automatically by the Clerk
+// webhook (user.created) once they sign up with this email address, see
+// src/app/api/webhooks/clerk/route.ts.
+export function workspaceInvitePendingEmail(input: {
+  workspaceName: string;
+  inviterName: string | null;
+  role: string;
+  email: string;
+}) {
+  const { workspaceName, inviterName, role, email } = input;
+  const inviter = inviterName || "A teammate";
+  const link = appUrl(`/sign-up?email=${encodeURIComponent(email)}`);
+
+  const subject = `You're invited to join ${workspaceName} on ${APP_NAME}`;
+
+  const html = wrap(
+    `<p style="margin:0 0 12px;color:#fff;font-size:16px;font-weight:600;">You're invited!</p>
+     <p style="margin:0 0 12px;">${inviter} invited you to join <strong style="color:#fff;">${workspaceName}</strong> as a <strong style="color:#fff;">${role}</strong> on ${APP_NAME}.</p>
+     <p style="margin:0 0 4px;">Create your account with this email address (${email}) and you'll be added to the workspace automatically.</p>
+     ${button("Create your account", link)}`,
+    `${inviter} invited you to join ${workspaceName} on ${APP_NAME}`
+  );
+
+  const text = `You're invited!\n\n${inviter} invited you to join "${workspaceName}" as a ${role} on ${APP_NAME}.\n\nCreate your account with this email address (${email}) and you'll be added automatically: ${link}`;
+
+  return { subject, html, text };
+}
+
 export function deadlineReminderEmail(input: {
   grantTitle: string;
   daysLeft: number;

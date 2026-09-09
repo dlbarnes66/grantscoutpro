@@ -82,6 +82,40 @@ export async function POST(req: NextRequest) {
           },
         });
 
+        // Fulfill any pending workspace invites sent to this email address
+        // before they had an account - see workspaceInvitePendingEmail /
+        // admin/members/route.ts. Clerk has already verified this email
+        // belongs to this person, so it's safe to add them straight in.
+        if (email) {
+          const pendingInvites = await prisma.workspaceInvite.findMany({
+            where: { email: { equals: email, mode: "insensitive" }, status: "pending" },
+          });
+
+          for (const invite of pendingInvites) {
+            try {
+              await prisma.workspaceMember.upsert({
+                where: {
+                  workspaceId_userId: { workspaceId: invite.workspaceId, userId: data.id },
+                },
+                update: {},
+                create: {
+                  workspaceId: invite.workspaceId,
+                  userId: data.id,
+                  role: invite.role,
+                  status: "active",
+                },
+              });
+
+              await prisma.workspaceInvite.update({
+                where: { id: invite.id },
+                data: { status: "accepted" },
+              });
+            } catch (err) {
+              console.error(`CLERK WEBHOOK: failed to fulfill invite ${invite.id} for new user ${data.id}:`, err);
+            }
+          }
+        }
+
         // Clerk's own hosted flow already verifies the email address before
         // the account is usable - this is a separate, branded "you're set
         // up" email, not the verification step itself.
