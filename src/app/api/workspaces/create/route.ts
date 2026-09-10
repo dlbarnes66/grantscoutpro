@@ -70,6 +70,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, workspace });
   } catch (err: any) {
     console.error("WORKSPACE CREATE ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    // Same temporary diagnostic as the negotiation routes: include the
+    // error name and a few stack frames so a failure here is
+    // diagnosable from the UI alone.
+    const where =
+      err instanceof Error && err.stack
+        ? " [" + err.name + ": " + err.stack.split("\n").slice(1, 4).map((l: string) => l.trim()).join(" | ") + "]"
+        : "";
+    return NextResponse.json({ error: (err?.message || "Something went wrong.") + where }, { status: 500 });
   }
 }
