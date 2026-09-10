@@ -21,6 +21,21 @@ interface Budget {
   notes: string;
 }
 
+// Plain-language, one-line explanations for the standard section titles
+// (see STANDARD_SECTIONS in src/lib/ai/proposalPackage.ts) so a first-time
+// user isn't left guessing what grant-writing jargon like "Methodology" or
+// "Evaluation Plan" actually means. Falls back to a generic hint for any
+// section title that doesn't match (custom sections, funder-specific ones).
+const SECTION_HINTS: Record<string, string> = {
+  "Statement of Need": "The problem you're solving - why it matters, who it affects, and why now.",
+  "Goals & Objectives": "What success looks like. Goals are the big picture; objectives are specific, measurable steps toward it.",
+  "Program Description / Methodology": "How you'll actually do the work - the plan, activities, and timeline.",
+  "Evaluation Plan": "How you'll know it worked - what you'll measure and how you'll track it.",
+  "Organizational Background": "Who you are - your mission, history, and why your organization is the right one for this.",
+  "Budget Narrative": "A plain-English explanation of the numbers in the budget below - why each cost is needed.",
+};
+const DEFAULT_SECTION_HINT = "Review and edit this section so it reflects your organization in your own words.";
+
 export default function SubmissionPackagePage() {
   const params = useParams() as { workspaceId: string; grantId: string };
   const { workspaceId, grantId } = params;
@@ -32,6 +47,7 @@ export default function SubmissionPackagePage() {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
@@ -60,6 +76,19 @@ export default function SubmissionPackagePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workspaceId, grantId]);
 
+  // Warn before leaving the page with unsaved edits - the AI-drafted text
+  // and budget only live in the database once "Save Draft" (or an
+  // auto-save from Download/Mark Ready, below) actually runs.
+  useEffect(() => {
+    if (!dirty) return;
+    function handleBeforeUnload(e: BeforeUnloadEvent) {
+      e.preventDefault();
+      e.returnValue = "";
+    }
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [dirty]);
+
   const isReady = status === "ready";
 
   async function generate(confirmOverwrite: boolean) {
@@ -83,7 +112,10 @@ export default function SubmissionPackagePage() {
     }
   }
 
-  async function save() {
+  // Returns true on success, false on failure - so Download and Mark Ready
+  // can auto-save first and bail out (with the error already shown) rather
+  // than silently proceeding against stale, unsaved content.
+  async function save(): Promise<boolean> {
     setSaving(true);
     setError(null);
     try {
@@ -95,10 +127,33 @@ export default function SubmissionPackagePage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Failed to save");
       setDirty(false);
+      return true;
     } catch (err: any) {
       setError(err?.message || "Failed to save");
+      return false;
     } finally {
       setSaving(false);
+    }
+  }
+
+  // Shared by Download and Mark Ready: both used to read whatever was last
+  // saved in the database, so editing a section and then immediately
+  // downloading or finalizing silently discarded those edits. Saving first
+  // (only when there's something unsaved) makes that impossible.
+  async function persistIfDirty(): Promise<boolean> {
+    if (!dirty) return true;
+    return save();
+  }
+
+  async function downloadPackage() {
+    setDownloading(true);
+    setError(null);
+    try {
+      const ok = await persistIfDirty();
+      if (!ok) return;
+      window.location.href = `/api/workspaces/${workspaceId}/grants/${grantId}/package/pdf`;
+    } finally {
+      setDownloading(false);
     }
   }
 
@@ -107,6 +162,8 @@ export default function SubmissionPackagePage() {
     setFinalizing(true);
     setError(null);
     try {
+      const ok = await persistIfDirty();
+      if (!ok) return;
       const res = await fetch(`/api/workspaces/${workspaceId}/grants/${grantId}/package/finalize`, { method: "POST" });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Failed to finalize");
@@ -175,7 +232,7 @@ export default function SubmissionPackagePage() {
                   isReady ? "bg-emerald-500/15 text-emerald-400" : "bg-amber-500/15 text-amber-400"
                 }`}
               >
-                {isReady ? "Ready to submit" : "Draft"}
+                {isReady ? "Ready to submit" : dirty ? "Unsaved changes" : "Draft"}
               </span>
             )}
           </div>
@@ -210,9 +267,19 @@ export default function SubmissionPackagePage() {
                 </Card>
               )}
 
+              {!isReady && (
+                <p className="text-[12.5px] text-slate-500">
+                  This is a first AI-drafted version - read through each section below and edit it so it sounds like
+                  your organization before downloading or marking it ready.
+                </p>
+              )}
+
               {sections.map((section, i) => (
                 <Card key={i} className="p-5">
-                  <p className="mb-2 text-[13px] font-semibold text-white">{section.title}</p>
+                  <p className="text-[13px] font-semibold text-white">{section.title}</p>
+                  <p className="mb-2 mt-0.5 text-[12px] text-slate-500">
+                    {SECTION_HINTS[section.title] || DEFAULT_SECTION_HINT}
+                  </p>
                   <textarea
                     value={section.content}
                     onChange={(e) => updateSection(i, e.target.value)}
@@ -226,11 +293,16 @@ export default function SubmissionPackagePage() {
               {budget && (
                 <Card className="p-5">
                   <div className="mb-3 flex items-center justify-between">
-                    <p className="text-[13px] font-semibold text-white">Budget</p>
+                    <div>
+                      <p className="text-[13px] font-semibold text-white">Budget</p>
+                      <p className="mt-0.5 text-[12px] text-slate-500">
+                        A first-draft estimate to edit until it reflects your real costs - not a final, audited figure.
+                      </p>
+                    </div>
                     {!isReady && (
                       <button
                         onClick={addBudgetRow}
-                        className="inline-flex items-center gap-1 text-[12.5px] text-[#00E5FF] hover:underline"
+                        className="inline-flex shrink-0 items-center gap-1 text-[12.5px] text-[#00E5FF] hover:underline"
                       >
                         <Plus size={13} /> Add line item
                       </button>
@@ -287,12 +359,14 @@ export default function SubmissionPackagePage() {
                     Save Draft
                   </button>
                 )}
-                <a
-                  href={`/api/workspaces/${workspaceId}/grants/${grantId}/package/pdf`}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-white/[0.1] px-3.5 py-2 text-[13px] font-medium text-slate-200 hover:bg-white/[0.04]"
+                <button
+                  onClick={downloadPackage}
+                  disabled={downloading}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-white/[0.1] px-3.5 py-2 text-[13px] font-medium text-slate-200 hover:bg-white/[0.04] disabled:opacity-50"
                 >
-                  <Download size={14} /> Download Package PDF
-                </a>
+                  {downloading ? <Loader2 size={13} className="animate-spin" /> : <Download size={14} />}
+                  Download Package PDF
+                </button>
                 {!isReady && (
                   <>
                     <button
