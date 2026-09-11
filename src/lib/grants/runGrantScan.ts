@@ -70,6 +70,25 @@ function getStateGrantsCached(stateCode: string): Promise<StateGrantRaw[]> {
   return stateGrantCache.get(stateCode)!;
 }
 
+// Firecrawl (used by both the website rescan and state-grant scraping
+// below) and the OpenAI scoring calls have no built-in timeout, and a
+// single slow or bot-blocking site can hang far longer than any
+// reasonable function budget. Racing each slow external step against a
+// hard deadline means one bad workspace can't starve every workspace
+// behind it in the loop - it just gets logged as an error and the scan
+// moves on, same as any other per-workspace failure already does.
+async function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`${label} timed out after ${ms / 1000}s`)), ms);
+  });
+  try {
+    return await Promise.race([promise, timeout]);
+  } finally {
+    clearTimeout(timer!);
+  }
+}
+
 export async function runGrantScan(): Promise<GrantScanResult> {
   const result: GrantScanResult = {
     workspacesScanned: 0,
@@ -97,7 +116,7 @@ export async function runGrantScan(): Promise<GrantScanResult> {
       // 1. Refresh the profile's picture of current projects from the
       // org's own website.
       try {
-        await rescanOrganizationWebsite(workspace.ownerId);
+        await withTimeout(rescanOrganizationWebsite(workspace.ownerId), 45_000, "Website rescan");
         profile = await prisma.userProfile.findUnique({ where: { userId: workspace.ownerId } });
         result.websitesRescanned += 1;
       } catch (err: any) {
@@ -141,7 +160,7 @@ export async function runGrantScan(): Promise<GrantScanResult> {
       // configured for this workspace's state (see fetchStateGrants.ts).
       if (profile.state) {
         try {
-          const stateGrants = await getStateGrantsCached(profile.state);
+          const stateGrants = await withTimeout(getStateGrantsCached(profile.state), 45_000, "State grant scrape");
           for (const g of stateGrants) {
             if (!g.url) continue;
             const created = await upsertGrantOpportunity(workspace.id, g.url, {
@@ -221,42 +240,46 @@ export async function runGrantScan(): Promise<GrantScanResult> {
       });
 
       for (const grant of grantsToScore) {
-        const match = await scoreGrantMatch(profile, grant);
-        result.grantsScored += 1;
+        try {
+          const match = await withTimeout(scoreGrantMatch(profile, grant), 30_000, `Scoring "${grant.title}"`);
+          result.grantsScored += 1;
 
-        await prisma.grant.update({
-          where: { id: grant.id },
-          data: {
-            aiEligibilityScore: match.score,
-            aiSummary: match.rationale,
-            aiRecommendations: { whatsNeeded: match.whatsNeeded },
-          },
-        });
-
-        if (match.score >= MATCH_NOTIFY_THRESHOLD && !(await alreadyNotified(workspace.id, grant.id))) {
-          await prisma.workspaceNotification.create({
+          await prisma.grant.update({
+            where: { id: grant.id },
             data: {
-              workspaceId: workspace.id,
-              userId: workspace.ownerId,
-              type: `grant_match:${grant.id}`,
-              message: `${grant.title} scored ${match.score}/100 against your profile.`,
+              aiEligibilityScore: match.score,
+              aiSummary: match.rationale,
+              aiRecommendations: { whatsNeeded: match.whatsNeeded },
             },
           });
-          result.matchesNotified += 1;
 
-          if (owner?.email) {
-            await sendEmailSafe({
-              to: owner.email,
-              ...grantMatchEmail({
-                grantTitle: grant.title,
-                score: match.score,
-                workspaceName: workspace.name,
+          if (match.score >= MATCH_NOTIFY_THRESHOLD && !(await alreadyNotified(workspace.id, grant.id))) {
+            await prisma.workspaceNotification.create({
+              data: {
                 workspaceId: workspace.id,
-                grantId: grant.id,
-                deadline: grant.deadline ? new Date(grant.deadline).toDateString() : null,
-              }),
+                userId: workspace.ownerId,
+                type: `grant_match:${grant.id}`,
+                message: `${grant.title} scored ${match.score}/100 against your profile.`,
+              },
             });
+            result.matchesNotified += 1;
+
+            if (owner?.email) {
+              await sendEmailSafe({
+                to: owner.email,
+                ...grantMatchEmail({
+                  grantTitle: grant.title,
+                  score: match.score,
+                  workspaceName: workspace.name,
+                  workspaceId: workspace.id,
+                  grantId: grant.id,
+                  deadline: grant.deadline ? new Date(grant.deadline).toDateString() : null,
+                }),
+              });
+            }
           }
+        } catch (err: any) {
+          result.errors.push(`Scoring failed for grant ${grant.id} (workspace ${workspace.id}): ${err?.message || err}`);
         }
       }
     } catch (err: any) {
