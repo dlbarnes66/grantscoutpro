@@ -29,12 +29,19 @@ export async function POST(req: Request) {
 
     const savedIds = saved.map((s) => s.grantId);
 
-    // Recommend grants not yet saved
+    // Recommend grants not yet saved. Only "open" grants (no point
+    // recommending something already closed), best AI match first - the
+    // whole point of this page is to surface the strongest matches, not
+    // just whatever happens to be in the table. Ungraded grants
+    // (aiEligibilityScore still null - not yet reached by the scan job)
+    // sort to the bottom rather than disappearing.
     const recommendations = await prisma.grant.findMany({
       where: {
         workspaceId,
+        status: "open",
         id: { notIn: savedIds },
       },
+      orderBy: [{ aiEligibilityScore: { sort: "desc", nulls: "last" } }],
       take: 20,
     });
 
