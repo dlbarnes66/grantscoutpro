@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import WorkspaceShell from "@/components/workspace/WorkspaceShell";
 import Card from "@/components/ui/Card";
 import { Sparkles, Loader2, Download, Plus, Trash2, CheckCircle2 } from "lucide-react";
@@ -49,6 +50,7 @@ export default function SubmissionPackagePage() {
   const [saving, setSaving] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
+  const [reopening, setReopening] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
 
@@ -175,6 +177,30 @@ export default function SubmissionPackagePage() {
     }
   }
 
+  // Undoes finalize() - before this existed, marking a package "ready" was
+  // permanent in the UI, so a typo spotted afterward, or one more number to
+  // fix, had no way back in short of generating a whole new package.
+  async function reopenPackage() {
+    if (
+      !confirm(
+        "Reopen this package for editing? It will no longer be marked ready until you finalize it again."
+      )
+    )
+      return;
+    setReopening(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/workspaces/${workspaceId}/grants/${grantId}/package/reopen`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Failed to reopen");
+      setStatus(data.status);
+    } catch (err: any) {
+      setError(err?.message || "Failed to reopen");
+    } finally {
+      setReopening(false);
+    }
+  }
+
   function updateSection(index: number, content: string) {
     setSections((prev) => prev.map((s, i) => (i === index ? { ...s, content } : s)));
     setDirty(true);
@@ -237,7 +263,19 @@ export default function SubmissionPackagePage() {
             )}
           </div>
 
-          {error && <p className="text-[13px] text-red-400">{error}</p>}
+          {error && (
+            <p className="text-[13px] text-red-400">
+              {error}
+              {error.includes("complete onboarding") && (
+                <>
+                  {" "}
+                  <Link href="/onboarding" className="underline hover:text-red-300">
+                    Go to onboarding
+                  </Link>
+                </>
+              )}
+            </p>
+          )}
 
           {sections.length === 0 ? (
             <Card className="p-8 text-center">
@@ -262,7 +300,8 @@ export default function SubmissionPackagePage() {
                   <CheckCircle2 size={16} className="text-emerald-400" />
                   <p className="text-[13px] text-emerald-300">
                     This package is finalized. Download it below and submit it through the funder's own application
-                    process - Grant Scout Pro doesn't submit to funders directly.
+                    process - Grant Scout Pro doesn't submit to funders directly. Need to fix something? Click
+                    "Edit Again" below.
                   </p>
                 </Card>
               )}
@@ -367,6 +406,16 @@ export default function SubmissionPackagePage() {
                   {downloading ? <Loader2 size={13} className="animate-spin" /> : <Download size={14} />}
                   Download Package PDF
                 </button>
+                {isReady && (
+                  <button
+                    onClick={reopenPackage}
+                    disabled={reopening}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-white/[0.1] px-3.5 py-2 text-[13px] font-medium text-slate-200 hover:bg-white/[0.04] disabled:opacity-50"
+                  >
+                    {reopening && <Loader2 size={13} className="animate-spin" />}
+                    Edit Again
+                  </button>
+                )}
                 {!isReady && (
                   <>
                     <button
