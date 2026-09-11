@@ -20,6 +20,15 @@ const isPublicRoute = createRouteMatcher([
   // Clerk auth routes
   "/sign-in(.*)",
   "/sign-up(.*)",
+
+  // Internal cron endpoints - these are hit by an external scheduler
+  // (Railway Cron / cron-job.org), so there's no logged-in Clerk user in
+  // that request. Without this, Clerk redirected every cron hit straight
+  // to /sign-in before the route ever ran, silently breaking grant
+  // scanning and deadline notifications. Each route still enforces its
+  // own auth via a shared x-cron-secret header - see the route files.
+  "/api/internal/grants/scan",
+  "/api/internal/notifications/check-deadlines",
 ]);
 
 export const proxy = clerkMiddleware(
