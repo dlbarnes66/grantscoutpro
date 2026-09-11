@@ -1219,6 +1219,14 @@ model Org {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Account-level Stripe subscription (plan tier is billed once per org,
+  // not per workspace - see resolveEffectivePlanId in src/lib/plans.ts).
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  billingStatus        String?   @default("active")
+  cancelAtPeriodEnd    Boolean   @default(false)
+  periodEnd            DateTime?
+
   users User[]
 
   auditLogs       AuditLog[]

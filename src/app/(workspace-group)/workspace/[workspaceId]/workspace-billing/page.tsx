@@ -2,14 +2,9 @@
 
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import WorkspaceShell from "@/components/workspace/WorkspaceShell";
 import { ANNUAL_DISCOUNT_PERCENT, getAnnualMonthlyEquivalent } from "@/lib/plans";
-
-const SELF_SERVE_PLANS = [
-  { id: "basic", name: "Basic", monthlyPrice: 29 },
-  { id: "team", name: "Team", monthlyPrice: 49 },
-  { id: "business", name: "Business", monthlyPrice: 99 },
-];
 
 const BILLING_INTERVAL_STORAGE_KEY = "gsp-preferred-billing-interval";
 
@@ -63,6 +58,7 @@ export default function BillingPage() {
 
   const [billing, setBilling] = useState<any>(null);
   const [addons, setAddons] = useState<any[]>([]);
+  const [effectivePlan, setEffectivePlan] = useState<{ id: string; name: string } | null>(null);
   const [isOwner, setIsOwner] = useState(false);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -84,6 +80,7 @@ export default function BillingPage() {
       const json = await res.json();
       setBilling(json.billing);
       setAddons(json.addons || []);
+      setEffectivePlan(json.effectivePlan ?? null);
       setIsOwner(!!json.isOwner);
     } catch (err) {
       console.error("Failed to load billing:", err);
@@ -95,24 +92,6 @@ export default function BillingPage() {
   useEffect(() => {
     load();
   }, [workspaceId]);
-
-  async function subscribe(planId: string) {
-    setActionLoading(planId);
-    setError(null);
-    try {
-      const res = await fetch(`/api/workspaces/${workspaceId}/billing/checkout`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planId, interval: billingInterval }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Checkout failed");
-      window.location.href = data.url;
-    } catch (err: any) {
-      setError(err.message);
-      setActionLoading(null);
-    }
-  }
 
   async function manageBilling() {
     setActionLoading("manage");
@@ -194,56 +173,74 @@ export default function BillingPage() {
           <div className="border border-red-300 bg-red-50 text-red-700 rounded-lg p-3 text-sm">{error}</div>
         )}
 
-        {billing && (
+        {effectivePlan && (
           <div className="border rounded-lg p-4 bg-white shadow-sm space-y-3">
             <div className="flex items-center justify-between">
-              <p className="text-xl font-semibold capitalize">Plan: {billing.plan}</p>
-              <span className="text-xs font-medium px-2 py-1 rounded-full bg-gray-100 text-gray-700">
-                {STATUS_LABEL[status] ?? status}
-              </span>
+              <p className="text-xl font-semibold capitalize">Account plan: {effectivePlan.name}</p>
+              {hasActiveSubscription && (
+                <span className="text-xs font-medium px-2 py-1 rounded-full bg-gray-100 text-gray-700">
+                  {STATUS_LABEL[status] ?? status}
+                </span>
+              )}
             </div>
 
-            <p className="text-sm text-gray-700">Seats: {billing.seats}</p>
-
-            <p className="text-sm text-gray-700">
-              Stripe Customer ID: {billing.stripeCustomerId || "None"}
-            </p>
-
-            <p className="text-sm text-gray-700">
-              Stripe Subscription ID: {billing.stripeSubscriptionId || "None"}
-            </p>
-
-            <p className="text-sm text-gray-700">
-              Billing Period Start: {new Date(billing.periodStart).toLocaleString()}
-            </p>
-
-            {billing.periodEnd && (
-              <p className="text-sm text-gray-700">
-                Billing Period End: {new Date(billing.periodEnd).toLocaleString()}
-              </p>
-            )}
-
-            {isOwner && hasActiveSubscription && (
-              <button
-                onClick={manageBilling}
-                disabled={actionLoading === "manage"}
-                className="mt-2 px-4 py-2 bg-slate-800 text-white rounded-lg text-sm disabled:opacity-50"
-              >
-                {actionLoading === "manage" ? "Opening..." : "Manage Billing (change plan, update card, cancel)"}
-              </button>
+            {/* This workspace's own legacy Stripe subscription, if it has one from before
+                plans moved to the account level - see /billing for the current plan. */}
+            {hasActiveSubscription && (
+              <>
+                <p className="text-sm text-gray-700">Seats: {billing.seats}</p>
+                {billing.periodEnd && (
+                  <p className="text-sm text-gray-700">
+                    Billing Period End: {new Date(billing.periodEnd).toLocaleString()}
+                  </p>
+                )}
+                {isOwner && (
+                  <button
+                    onClick={manageBilling}
+                    disabled={actionLoading === "manage"}
+                    className="mt-2 px-4 py-2 bg-slate-800 text-white rounded-lg text-sm disabled:opacity-50"
+                  >
+                    {actionLoading === "manage" ? "Opening..." : "Manage this workspace's legacy subscription"}
+                  </button>
+                )}
+              </>
             )}
           </div>
         )}
 
         {isOwner && !loading && (
           <div className="space-y-3">
-            <h2 className="text-lg font-semibold">Add-ons</h2>
-            <p className="text-sm text-gray-500">
-              Add a data source or module on its own without upgrading your whole plan.
-            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold">Add-ons</h2>
+                <p className="text-sm text-gray-500">
+                  Add a data source or module to this workspace without upgrading your whole plan.
+                </p>
+              </div>
+              <div className="inline-flex items-center rounded-full border border-gray-300 bg-gray-50 p-1 text-sm">
+                <button
+                  type="button"
+                  onClick={() => setBillingInterval("monthly")}
+                  className={`px-3 py-1 rounded-full transition-colors ${
+                    billingInterval === "monthly" ? "bg-white shadow-sm font-medium text-gray-900" : "text-gray-500"
+                  }`}
+                >
+                  Monthly
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBillingInterval("yearly")}
+                  className={`px-3 py-1 rounded-full transition-colors ${
+                    billingInterval === "yearly" ? "bg-white shadow-sm font-medium text-gray-900" : "text-gray-500"
+                  }`}
+                >
+                  Annual <span className="text-green-600">Save {ANNUAL_DISCOUNT_PERCENT}%</span>
+                </button>
+              </div>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {ADDONS.map((addon) => {
-                const planName = billing?.plan ?? "basic";
+                const planName = effectivePlan?.id ?? "basic";
                 const includedByPlan = !!ADDON_ACCESS_BY_PLAN[planName]?.[addon.accessKey];
                 const activeAddon = addons.find((a) => a.addonType === addon.type && a.active);
                 const pendingAddon = addons.find((a) => a.addonType === addon.type && !a.active && a.stripeSubscriptionId);
@@ -280,57 +277,17 @@ export default function BillingPage() {
           </div>
         )}
 
-        {isOwner && !hasActiveSubscription && !loading && (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Choose a plan</h2>
-              <div className="inline-flex items-center rounded-full border border-gray-300 bg-gray-50 p-1 text-sm">
-                <button
-                  type="button"
-                  onClick={() => setBillingInterval("monthly")}
-                  className={`px-3 py-1 rounded-full transition-colors ${
-                    billingInterval === "monthly" ? "bg-white shadow-sm font-medium text-gray-900" : "text-gray-500"
-                  }`}
-                >
-                  Monthly
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setBillingInterval("yearly")}
-                  className={`px-3 py-1 rounded-full transition-colors ${
-                    billingInterval === "yearly" ? "bg-white shadow-sm font-medium text-gray-900" : "text-gray-500"
-                  }`}
-                >
-                  Annual <span className="text-green-600">Save {ANNUAL_DISCOUNT_PERCENT}%</span>
-                </button>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {SELF_SERVE_PLANS.map((plan) => (
-                <div key={plan.id} className="border rounded-lg p-4 bg-white shadow-sm space-y-2">
-                  <p className="text-lg font-semibold">{plan.name}</p>
-                  <p className="text-2xl font-bold">
-                    ${billingInterval === "yearly" ? getAnnualMonthlyEquivalent(plan.monthlyPrice) : plan.monthlyPrice}
-                    <span className="text-sm font-normal text-gray-500">/mo</span>
-                  </p>
-                  {billingInterval === "yearly" && (
-                    <p className="text-xs text-gray-500">
-                      Billed annually (${getAnnualMonthlyEquivalent(plan.monthlyPrice) * 12}/yr)
-                    </p>
-                  )}
-                  <button
-                    onClick={() => subscribe(plan.id)}
-                    disabled={actionLoading === plan.id}
-                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg text-sm disabled:opacity-50"
-                  >
-                    {actionLoading === plan.id ? "Redirecting..." : `Subscribe to ${plan.name}`}
-                  </button>
-                </div>
-              ))}
-            </div>
-            <p className="text-sm text-gray-500">
-              Need Enterprise? That plan is custom-priced — contact us to set it up.
+        {isOwner && !loading && (
+          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+            <p className="text-sm text-gray-700">
+              Your plan applies to your whole account, not just this workspace.
             </p>
+            <Link
+              href="/billing"
+              className="mt-2 inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+            >
+              Manage account plan
+            </Link>
           </div>
         )}
 

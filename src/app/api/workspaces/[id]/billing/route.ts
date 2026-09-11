@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getEffectivePlan } from "@/lib/plans";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -23,6 +24,7 @@ export async function GET(
         billing: true,
         addons: true,
         addonBillings: true,
+        org: true,
       },
     });
 
@@ -39,12 +41,15 @@ export async function GET(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    const effectivePlan = getEffectivePlan(workspace);
+
     return NextResponse.json({
       success: true,
       billing: workspace.billing,
       addons: workspace.addons,
       addonBillings: workspace.addonBillings,
       isOwner,
+      effectivePlan,
     });
   } catch (err: any) {
     console.error("WORKSPACE BILLING ROOT ERROR:", err);
