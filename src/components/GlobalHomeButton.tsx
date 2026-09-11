@@ -16,23 +16,45 @@ const HIDDEN_PATHS = [
   "/terms",
 ];
 
+// Workspace pages render their own left-hand nav (<WorkspaceShell>, with a
+// "GrantScout Pro" home link at the very top of the sidebar, plus an
+// account row pinned to the bottom of that same sidebar). This floating
+// corner button used to render on top of those pages too, landing right on
+// top of that sidebar's bottom account row - "layered over the nav bar
+// instead of being part of it". WorkspaceTopbar now carries its own Home
+// link (see that file), so this floating fallback only needs to keep
+// showing on the handful of workspace pages that don't use WorkspaceShell
+// at all: the document editor/print view, the AI-recommended-grants page,
+// and the locked/paywall page.
+const WORKSPACE_SHELL_LESS_PATTERNS = [
+  /^\/workspace\/[^/]+\/grants\/recommended\/?$/,
+  /^\/workspace\/[^/]+\/documents\/(?!new(?:\/|$))[^/]+\/?$/,
+  /^\/workspace\/[^/]+\/documents\/(?!new(?:\/|$))[^/]+\/print\/?$/,
+  /^\/workspace\/[^/]+\/locked\/?$/,
+];
+
+function isCoveredByWorkspaceShell(pathname: string) {
+  if (!pathname.startsWith("/workspace/")) return false;
+  return !WORKSPACE_SHELL_LESS_PATTERNS.some((re) => re.test(pathname));
+}
+
 // Small floating "back to dashboard" button, reachable from anywhere in the
-// app (in particular the document editor, which has no sidebar of its own).
-// This used to be a full-width `position: sticky, top: 0, zIndex: 9999` bar
-// rendered above every page's own content in the root layout - since pages
-// like the workspace shell *also* have their own `sticky top-0` header,
-// the two would fight for the same strip of screen on scroll, with this
-// one (z-9999) winning and visually burying the page's real title/nav
-// bar underneath it. A small fixed corner button can't collide with
-// anything else that way, and bottom-left is the one corner nothing else
-// in the app currently uses (top-left: sidebar brand, top-right:
-// notifications/avatar, bottom-right: the help chat widget).
+// app that doesn't already have its own nav (in particular the document
+// editor, which has no sidebar of its own). This used to be a full-width
+// `position: sticky, top: 0, zIndex: 9999` bar rendered above every page's
+// own content in the root layout - since pages like the workspace shell
+// *also* have their own `sticky top-0` header, the two would fight for the
+// same strip of screen on scroll, with this one (z-9999) winning and
+// visually burying the page's real title/nav bar underneath it. A small
+// fixed corner button can't collide with a *sticky top* header that way,
+// but it still needs to stay off pages whose own nav already lives in that
+// bottom-left corner - see isCoveredByWorkspaceShell above.
 export default function GlobalHomeButton() {
   const pathname = usePathname();
 
-  if (pathname && HIDDEN_PATHS.includes(pathname)) {
-    return null;
-  }
+  if (!pathname) return null;
+  if (HIDDEN_PATHS.includes(pathname)) return null;
+  if (isCoveredByWorkspaceShell(pathname)) return null;
 
   return (
     <SignedIn>
