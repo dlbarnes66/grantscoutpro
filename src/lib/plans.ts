@@ -12,7 +12,8 @@ export interface PlanConfig {
   id: PlanId;
   name: string;
   monthlyPrice: number | null; // null = custom pricing (Enterprise)
-  maxSeats: number | null; // null = unlimited seats
+  maxSeats: number | null; // null = unlimited seats, per workspace
+  maxWorkspaces: number; // workspaces per account (Org) - not unlimited even on Enterprise
   manualSearchesPerDay: number | null; // null = unlimited manual searches/day
   access: PlanAccess;
 }
@@ -27,6 +28,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
     name: "Basic",
     monthlyPrice: 29,
     maxSeats: 1,
+    maxWorkspaces: 1,
     manualSearchesPerDay: 1,
     access: { federal: true, state: false, foundation: false, crm: false, tasks: false },
   },
@@ -35,6 +37,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
     name: "Team",
     monthlyPrice: 49,
     maxSeats: 5,
+    maxWorkspaces: 3,
     manualSearchesPerDay: 5,
     access: { federal: true, state: true, foundation: false, crm: false, tasks: true },
   },
@@ -43,6 +46,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
     name: "Business",
     monthlyPrice: 99,
     maxSeats: 10,
+    maxWorkspaces: 6,
     manualSearchesPerDay: 15,
     access: { federal: true, state: true, foundation: true, crm: false, tasks: true },
   },
@@ -51,6 +55,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
     name: "Enterprise",
     monthlyPrice: null,
     maxSeats: null,
+    maxWorkspaces: 100,
     manualSearchesPerDay: null,
     access: { federal: true, state: true, foundation: true, crm: true, tasks: true },
   },
@@ -66,13 +71,48 @@ export function getAnnualMonthlyEquivalent(monthlyPrice: number): number {
   return Math.round(monthlyPrice * (1 - ANNUAL_DISCOUNT_PERCENT / 100));
 }
 
-const DEFAULT_PLAN: PlanId = "basic";
+export const DEFAULT_PLAN_ID: PlanId = "basic";
+const DEFAULT_PLAN = DEFAULT_PLAN_ID;
 
 export function getPlan(planId?: string | null): PlanConfig {
   if (planId && planId in PLANS) {
     return PLANS[planId as PlanId];
   }
   return PLANS[DEFAULT_PLAN];
+}
+
+// Plans belong to the account (an Org), not to any one workspace under it -
+// a customer on Team can have up to 3 workspaces, all sharing that plan's
+// access and limits. This resolves a workspace's EFFECTIVE plan: the tier
+// of the Org it belongs to, falling back to that one workspace's own
+// WorkspaceBilling.plan for workspaces created before Org-level billing
+// existed (or that still have no org for any other reason).
+export function resolveEffectivePlanId(workspace: {
+  org?: { tier?: string | null } | null;
+  billing?: { plan?: string | null } | null;
+}): PlanId {
+  const orgTier = workspace.org?.tier;
+  if (orgTier && orgTier in PLANS) return orgTier as PlanId;
+
+  const billingPlan = workspace.billing?.plan;
+  if (billingPlan && billingPlan in PLANS) return billingPlan as PlanId;
+
+  return DEFAULT_PLAN;
+}
+
+export function getEffectivePlan(workspace: {
+  org?: { tier?: string | null } | null;
+  billing?: { plan?: string | null } | null;
+}): PlanConfig {
+  return PLANS[resolveEffectivePlanId(workspace)];
+}
+
+export function getWorkspaceLimitLabel(plan: PlanConfig): string {
+  return `Up to ${plan.maxWorkspaces} workspace${plan.maxWorkspaces === 1 ? "" : "s"}`;
+}
+
+export function isAtWorkspaceLimit(plan: PlanConfig, workspacesOwned: number): boolean {
+  return workspacesOwned >= plan.maxWorkspaces;
 }
 
 export function getSeatLimitLabel(plan: PlanConfig): string {

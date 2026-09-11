@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getPlan } from "@/lib/plans";
+import { getEffectivePlan } from "@/lib/plans";
 import { getEffectiveTaskStatus } from "@/lib/tasks";
 
 export const dynamic = "force-dynamic";
@@ -22,6 +22,7 @@ async function loadWorkspaceForMember(workspaceId: string, userId: string) {
     include: {
       members: { where: { status: "active" } },
       billing: true,
+      org: true,
     },
   });
   if (!workspace) return null;
@@ -48,7 +49,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Params }) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const plan = getPlan(workspace.billing?.plan);
+    const plan = getEffectivePlan(workspace);
     if (!plan.access.tasks) {
       return NextResponse.json(
         { error: "Task assignments are available on the Team, Business, and Enterprise plans." },

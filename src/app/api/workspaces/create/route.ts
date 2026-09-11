@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { ensureUser } from "@/lib/auth";
 import { logActivity } from "@/lib/ai/activity-log";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { ensureUserOrg, countWorkspacesForOwner } from "@/lib/workspace/orgAccess";
+import { getPlan, getWorkspaceLimitLabel, isAtWorkspaceLimit } from "@/lib/plans";
 import slugify from "slugify";
 
 export const dynamic = "force-dynamic";
@@ -39,6 +41,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing workspace name" }, { status: 400 });
     }
 
+    // Plans attach to the account (Org), not to any one workspace - Basic
+    // gets 1 workspace, Team 3, Business 6, Enterprise 100. Find or create
+    // that Org, then enforce its workspace limit before creating another.
+    const org = await ensureUserOrg(userId);
+    const plan = getPlan(org.tier);
+    const existingCount = await countWorkspacesForOwner(userId);
+
+    if (isAtWorkspaceLimit(plan, existingCount)) {
+      return NextResponse.json(
+        {
+          error: `Your ${plan.name} plan includes ${getWorkspaceLimitLabel(plan).toLowerCase()}. Upgrade your plan to create another.`,
+        },
+        { status: 403 }
+      );
+    }
+
     const slug = slugify(body.name, { lower: true, strict: true });
 
     const workspace = await prisma.workspace.create({
@@ -46,6 +64,7 @@ export async function POST(req: NextRequest) {
         name: body.name,
         slug,
         ownerId: userId,
+        orgId: org.id,
       },
     });
 
@@ -59,7 +78,7 @@ export async function POST(req: NextRequest) {
     await prisma.workspaceBilling.create({
       data: {
         workspaceId: workspace.id,
-        plan: "free",
+        plan: org.tier ?? "basic",
       },
     });
 
