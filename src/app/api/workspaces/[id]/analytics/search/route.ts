@@ -45,6 +45,7 @@ export async function GET(
       by: ["query"],
       where: { userId: { in: memberIds } },
       _count: { query: true },
+      _max: { createdAt: true },
       orderBy: { _count: { query: "desc" } },
       take: 10,
     });
@@ -53,11 +54,22 @@ export async function GET(
       where: { userId: { in: memberIds } },
     });
 
+    // The Search Analytics page (workspace/[workspaceId]/analytics/search)
+    // reads `analytics` as a list of { id, query, count, lastSearchedAt } -
+    // shape it that way here instead of making the page reach into
+    // Prisma's groupBy/_count wire format directly.
+    const analytics = topQueries.map((q, i) => ({
+      id: `${q.query}-${i}`,
+      query: q.query,
+      count: q._count.query,
+      lastSearchedAt: q._max.createdAt,
+    }));
+
     return NextResponse.json({
       success: true,
       totalSearches,
       recent,
-      topQueries,
+      analytics,
     });
   } catch (err: any) {
     console.error("WORKSPACE SEARCH ANALYTICS ERROR:", err);
