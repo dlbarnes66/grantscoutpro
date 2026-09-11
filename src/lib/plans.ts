@@ -5,6 +5,7 @@ export interface PlanAccess {
   state: boolean;
   foundation: boolean;
   crm: boolean;
+  tasks: boolean;
 }
 
 export interface PlanConfig {
@@ -27,7 +28,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
     monthlyPrice: 29,
     maxSeats: 1,
     manualSearchesPerDay: 1,
-    access: { federal: true, state: false, foundation: false, crm: false },
+    access: { federal: true, state: false, foundation: false, crm: false, tasks: false },
   },
   team: {
     id: "team",
@@ -35,7 +36,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
     monthlyPrice: 49,
     maxSeats: 5,
     manualSearchesPerDay: 5,
-    access: { federal: true, state: true, foundation: false, crm: false },
+    access: { federal: true, state: true, foundation: false, crm: false, tasks: true },
   },
   business: {
     id: "business",
@@ -43,7 +44,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
     monthlyPrice: 99,
     maxSeats: 10,
     manualSearchesPerDay: 15,
-    access: { federal: true, state: true, foundation: true, crm: false },
+    access: { federal: true, state: true, foundation: true, crm: false, tasks: true },
   },
   enterprise: {
     id: "enterprise",
@@ -51,7 +52,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
     monthlyPrice: null,
     maxSeats: null,
     manualSearchesPerDay: null,
-    access: { federal: true, state: true, foundation: true, crm: true },
+    access: { federal: true, state: true, foundation: true, crm: true, tasks: true },
   },
 };
 

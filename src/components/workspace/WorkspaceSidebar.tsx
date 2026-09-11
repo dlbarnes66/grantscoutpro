@@ -24,6 +24,7 @@ import {
   ShieldCheck,
   Handshake,
   Contact,
+  ClipboardList,
   type LucideIcon,
 } from "lucide-react";
 
@@ -83,6 +84,12 @@ export default function WorkspaceSidebar({ workspaceId }: { workspaceId: string 
       items: [
         { label: "Pipeline", href: `${base}/crm`, icon: Handshake, exact: true },
         { label: "Contacts", href: `${base}/crm/contacts`, icon: Contact },
+      ],
+    },
+    {
+      label: "Team",
+      items: [
+        { label: "Tasks", href: `${base}/tasks`, icon: ClipboardList },
       ],
     },
     {
