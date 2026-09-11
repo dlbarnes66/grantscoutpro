@@ -9,8 +9,9 @@ type Params = { id: string; documentId: string; versionId: string };
 
 export async function POST(
   _req: Request,
-  { params }: { params: Params }
+  { params: paramsPromise }: { params: Promise<Params> }
 ) {
+  const params = await paramsPromise;
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

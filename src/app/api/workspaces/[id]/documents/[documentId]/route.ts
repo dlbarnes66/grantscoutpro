@@ -57,8 +57,9 @@ async function getWorkspaceAndDocument(
 // GET — fetch a single workspace document
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string; documentId: string } }
+  { params: paramsPromise }: { params: Promise<{ id: string; documentId: string }> }
 ) {
+    const params = await paramsPromise;
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -98,8 +99,9 @@ export async function GET(
 // PATCH — update title/content of a workspace document
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string; documentId: string } }
+  { params: paramsPromise }: { params: Promise<{ id: string; documentId: string }> }
 ) {
+    const params = await paramsPromise;
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -154,8 +156,9 @@ export async function PATCH(
 // DELETE — remove a workspace document
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: { id: string; documentId: string } }
+  { params: paramsPromise }: { params: Promise<{ id: string; documentId: string }> }
 ) {
+    const params = await paramsPromise;
   try {
     const { userId } = await auth();
     if (!userId) {

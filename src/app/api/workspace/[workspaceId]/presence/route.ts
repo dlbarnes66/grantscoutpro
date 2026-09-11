@@ -16,14 +16,15 @@ const presenceStore = new Map<string, PresenceUser[]>();
 
 export async function GET(
   req: NextRequest,
-  context: { params: { workspaceId: string } }
+  context: { params: Promise<{ workspaceId: string }> }
 ) {
+  const params = await context.params;
   const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const workspaceId = context.params.workspaceId;
+  const workspaceId = params.workspaceId;
 
   const users = presenceStore.get(workspaceId) ?? [];
 
@@ -41,14 +42,15 @@ export async function GET(
 
 export async function POST(
   req: NextRequest,
-  context: { params: { workspaceId: string } }
+  context: { params: Promise<{ workspaceId: string }> }
 ) {
+  const params = await context.params;
   const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const workspaceId = context.params.workspaceId;
+  const workspaceId = params.workspaceId;
   const body = await req.json().catch(() => ({}));
 
   const existing = presenceStore.get(workspaceId) ?? [];

@@ -7,15 +7,15 @@ export async function GET(
   {
     params,
   }: {
-    params: {
+    params: Promise<{
       workspaceId: string;
       documentId: string;
-    };
+    }>;
   }
 ) {
   try {
     const { workspaceId, documentId } =
-      params;
+      await params;
 
     await requireWorkspaceMember(
       workspaceId
@@ -57,15 +57,15 @@ export async function POST(
   {
     params,
   }: {
-    params: {
+    params: Promise<{
       workspaceId: string;
       documentId: string;
-    };
+    }>;
   }
 ) {
   try {
     const { workspaceId, documentId } =
-      params;
+      await params;
 
     const member =
       await requireWorkspaceMember(

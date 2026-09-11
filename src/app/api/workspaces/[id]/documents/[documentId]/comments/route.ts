@@ -7,8 +7,9 @@ type Params = { id: string; documentId: string };
 
 export async function GET(
   _req: Request,
-  { params }: { params: Params }
+  { params: paramsPromise }: { params: Promise<Params> }
 ) {
+  const params = await paramsPromise;
   const { id, documentId } = params;
 
   return NextResponse.json({

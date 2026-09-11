@@ -9,8 +9,9 @@ type Params = { id: string };
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: Params }
+  { params: paramsPromise }: { params: Promise<Params> }
 ) {
+  const params = await paramsPromise;
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -41,8 +42,9 @@ export async function GET(
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: Params }
+  { params: paramsPromise }: { params: Promise<Params> }
 ) {
+  const params = await paramsPromise;
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

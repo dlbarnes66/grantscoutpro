@@ -6,14 +6,15 @@ export const dynamic = "force-dynamic";
 export async function GET(
   req: NextRequest,
   {
-    params,
+    params: paramsPromise,
   }: {
-    params: {
+    params: Promise<{
       id: string;
       documentId: string;
-    };
+    }>;
   }
 ) {
+  const params = await paramsPromise;
   const { userId } = await auth();
 
   if (!userId) {
