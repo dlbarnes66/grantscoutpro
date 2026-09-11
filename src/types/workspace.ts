@@ -38,3 +38,14 @@ export interface WorkspaceTask {
   assignedTo: WorkspaceTaskMember;
   assignedBy: WorkspaceTaskMember;
 }
+
+export interface WorkspaceFile {
+  id: string;
+  workspaceId: string;
+  filename: string;
+  mimeType: string;
+  size: number;
+  url: string;
+  storage: string;
+  createdAt: string;
+}
