@@ -1,8 +1,9 @@
 "use client";
 
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Loader2, ExternalLink } from "lucide-react";
+import { Loader2, ExternalLink, PackageCheck } from "lucide-react";
 
 function scoreColor(score: number | null | undefined) {
   if (score == null) return "text-slate-500 border-white/[0.1] bg-white/[0.03]";
@@ -120,16 +121,25 @@ export default function RecommendedGrantsPage() {
                 {grant.awardCeiling && <span>Up to ${Number(grant.awardCeiling).toLocaleString()}</span>}
               </div>
 
-              {grant.url && (
-                <a
-                  href={grant.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-3 inline-flex items-center gap-1 text-[12px] font-medium text-[#00E5FF] hover:underline"
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <Link
+                  href={`/workspace/${workspaceId}/grants/${grant.id}/package`}
+                  className="inline-flex items-center gap-1.5 rounded-md bg-[#00E5FF] px-3 py-1.5 text-[13px] font-medium text-[#06131F] hover:opacity-90"
                 >
-                  View source <ExternalLink size={12} />
-                </a>
-              )}
+                  <PackageCheck size={14} />
+                  Build Submission Package with AI
+                </Link>
+                {grant.url && (
+                  <a
+                    href={grant.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[12px] font-medium text-[#00E5FF] hover:underline"
+                  >
+                    View source <ExternalLink size={12} />
+                  </a>
+                )}
+              </div>
             </div>
           ))}
         </div>

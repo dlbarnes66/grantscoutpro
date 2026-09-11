@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import WorkspaceShell from "@/components/workspace/WorkspaceShell";
 import Card from "@/components/ui/Card";
 import Link from "next/link";
-import { Search, RefreshCw } from "lucide-react";
+import { Search, RefreshCw, PackageCheck } from "lucide-react";
 
 interface Grant {
   id: string;
@@ -218,12 +218,21 @@ export default function WorkspaceGrantsPage() {
                   </a>
                 )}
 
-                <Link
-                  href={`/workspace/${workspaceId}/grants/${grant.id}/negotiation`}
-                  className="text-sm text-[#00E5FF] hover:underline inline-block ml-4"
-                >
-                  Negotiation Prep &rarr;
-                </Link>
+                <div className="flex flex-wrap items-center gap-2.5 pt-1">
+                  <Link
+                    href={`/workspace/${workspaceId}/grants/${grant.id}/package`}
+                    className="inline-flex items-center gap-1.5 rounded-md bg-[#00E5FF] px-3 py-1.5 text-[13px] font-medium text-[#06131F] hover:opacity-90"
+                  >
+                    <PackageCheck size={14} />
+                    Build Submission Package with AI
+                  </Link>
+                  <Link
+                    href={`/workspace/${workspaceId}/grants/${grant.id}/negotiation`}
+                    className="text-sm text-[#00E5FF] hover:underline inline-block"
+                  >
+                    Negotiation Prep &rarr;
+                  </Link>
+                </div>
               </Card>
             ))}
           </div>
