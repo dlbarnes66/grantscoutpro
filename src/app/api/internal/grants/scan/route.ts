@@ -1,6 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { runGrantScan } from "@/lib/grants/runGrantScan";
 
+// Accepts either a plain x-cron-secret header (what an external
+// scheduler like Railway Cron / cron-job.org sends) or Vercel's own
+// native Cron Jobs format, which always sends the secret as
+// `Authorization: Bearer <CRON_SECRET>` and has no way to change that.
+// Supporting both means this route works no matter which scheduler ends
+// up calling it.
+function isAuthorizedCronRequest(req: NextRequest, secret: string): boolean {
+  const provided = req.headers.get("x-cron-secret");
+  if (provided === secret) return true;
+  const authHeader = req.headers.get("authorization");
+  return authHeader === `Bearer ${secret}`;
+}
+
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 // Without this, Vercel kills the function at its plan's short default
@@ -31,8 +44,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Not configured" }, { status: 500 });
   }
 
-  const provided = req.headers.get("x-cron-secret");
-  if (provided !== secret) {
+  if (!isAuthorizedCronRequest(req, secret)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -48,9 +60,9 @@ export async function POST(req: NextRequest) {
 // Convenience for cron-ping services that only support GET.
 export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET;
-  const provided = req.headers.get("x-cron-secret") || req.nextUrl.searchParams.get("secret");
+  const queryProvided = req.nextUrl.searchParams.get("secret");
 
-  if (!secret || provided !== secret) {
+  if (!secret || (!isAuthorizedCronRequest(req, secret) && queryProvided !== secret)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/internal/grants/scan",
+      "schedule": "0 8,20 * * *"
+    },
+    {
+      "path": "/api/internal/notifications/check-deadlines",
+      "schedule": "0 13 * * *"
+    }
+  ]
+}
