@@ -7,7 +7,7 @@ import { getEffectiveTaskStatus } from "@/lib/tasks";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-type Params = { id: string; taskId: string };
+type Params = Promise<{ id: string; taskId: string }>;
 
 const TASK_INCLUDE = {
   assignedTo: { select: { id: true, name: true, email: true } },
@@ -42,7 +42,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Params }) {
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const workspace = await loadWorkspaceForMember(params.id, userId);
+    const { id, taskId } = await params;
+    const workspace = await loadWorkspaceForMember(id, userId);
     if (!workspace) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
@@ -56,7 +57,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Params }) {
     }
 
     const existing = await prisma.workspaceTask.findFirst({
-      where: { id: params.taskId, workspaceId: params.id },
+      where: { id: taskId, workspaceId: id },
     });
     if (!existing) {
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
@@ -114,7 +115,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Params }) {
     }
 
     const updated = await prisma.workspaceTask.update({
-      where: { id: params.taskId },
+      where: { id: taskId },
       data,
       include: TASK_INCLUDE,
     });
@@ -128,7 +129,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Params }) {
 
       await prisma.workspaceNotification.create({
         data: {
-          workspaceId: params.id,
+          workspaceId: id,
           userId: reassignedTo,
           type: "task_assigned",
           message: `${actorName} assigned you a task: "${updated.title}"`,
@@ -153,13 +154,14 @@ export async function DELETE(_req: NextRequest, { params }: { params: Params }) 
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const workspace = await loadWorkspaceForMember(params.id, userId);
+    const { id, taskId } = await params;
+    const workspace = await loadWorkspaceForMember(id, userId);
     if (!workspace) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const existing = await prisma.workspaceTask.findFirst({
-      where: { id: params.taskId, workspaceId: params.id },
+      where: { id: taskId, workspaceId: id },
     });
     if (!existing) {
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
@@ -170,7 +172,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Params }) 
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    await prisma.workspaceTask.delete({ where: { id: params.taskId } });
+    await prisma.workspaceTask.delete({ where: { id: taskId } });
 
     return NextResponse.json({ success: true });
   } catch (err: any) {

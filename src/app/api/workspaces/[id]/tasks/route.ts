@@ -7,7 +7,7 @@ import { getEffectiveTaskStatus } from "@/lib/tasks";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-type Params = { id: string };
+type Params = Promise<{ id: string }>;
 
 const TASK_INCLUDE = {
   assignedTo: { select: { id: true, name: true, email: true } },
@@ -39,7 +39,8 @@ export async function GET(_req: NextRequest, { params }: { params: Params }) {
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const workspace = await loadWorkspaceForMember(params.id, userId);
+    const { id } = await params;
+    const workspace = await loadWorkspaceForMember(id, userId);
     if (!workspace) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
@@ -49,7 +50,7 @@ export async function GET(_req: NextRequest, { params }: { params: Params }) {
 
     const tasks = tasksEnabled
       ? await prisma.workspaceTask.findMany({
-          where: { workspaceId: params.id },
+          where: { workspaceId: id },
           orderBy: [{ dueDate: "asc" }, { createdAt: "desc" }],
           include: TASK_INCLUDE,
         })
@@ -76,7 +77,8 @@ export async function POST(req: NextRequest, { params }: { params: Params }) {
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const workspace = await loadWorkspaceForMember(params.id, userId);
+    const { id } = await params;
+    const workspace = await loadWorkspaceForMember(id, userId);
     if (!workspace) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
@@ -118,7 +120,7 @@ export async function POST(req: NextRequest, { params }: { params: Params }) {
 
     const task = await prisma.workspaceTask.create({
       data: {
-        workspaceId: params.id,
+        workspaceId: id,
         title,
         description: typeof body?.description === "string" ? body.description.trim() || null : null,
         dueDate,
@@ -137,7 +139,7 @@ export async function POST(req: NextRequest, { params }: { params: Params }) {
 
       await prisma.workspaceNotification.create({
         data: {
-          workspaceId: params.id,
+          workspaceId: id,
           userId: task.assignedToId,
           type: "task_assigned",
           message: `${assignerName} assigned you a task: "${task.title}"${dueSuffix}`,
