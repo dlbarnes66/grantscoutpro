@@ -3,6 +3,14 @@ import { runGrantScan } from "@/lib/grants/runGrantScan";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+// Without this, Vercel kills the function at its plan's short default
+// timeout (as little as 10s) - runGrantScan() loops every workspace doing
+// several slow external calls each (website rescan, Grants.gov, state
+// scraping, IRS filings, up to 15 OpenAI scoring calls), so it easily
+// takes well past that. 60s is the maximum allowed on Vercel's Hobby
+// plan; raise it if this is on Pro/Enterprise and still isn't enough
+// once there are more workspaces to scan.
+export const maxDuration = 60;
 
 // Not user-facing - meant to be hit by an external scheduler (a Railway
 // Cron Job, or a free service like cron-job.org) twice a day, same
