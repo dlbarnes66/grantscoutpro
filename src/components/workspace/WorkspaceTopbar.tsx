@@ -3,10 +3,16 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { BookOpen, Building2, Home } from "lucide-react";
+import { BookOpen, Building2, Home, Menu } from "lucide-react";
 import WorkspaceNotificationBell from "./WorkspaceNotificationBell";
 
-export default function WorkspaceTopbar({ title }: { title: string }) {
+export default function WorkspaceTopbar({
+  title,
+  onMenuClick,
+}: {
+  title: string;
+  onMenuClick?: () => void;
+}) {
   const pathname = usePathname();
   // pathname is like /workspace/<id>/... - the bell needs the workspace id
   // regardless of which page we're on.
@@ -40,6 +46,26 @@ export default function WorkspaceTopbar({ title }: { title: string }) {
   return (
     <header className="sticky top-0 z-10 flex w-full items-center justify-between border-b border-white/[0.06] bg-[#0A1A2F]/90 px-8 py-3.5 backdrop-blur">
       <div className="flex min-w-0 items-center gap-3">
+        {onMenuClick && (
+          <button
+            type="button"
+            onClick={onMenuClick}
+            aria-label="Open menu"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+              padding: 6,
+              borderRadius: 6,
+              border: "1px solid rgba(255,255,255,0.08)",
+              color: "#cbd5e1",
+              background: "transparent",
+            }}
+          >
+            <Menu size={16} />
+          </button>
+        )}
         {/* Part of the nav bar itself (rather than a floating button
             elsewhere on the page) so it can't end up layered on top of
             the sidebar's own account row on pages that have one. */}

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { PLANS, getSeatLimitLabel, getAnnualMonthlyEquivalent } from "@/lib/plans";
 import MarketingChatWidget from "@/components/marketing/MarketingChatWidget";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 // Shared with the in-app workspace billing page (src/app/(workspace-group)/
 // workspace/[workspaceId]/workspace-billing/page.tsx) - whichever cycle a
@@ -12,6 +13,8 @@ const BILLING_INTERVAL_STORAGE_KEY = "gsp-preferred-billing-interval";
 
 export default function MarketingHomePage() {
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
+  const isMobile = useIsMobile();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     try {
@@ -48,64 +51,130 @@ export default function MarketingHomePage() {
 
       <div
         style={{
-          padding: "24px 60px",
+          padding: isMobile ? "18px 20px" : "24px 60px",
           borderBottom: "1px solid rgba(255,255,255,.08)",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
+          position: "relative",
         }}
       >
         <div
           style={{
-            fontSize: "28px",
+            fontSize: isMobile ? "22px" : "28px",
             fontWeight: 800,
           }}
         >
           GrantScout Pro
         </div>
 
-     <div
-  style={{
-    display: "flex",
-    gap: "24px",
-    color: "#CBD5E1",
-  }}
->
- <a href="#features" style={{ color: "#CBD5E1", textDecoration: "none" }}>Features</a>
-<a href="#pricing" style={{ color: "#CBD5E1", textDecoration: "none" }}>Pricing</a>
-<a href="/about" style={{ color: "#CBD5E1", textDecoration: "none" }}>About</a>
-<a
-  href="https://calendly.com/dlbarnes-dbglobalinvestments/new-meeting-1"
-  target="_blank"
-  rel="noopener noreferrer"
-  style={{ color: "#CBD5E1", textDecoration: "none" }}
->
-  Contact
-</a>
-<a
-  href="/sign-in"
-  style={{
-    color: "#CBD5E1",
-    textDecoration: "none",
-  }}
->
-  Log In
-</a>
-<a
-  href="/sign-up"
-  style={{
-    color: "#CBD5E1",
-    textDecoration: "none",
-  }}
->
-  Create Account
-</a>
+        {!isMobile && (
+          <div
+            style={{
+              display: "flex",
+              gap: "24px",
+              color: "#CBD5E1",
+            }}
+          >
+            <a href="#features" style={{ color: "#CBD5E1", textDecoration: "none" }}>Features</a>
+            <a href="#pricing" style={{ color: "#CBD5E1", textDecoration: "none" }}>Pricing</a>
+            <a href="/about" style={{ color: "#CBD5E1", textDecoration: "none" }}>About</a>
+            <a
+              href="https://calendly.com/dlbarnes-dbglobalinvestments/new-meeting-1"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: "#CBD5E1", textDecoration: "none" }}
+            >
+              Contact
+            </a>
+            <a
+              href="/sign-in"
+              style={{
+                color: "#CBD5E1",
+                textDecoration: "none",
+              }}
+            >
+              Log In
+            </a>
+            <a
+              href="/sign-up"
+              style={{
+                color: "#CBD5E1",
+                textDecoration: "none",
+              }}
+            >
+              Create Account
+            </a>
+          </div>
+        )}
 
+        {isMobile && (
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen((open) => !open)}
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            style={{
+              background: "transparent",
+              border: "1px solid rgba(255,255,255,.15)",
+              borderRadius: "8px",
+              color: "#fff",
+              width: "40px",
+              height: "40px",
+              fontSize: "20px",
+              lineHeight: 1,
+              cursor: "pointer",
+            }}
+          >
+            {mobileMenuOpen ? "\u2715" : "\u2630"}
+          </button>
+        )}
 
-</div>
+        {isMobile && mobileMenuOpen && (
+          <div
+            style={{
+              position: "absolute",
+              top: "100%",
+              left: 0,
+              right: 0,
+              background: "#0A1A2F",
+              borderBottom: "1px solid rgba(255,255,255,.08)",
+              display: "flex",
+              flexDirection: "column",
+              padding: "8px 20px 20px",
+              gap: "16px",
+              zIndex: 30,
+            }}
+          >
+            <a href="#features" onClick={() => setMobileMenuOpen(false)} style={{ color: "#CBD5E1", textDecoration: "none" }}>Features</a>
+            <a href="#pricing" onClick={() => setMobileMenuOpen(false)} style={{ color: "#CBD5E1", textDecoration: "none" }}>Pricing</a>
+            <a href="/about" onClick={() => setMobileMenuOpen(false)} style={{ color: "#CBD5E1", textDecoration: "none" }}>About</a>
+            <a
+              href="https://calendly.com/dlbarnes-dbglobalinvestments/new-meeting-1"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setMobileMenuOpen(false)}
+              style={{ color: "#CBD5E1", textDecoration: "none" }}
+            >
+              Contact
+            </a>
+            <a href="/sign-in" onClick={() => setMobileMenuOpen(false)} style={{ color: "#CBD5E1", textDecoration: "none" }}>
+              Log In
+            </a>
+            <a
+              href="/sign-up"
+              onClick={() => setMobileMenuOpen(false)}
+              style={{
+                color: "#F5C542",
+                textDecoration: "none",
+                fontWeight: 700,
+              }}
+            >
+              Create Account
+            </a>
+          </div>
+        )}
 
-</div>
-
+      </div>
       {/* HERO */}
 
         <div

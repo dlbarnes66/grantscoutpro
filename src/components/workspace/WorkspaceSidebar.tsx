@@ -46,7 +46,13 @@ interface NavSection {
   items: NavItem[];
 }
 
-export default function WorkspaceSidebar({ workspaceId }: { workspaceId: string }) {
+export default function WorkspaceSidebar({
+  workspaceId,
+  onNavigate,
+}: {
+  workspaceId: string;
+  onNavigate?: () => void;
+}) {
   const pathname = usePathname();
   const base = `/workspace/${workspaceId}`;
 
@@ -183,6 +189,7 @@ export default function WorkspaceSidebar({ workspaceId }: { workspaceId: string 
                 <Link
                   key={item.href}
                   href={item.href}
+                  onClick={onNavigate}
                   className={`group flex items-center gap-2.5 rounded-md px-2 py-[7px] transition-colors ${
                     active
                       ? "bg-white/[0.08] text-white"
