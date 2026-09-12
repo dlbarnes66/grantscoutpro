@@ -14,7 +14,7 @@ import {
 import WorkspaceShell from "@/components/workspace/WorkspaceShell";
 import Card from "@/components/ui/Card";
 import { prisma } from "@/lib/prisma";
-import { getPlan } from "@/lib/plans";
+import { getEffectivePlan } from "@/lib/plans";
 
 interface PageProps {
   params: Promise<{
@@ -67,7 +67,7 @@ export default async function WorkspacePage({ params }: PageProps) {
 
   const workspace = await prisma.workspace.findUnique({
     where: { id: workspaceId },
-    include: { members: true, billing: true },
+    include: { members: true, billing: true, org: true },
   });
 
   if (!workspace) {
@@ -107,7 +107,7 @@ export default async function WorkspacePage({ params }: PageProps) {
   const activeMemberCount =
     workspace.members.filter((m) => m.status === "active").length + 1; // +1 for the owner
   const aiAnalysesCount = workspace.billing?.usageAI ?? 0;
-  const plan = getPlan(workspace.billing?.plan);
+  const plan = getEffectivePlan(workspace);
 
   const stats = [
     { label: "Documents", value: documentsCount, icon: FileText, accent: "#00E5FF" },

@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getPlan, isManualSearchResetDue } from "@/lib/plans";
+import { getEffectivePlan, isManualSearchResetDue } from "@/lib/plans";
 import {
   searchFederalGrants,
   grantsGovDetailUrl,
@@ -18,7 +18,7 @@ type Params = { id: string };
 async function loadWorkspaceForMember(workspaceId: string, userId: string) {
   const workspace = await prisma.workspace.findUnique({
     where: { id: workspaceId },
-    include: { billing: true, members: true },
+    include: { billing: true, members: true, org: true },
   });
 
   if (!workspace) return { workspace: null, isMember: false };
@@ -98,7 +98,7 @@ export async function GET(
   if (!workspace) return NextResponse.json({ error: "Workspace not found" }, { status: 404 });
   if (!isMember) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const plan = getPlan(workspace.billing?.plan);
+  const plan = getEffectivePlan(workspace);
   let used = workspace.billing?.manualSearchCount ?? 0;
   let resetAt = workspace.billing?.manualSearchResetAt ?? new Date();
 
@@ -134,7 +134,7 @@ export async function POST(
   if (!workspace) return NextResponse.json({ error: "Workspace not found" }, { status: 404 });
   if (!isMember) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const plan = getPlan(workspace.billing?.plan);
+  const plan = getEffectivePlan(workspace);
 
   if (!plan.access.federal) {
     return NextResponse.json(
