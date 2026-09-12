@@ -296,6 +296,7 @@ model Workspace {
   aiUsage    AiUsage[]           @relation("WorkspaceToAiUsage")
 
   insightLogs WorkspaceInsightLog[]
+  forms       WorkspaceForm[]
 
   grantTruthfulnessHistory GrantTruthfulnessHistory[]
   grantEvidenceHistory     GrantEvidenceHistory[]
@@ -563,6 +564,52 @@ model WorkspaceInsightLog {
   @@index([workspaceId])
 }
 
+// An AI-generated (or hand-edited) form: a grant application intake, a
+// volunteer/donor sign-up, a program survey, etc. fields is an ordered
+// array of {id, type, label, required, helpText?, options?} - kept as
+// JSON rather than a rigid relational shape since form structure varies
+// per form and this avoids a migration every time a new field type is
+// added. shareSlug is the public, unguessable id used in the
+// unauthenticated share link/API - never expose the real id or
+// workspaceId on that public surface.
+model WorkspaceForm {
+  id          String   @id @default(cuid())
+  workspaceId String
+  grantId     String?
+  title       String
+  description String?
+  fields      Json
+  status      String   @default("draft") // "draft" | "published" | "closed"
+  shareSlug   String   @unique
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace               @relation(fields: [workspaceId], references: [id])
+  grant     Grant?                  @relation(fields: [grantId], references: [id])
+  responses WorkspaceFormResponse[]
+
+  @@index([workspaceId])
+}
+
+// One external respondent's submission to a WorkspaceForm. No user
+// account is required to submit - respondentEmail is whatever the
+// respondent typed in an email-type field, if the form has one, purely
+// for the workspace's own reference.
+model WorkspaceFormResponse {
+  id              String   @id @default(cuid())
+  formId          String
+  workspaceId     String
+  data            Json
+  respondentEmail String?
+  submittedAt     DateTime @default(now())
+
+  form WorkspaceForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+
+  @@index([formId])
+  @@index([workspaceId])
+}
+
 model Application {
   id        String   @id @default(cuid())
   userId    String
@@ -778,6 +825,7 @@ model Grant {
 
   narratives        Narrative[]
   documents         GrantDocument[]
+  forms             WorkspaceForm[]
   GrantDraft        GrantDraft[]
   GrantSection      GrantSection[]
   ClusterAssignment ClusterAssignment[]

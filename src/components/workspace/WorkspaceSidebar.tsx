@@ -25,6 +25,7 @@ import {
   Handshake,
   Contact,
   ClipboardList,
+  FormInput,
   type LucideIcon,
 } from "lucide-react";
 
@@ -90,6 +91,12 @@ export default function WorkspaceSidebar({ workspaceId }: { workspaceId: string 
       label: "Team",
       items: [
         { label: "Tasks", href: `${base}/tasks`, icon: ClipboardList },
+      ],
+    },
+    {
+      label: "Forms",
+      items: [
+        { label: "Forms", href: `${base}/forms`, icon: FormInput, exact: true },
       ],
     },
     {

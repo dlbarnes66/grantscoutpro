@@ -29,6 +29,15 @@ const isPublicRoute = createRouteMatcher([
   // own auth via a shared x-cron-secret header - see the route files.
   "/api/internal/grants/scan",
   "/api/internal/notifications/check-deadlines",
+
+  // Public AI-generated forms - an external respondent (donor, volunteer,
+  // grant reviewer) filling one out has no Clerk account. The page and its
+  // read/submit API are intentionally unauthenticated; each route only
+  // ever looks up a form by its unguessable shareSlug and never exposes
+  // workspaceId/grantId/createdById, and submission is rate-limited since
+  // there's no auth to fall back on for abuse control.
+  "/forms/(.*)",
+  "/api/forms/public/(.*)",
 ]);
 
 export const proxy = clerkMiddleware(
