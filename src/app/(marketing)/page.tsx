@@ -181,7 +181,7 @@ export default function MarketingHomePage() {
         style={{
           maxWidth: "1400px",
           margin: "0 auto",
-          padding: "100px 60px",
+          padding: isMobile ? "60px 20px" : "100px 60px",
         }}
       >
         <div
@@ -199,7 +199,7 @@ export default function MarketingHomePage() {
 
         <h1
           style={{
-            fontSize: "88px",
+            fontSize: isMobile ? "44px" : "88px",
             lineHeight: 1,
             fontWeight: 800,
             maxWidth: "900px",
@@ -215,7 +215,7 @@ export default function MarketingHomePage() {
 
                   <p
           style={{
-            fontSize: "28px",
+            fontSize: isMobile ? "18px" : "28px",
             color: "#CBD5E1",
             maxWidth: "760px",
             marginTop: "30px",
@@ -232,6 +232,7 @@ export default function MarketingHomePage() {
             marginTop: "40px",
             display: "flex",
             gap: "16px",
+            flexWrap: "wrap",
           }}
         >
           <a
@@ -279,7 +280,7 @@ export default function MarketingHomePage() {
         style={{
           maxWidth: "1400px",
           margin: "0 auto",
-          padding: "0 60px 120px",
+          padding: isMobile ? "0 20px 60px" : "0 60px 120px",
         }}
       >
         <div
@@ -293,12 +294,14 @@ export default function MarketingHomePage() {
         >
           <div
             style={{
-              height: "64px",
+              minHeight: "64px",
               borderBottom: "1px solid rgba(255,255,255,.08)",
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              padding: "0 24px",
+              flexWrap: "wrap",
+              gap: "8px",
+              padding: isMobile ? "16px 20px" : "0 24px",
             }}
           >
             <div
@@ -323,7 +326,7 @@ export default function MarketingHomePage() {
             style={{
               padding: "40px",
               display: "grid",
-              gridTemplateColumns: "1fr 1fr 1fr",
+              gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr",
               gap: "24px",
             }}
           >
@@ -382,13 +385,13 @@ export default function MarketingHomePage() {
         style={{
           maxWidth: "1400px",
           margin: "0 auto",
-          padding: "0 60px 120px",
+          padding: isMobile ? "0 20px 60px" : "0 60px 120px",
         }}
       >
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
+            gridTemplateColumns: isMobile ? "1fr" : "repeat(4, 1fr)",
             gap: "24px",
           }}
         >
@@ -402,7 +405,7 @@ export default function MarketingHomePage() {
           >
             <div
               style={{
-                fontSize: "48px",
+                fontSize: isMobile ? "30px" : "48px",
                 fontWeight: 800,
                 color: "#F5C542",
               }}
@@ -430,7 +433,7 @@ export default function MarketingHomePage() {
           >
             <div
               style={{
-                fontSize: "48px",
+                fontSize: isMobile ? "30px" : "48px",
                 fontWeight: 800,
                 color: "#F5C542",
               }}
@@ -458,7 +461,7 @@ export default function MarketingHomePage() {
           >
             <div
               style={{
-                fontSize: "48px",
+                fontSize: isMobile ? "30px" : "48px",
                 fontWeight: 800,
                 color: "#F5C542",
               }}
@@ -486,7 +489,7 @@ export default function MarketingHomePage() {
           >
             <div
               style={{
-                fontSize: "48px",
+                fontSize: isMobile ? "30px" : "48px",
                 fontWeight: 800,
                 color: "#F5C542",
               }}
@@ -513,7 +516,7 @@ export default function MarketingHomePage() {
         style={{
           maxWidth: "1400px",
           margin: "0 auto",
-          padding: "0 60px 120px",
+          padding: isMobile ? "0 20px 60px" : "0 60px 120px",
         }}
       >
         <div
@@ -524,7 +527,7 @@ export default function MarketingHomePage() {
         >
           <h2
             style={{
-              fontSize: "48px",
+              fontSize: isMobile ? "30px" : "48px",
               fontWeight: 800,
               marginBottom: "20px",
             }}
@@ -549,7 +552,7 @@ export default function MarketingHomePage() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
+            gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)",
             gap: "24px",
           }}
         >
@@ -657,7 +660,7 @@ export default function MarketingHomePage() {
         style={{
           maxWidth: "1400px",
           margin: "0 auto",
-          padding: "0 60px 120px",
+          padding: isMobile ? "0 20px 60px" : "0 60px 120px",
         }}
       >
         <div
@@ -668,7 +671,7 @@ export default function MarketingHomePage() {
         >
           <h2
             style={{
-              fontSize: "48px",
+              fontSize: isMobile ? "30px" : "48px",
               fontWeight: 800,
               marginBottom: "20px",
             }}
@@ -766,7 +769,7 @@ export default function MarketingHomePage() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
+            gridTemplateColumns: isMobile ? "1fr" : "repeat(4, 1fr)",
             gap: "24px",
           }}
         >
@@ -784,7 +787,7 @@ export default function MarketingHomePage() {
 
             <div
               style={{
-                fontSize: "52px",
+                fontSize: isMobile ? "32px" : "52px",
                 fontWeight: 800,
                 color: "#F5C542",
               }}
@@ -848,7 +851,7 @@ export default function MarketingHomePage() {
 
             <div
               style={{
-                fontSize: "52px",
+                fontSize: isMobile ? "32px" : "52px",
                 fontWeight: 800,
                 color: "#F5C542",
               }}
@@ -924,7 +927,7 @@ export default function MarketingHomePage() {
 
             <div
               style={{
-                fontSize: "52px",
+                fontSize: isMobile ? "32px" : "52px",
                 fontWeight: 800,
                 color: "#F5C542",
               }}
@@ -991,7 +994,7 @@ export default function MarketingHomePage() {
 
             <div
               style={{
-                fontSize: "52px",
+                fontSize: isMobile ? "32px" : "52px",
                 fontWeight: 800,
                 color: "#F5C542",
               }}
@@ -1053,7 +1056,7 @@ export default function MarketingHomePage() {
         style={{
           maxWidth: "1200px",
           margin: "0 auto",
-          padding: "0 60px 120px",
+          padding: isMobile ? "0 20px 60px" : "0 60px 120px",
         }}
       >
         <div
@@ -1067,7 +1070,7 @@ export default function MarketingHomePage() {
         >
           <h2
             style={{
-              fontSize: "56px",
+              fontSize: isMobile ? "32px" : "56px",
               fontWeight: 800,
               marginBottom: "20px",
             }}
@@ -1151,7 +1154,7 @@ export default function MarketingHomePage() {
       <footer
         style={{
           borderTop: "1px solid rgba(255,255,255,.08)",
-          padding: "40px 60px",
+          padding: isMobile ? "40px 20px" : "40px 60px",
           color: "#CBD5E1",
         }}
       >
@@ -1160,8 +1163,10 @@ export default function MarketingHomePage() {
             maxWidth: "1400px",
             margin: "0 auto",
             display: "flex",
+            flexDirection: isMobile ? "column" : "row",
             justifyContent: "space-between",
-            alignItems: "center",
+            alignItems: isMobile ? "flex-start" : "center",
+            gap: isMobile ? "20px" : "0",
           }}
         >
           <div>
@@ -1185,6 +1190,7 @@ export default function MarketingHomePage() {
             style={{
               display: "flex",
               gap: "24px",
+              flexWrap: "wrap",
             }}
           >
             <a href="#features" style={{ color: "#CBD5E1", textDecoration: "none" }}>Features</a>
