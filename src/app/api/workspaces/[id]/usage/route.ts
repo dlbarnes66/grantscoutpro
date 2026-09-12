@@ -1,19 +1,48 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
-export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }) {
-  const params = await context.params;
-  const { userId, sessionClaims } = await await auth();
+export const runtime = "nodejs";
+
+type Params = { id: string };
+
+export async function GET(
+  _req: NextRequest,
+  { params: paramsPromise }: { params: Promise<Params> }
+) {
+  const params = await paramsPromise;
+  const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   try {
-    const url = new URL(req.url);
+    const workspace = await prisma.workspace.findUnique({
+      where: { id: params.id },
+      include: { members: true, billing: true },
+    });
+
+    if (!workspace) {
+      return NextResponse.json({ error: "Workspace not found" }, { status: 404 });
+    }
+
+    const isMember =
+      workspace.ownerId === userId ||
+      workspace.members.some((m) => m.userId === userId);
+
+    if (!isMember) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const billing = workspace.billing;
+
     return NextResponse.json({
       success: true,
-      method: "GET",
-      workspaceId: params.id,
-      usage: "placeholder",
-      query: Object.fromEntries(url.searchParams.entries()),
+      usage: {
+        searches: billing?.usageSearches ?? 0,
+        uploads: billing?.usageUploads ?? 0,
+        members: billing?.usageMembers ?? workspace.members.length + 1,
+        ai: billing?.usageAI ?? 0,
+      },
     });
   } catch (err: any) {
     console.error("USAGE ERROR:", err);
