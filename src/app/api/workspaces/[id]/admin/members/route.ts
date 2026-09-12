@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { logActivity } from "@/lib/ai/activity-log";
 import { sendEmailSafe } from "@/lib/email/sendgrid";
 import { workspaceInviteEmail, workspaceInvitePendingEmail } from "@/lib/email/templates";
-import { getPlan, isAtSeatLimit, getSeatLimitLabel } from "@/lib/plans";
+import { getEffectivePlan, isAtSeatLimit, getSeatLimitLabel } from "@/lib/plans";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -28,6 +28,7 @@ async function loadWorkspaceAndRole(workspaceId: string, userId: string) {
     include: {
       members: true,
       billing: true,
+      org: true,
       invites: { where: { status: "pending" } },
     },
   });
@@ -153,7 +154,7 @@ export async function POST(
         // Whoever signs up with this email address gets added
         // automatically by the Clerk webhook (see
         // src/app/api/webhooks/clerk/route.ts, user.created).
-        const plan = getPlan(workspace.billing?.plan);
+        const plan = getEffectivePlan(workspace);
         const seatsInUse = workspace.members.length + workspace.invites.length;
 
         const existingInvite = workspace.invites.find(
@@ -223,7 +224,7 @@ export async function POST(
         );
       }
 
-      const planForExisting = getPlan(workspace.billing?.plan);
+      const planForExisting = getEffectivePlan(workspace);
       const seatsInUseForExisting = workspace.members.length + workspace.invites.length;
       if (isAtSeatLimit(planForExisting, seatsInUseForExisting)) {
         return NextResponse.json(
