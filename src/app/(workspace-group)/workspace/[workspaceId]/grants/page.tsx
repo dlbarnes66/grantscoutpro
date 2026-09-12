@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import WorkspaceShell from "@/components/workspace/WorkspaceShell";
 import Card from "@/components/ui/Card";
 import Link from "next/link";
-import { Search, RefreshCw, PackageCheck } from "lucide-react";
+import { Search, RefreshCw, PackageCheck, Scale } from "lucide-react";
 
 interface Grant {
   id: string;
@@ -48,6 +48,19 @@ export default function WorkspaceGrantsPage() {
   const [searching, setSearching] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  function toggleSelect(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else if (next.size < 4) {
+        next.add(id);
+      }
+      return next;
+    });
+  }
 
   async function loadGrants() {
     setLoadingGrants(true);
@@ -166,9 +179,36 @@ export default function WorkspaceGrantsPage() {
         </Card>
 
         <div>
-          <h2 className="text-lg font-semibold mb-3">
-            Tracked Grants {!loadingGrants && `(${grants.length})`}
-          </h2>
+          <div className="flex items-center justify-between gap-4 flex-wrap mb-3">
+            <h2 className="text-lg font-semibold">
+              Tracked Grants {!loadingGrants && `(${grants.length})`}
+            </h2>
+
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-slate-500">
+                {selected.size > 0
+                  ? `${selected.size} of 4 selected`
+                  : "Select 2-4 grants to compare"}
+              </span>
+              <Link
+                href={`/workspace/${workspaceId}/grants/compare?ids=${Array.from(
+                  selected
+                ).join(",")}`}
+                aria-disabled={selected.size < 2}
+                onClick={(e) => {
+                  if (selected.size < 2) e.preventDefault();
+                }}
+                className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[13px] font-medium transition ${
+                  selected.size < 2
+                    ? "bg-slate-800 text-slate-500 cursor-not-allowed"
+                    : "bg-[#00E5FF] text-[#06131F] hover:opacity-90"
+                }`}
+              >
+                <Scale size={14} />
+                Compare Selected
+              </Link>
+            </div>
+          </div>
 
           {loadingGrants && <p className="text-slate-400">Loading grants...</p>}
 
@@ -183,9 +223,23 @@ export default function WorkspaceGrantsPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {grants.map((grant) => (
-              <Card key={grant.id} className="p-5 space-y-2">
+              <Card
+                key={grant.id}
+                className={`p-5 space-y-2 ${
+                  selected.has(grant.id) ? "ring-2 ring-[#00E5FF]" : ""
+                }`}
+              >
                 <div className="flex items-start justify-between gap-3">
-                  <p className="font-semibold">{grant.title}</p>
+                  <label className="flex items-start gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selected.has(grant.id)}
+                      onChange={() => toggleSelect(grant.id)}
+                      disabled={!selected.has(grant.id) && selected.size >= 4}
+                      className="mt-1"
+                    />
+                    <p className="font-semibold">{grant.title}</p>
+                  </label>
                   <span className="text-xs uppercase tracking-wide text-slate-500 shrink-0">
                     {grant.status}
                   </span>
