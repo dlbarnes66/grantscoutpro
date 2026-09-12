@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getEffectivePlan } from "@/lib/plans";
 
 // CRM is included automatically on the Enterprise plan (see
 // PLANS.enterprise.access.crm in src/lib/plans.ts). Any other workspace can
@@ -7,12 +8,15 @@ import { prisma } from "@/lib/prisma";
 export async function hasCrmAccess(workspaceId: string): Promise<boolean> {
   if (!workspaceId) return false;
 
-  const billing = await prisma.workspaceBilling.findUnique({
-    where: { workspaceId },
-    select: { plan: true },
+  const workspace = await prisma.workspace.findUnique({
+    where: { id: workspaceId },
+    select: { billing: { select: { plan: true } }, org: { select: { tier: true } } },
   });
 
-  if (billing?.plan === "enterprise") return true;
+  if (!workspace) return false;
+
+  const plan = getEffectivePlan(workspace);
+  if (plan.access.crm) return true;
 
   const addon = await prisma.workspaceAddon.findFirst({
     where: { workspaceId, addonType: "crm", active: true },
