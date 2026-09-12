@@ -35,12 +35,20 @@ export async function GET(
 
     const billing = workspace.billing;
 
+    // usageMembers on WorkspaceBilling is a stored counter that's only
+    // ever initialized to 1 and never actually incremented when someone
+    // joins - it's not a real source of truth. Members added/removed is
+    // easy to just count live instead, so this stat can't ever drift
+    // stale the way that stored field does.
+    const activeMemberCount =
+      workspace.members.filter((m) => m.status === "active").length + 1; // +1 for the owner
+
     return NextResponse.json({
       success: true,
       usage: {
         searches: billing?.usageSearches ?? 0,
         uploads: billing?.usageUploads ?? 0,
-        members: billing?.usageMembers ?? workspace.members.length + 1,
+        members: activeMemberCount,
         ai: billing?.usageAI ?? 0,
       },
     });

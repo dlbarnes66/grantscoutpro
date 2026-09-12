@@ -75,7 +75,13 @@ async function tryConsumeManualSearch(
 
     await tx.workspaceBilling.update({
       where: { id: row.id },
-      data: { manualSearchCount: used, manualSearchResetAt: resetAt },
+      // manualSearchCount is the daily rate-limit counter this function
+      // exists to enforce; usageSearches is the separate period-level
+      // stat shown on the Usage/Billing pages - nothing was incrementing
+      // it, so it always read 0 there even for an active workspace.
+      // Bumping it in the same transaction keeps both counters
+      // consistent with the same atomic, lock-serialized write.
+      data: { manualSearchCount: used, manualSearchResetAt: resetAt, usageSearches: { increment: 1 } },
     });
 
     return { ok: true, used, resetAt };
