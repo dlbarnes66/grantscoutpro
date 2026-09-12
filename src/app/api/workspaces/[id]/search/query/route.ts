@@ -37,12 +37,13 @@ function cosineSimilarity(
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { _id: string } }
+  { params: paramsPromise }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await requireUser();
+    const params = await paramsPromise;
 
-    const workspaceId = params._id;
+    const workspaceId = params.id;
 
     const body = await req
       .json()

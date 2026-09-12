@@ -8,21 +8,19 @@ import Card from "@/components/ui/Card";
 import Skeleton from "@/components/ui/Skeleton";
 import WorkspaceShell from "@/components/workspace/WorkspaceShell";
 
-export default function WorkspaceSearchPage({
-  params,
-}: {
-  params: { workspaceId: string };
-}) {
+export default function WorkspaceSearchPage() {
   const routeParams = useParams();
   const workspaceId = routeParams.workspaceId as string;
   const [query, setQuery] = useState("");
+  const [submitted, setSubmitted] = useState(false);
 
-  const { results, loading, search } = useSemanticSearch();
+  const { results, loading, error, search } = useSemanticSearch(workspaceId);
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     if (!query.trim()) return;
-    await search();
+    setSubmitted(true);
+    await search(query);
   }
 
   return (
@@ -51,20 +49,30 @@ export default function WorkspaceSearchPage({
         </div>
       )}
 
-      {!loading && results.length > 0 && (
+      {!loading && error && (
+        <p className="text-sm text-red-400">{error}</p>
+      )}
+
+      {!loading && !error && results.length > 0 && (
         <div className="space-y-3">
-          {results.map((r: any, idx: number) => (
-            <Card key={idx} className="p-4">
-              <p className="font-semibold">Result {idx + 1}</p>
-              <p className="text-sm text-gray-400 mt-1">
-                {JSON.stringify(r)}
+          {results.map((r, idx) => (
+            <Card key={`${r.documentId}-${idx}`} className="p-4">
+              <p className="font-semibold">{r.documentName || "Untitled document"}</p>
+              <p className="text-sm text-gray-400 mt-1 line-clamp-3">
+                {r.snippet}
+              </p>
+              <p className="text-xs text-gray-500 mt-2">
+                Relevance: {(r.score * 100).toFixed(0)}%
+                {r.updatedAt
+                  ? ` · Updated ${new Date(r.updatedAt).toLocaleDateString()}`
+                  : ""}
               </p>
             </Card>
           ))}
         </div>
       )}
 
-      {!loading && results.length === 0 && query && (
+      {!loading && !error && submitted && results.length === 0 && (
         <p className="text-sm text-gray-500">No results found.</p>
       )}
     </WorkspaceShell>
