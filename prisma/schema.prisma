@@ -295,6 +295,8 @@ model Workspace {
   activities WorkspaceActivity[] @relation("WorkspaceToActivity")
   aiUsage    AiUsage[]           @relation("WorkspaceToAiUsage")
 
+  insightLogs WorkspaceInsightLog[]
+
   grantTruthfulnessHistory GrantTruthfulnessHistory[]
   grantEvidenceHistory     GrantEvidenceHistory[]
   grantCompletenessHistory GrantCompletenessHistory[]
@@ -544,6 +546,21 @@ model WorkspaceInsight {
 
   workspacePrimary   Workspace @relation("PrimaryInsights", fields: [primaryWorkspaceId], references: [id])
   workspaceSecondary Workspace @relation("SecondaryInsights", fields: [secondaryWorkspaceId], references: [id])
+}
+
+// A single-workspace AI-generated insight snapshot (trends across a
+// workspace's own grants, pipeline, and activity) - distinct from
+// WorkspaceInsight above, which compares two different workspaces.
+model WorkspaceInsightLog {
+  id          String   @id @default(cuid())
+  workspaceId String
+  summary     String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@index([workspaceId])
 }
 
 model Application {
