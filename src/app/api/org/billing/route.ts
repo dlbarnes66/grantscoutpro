@@ -2,7 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ensureUserOrg, countWorkspacesForOwner } from "@/lib/workspace/orgAccess";
-import { getPlan } from "@/lib/plans";
+import { getPlan, getPilotInfo } from "@/lib/plans";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +19,8 @@ export async function GET() {
 
   try {
     const org = await ensureUserOrg(userId);
-    const plan = getPlan(org.tier ?? "basic");
+    const pilot = getPilotInfo(org);
+    const plan = getPlan(pilot.active && pilot.tier ? pilot.tier : org.tier ?? "basic");
     const workspacesUsed = await countWorkspacesForOwner(userId);
 
     return NextResponse.json({
@@ -35,6 +36,7 @@ export async function GET() {
         periodEnd: org.periodEnd,
       },
       plan,
+      pilot,
       workspacesUsed,
     });
   } catch (err: any) {

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import WorkspaceSidebar from "./WorkspaceSidebar";
 import WorkspaceTopbar from "./WorkspaceTopbar";
 import WorkspaceHelpChatWidget from "./WorkspaceHelpChatWidget";
+import PilotBanner from "./PilotBanner";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 export default function WorkspaceShell({
@@ -76,6 +77,7 @@ export default function WorkspaceShell({
         />
         <main className="flex-1 px-8 py-7" style={{ flex: "1 1 0%", padding: isMobile ? "20px 16px" : "28px 32px" }}>
           <div className="mx-auto max-w-6xl" style={{ marginLeft: "auto", marginRight: "auto", maxWidth: 1152 }}>
+            <PilotBanner />
             {children}
           </div>
         </main>

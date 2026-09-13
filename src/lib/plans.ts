@@ -81,16 +81,63 @@ export function getPlan(planId?: string | null): PlanConfig {
   return PLANS[DEFAULT_PLAN];
 }
 
+// A superadmin-granted comped pilot (see /api/admin/pilot) overrides the
+// org's normal tier while it's active. Deliberately date-based rather
+// than a boolean some job has to flip: the pilot just stops granting
+// access the instant pilotEndsAt passes, with no cron required for
+// correctness. PILOT_WARNING_WINDOW_DAYS controls how early the in-app
+// banner (see PilotBanner) starts warning before that happens.
+export const PILOT_WARNING_WINDOW_DAYS = 10;
+
+export interface PilotInfo {
+  tier: PlanId | null;
+  active: boolean;
+  daysRemaining: number | null;
+  warning: boolean;
+  endsAt: Date | null;
+}
+
+type OrgPilotFields = {
+  tier?: string | null;
+  pilotTier?: string | null;
+  pilotEndsAt?: Date | string | null;
+};
+
+export function getPilotInfo(org: OrgPilotFields | null | undefined): PilotInfo {
+  const tier = org?.pilotTier && org.pilotTier in PLANS ? (org.pilotTier as PlanId) : null;
+  const endsAt = org?.pilotEndsAt ? new Date(org.pilotEndsAt) : null;
+
+  if (!tier || !endsAt || Number.isNaN(endsAt.getTime())) {
+    return { tier: null, active: false, daysRemaining: null, warning: false, endsAt: null };
+  }
+
+  const msRemaining = endsAt.getTime() - Date.now();
+  const active = msRemaining > 0;
+  const daysRemaining = active ? Math.ceil(msRemaining / (24 * 60 * 60 * 1000)) : 0;
+
+  return {
+    tier,
+    active,
+    daysRemaining: active ? daysRemaining : null,
+    warning: active && daysRemaining <= PILOT_WARNING_WINDOW_DAYS,
+    endsAt,
+  };
+}
+
 // Plans belong to the account (an Org), not to any one workspace under it -
 // a customer on Team can have up to 3 workspaces, all sharing that plan's
-// access and limits. This resolves a workspace's EFFECTIVE plan: the tier
-// of the Org it belongs to, falling back to that one workspace's own
+// access and limits. This resolves a workspace's EFFECTIVE plan: an active
+// comped pilot tier first (see getPilotInfo above), then the tier of the
+// Org it belongs to, falling back to that one workspace's own
 // WorkspaceBilling.plan for workspaces created before Org-level billing
 // existed (or that still have no org for any other reason).
 export function resolveEffectivePlanId(workspace: {
-  org?: { tier?: string | null } | null;
+  org?: OrgPilotFields | null;
   billing?: { plan?: string | null } | null;
 }): PlanId {
+  const pilot = getPilotInfo(workspace.org);
+  if (pilot.active && pilot.tier) return pilot.tier;
+
   const orgTier = workspace.org?.tier;
   if (orgTier && orgTier in PLANS) return orgTier as PlanId;
 
@@ -101,7 +148,7 @@ export function resolveEffectivePlanId(workspace: {
 }
 
 export function getEffectivePlan(workspace: {
-  org?: { tier?: string | null } | null;
+  org?: OrgPilotFields | null;
   billing?: { plan?: string | null } | null;
 }): PlanConfig {
   return PLANS[resolveEffectivePlanId(workspace)];

@@ -10,7 +10,10 @@ export async function hasCrmAccess(workspaceId: string): Promise<boolean> {
 
   const workspace = await prisma.workspace.findUnique({
     where: { id: workspaceId },
-    select: { billing: { select: { plan: true } }, org: { select: { tier: true } } },
+    select: {
+      billing: { select: { plan: true } },
+      org: { select: { tier: true, pilotTier: true, pilotEndsAt: true } },
+    },
   });
 
   if (!workspace) return false;

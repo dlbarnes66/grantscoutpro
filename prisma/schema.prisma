@@ -26,6 +26,7 @@ model User {
   workspaceMembers WorkspaceMember[]
   workspaceInvites WorkspaceInvite[]
   ownedWorkspaces  Workspace[]       @relation("WorkspaceOwner")
+  submittedTickets Ticket[]
 
   accounts Account[]
   sessions Session[]
@@ -297,6 +298,7 @@ model Workspace {
 
   insightLogs WorkspaceInsightLog[]
   forms       WorkspaceForm[]
+  tickets     Ticket[]
 
   grantTruthfulnessHistory GrantTruthfulnessHistory[]
   grantEvidenceHistory     GrantEvidenceHistory[]
@@ -340,10 +342,60 @@ model WorkspaceMember {
   status      String   @default("active")
   createdAt   DateTime @default(now())
 
+  // Additive on top of role (owner/admin/member), which still governs
+  // sensitive actions (billing, member management, deletion). This is
+  // an org-defined custom role (see OrgRole) used only for the
+  // permission checks in src/lib/workspace/permissions.ts.
+  customRoleId String?
+  customRole   OrgRole? @relation(fields: [customRoleId], references: [id])
+
   workspace Workspace @relation("WorkspaceToMember", fields: [workspaceId], references: [id])
   user      User      @relation(fields: [userId], references: [id])
 
   @@unique([workspaceId, userId])
+}
+
+// A role an org's owner/admin defines for their own organization (e.g.
+// "Grant Writer", "Reviewer"), carrying a set of permission flags from
+// a fixed catalog (see src/lib/workspace/permissions.ts). Assigned to
+// members via WorkspaceMember.customRoleId. Scoped to the org (not one
+// workspace) since an org can run up to several workspaces sharing the
+// same team.
+model OrgRole {
+  id          String   @id @default(cuid())
+  orgId       String
+  name        String
+  permissions String[] @default([])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  org     Org               @relation(fields: [orgId], references: [id])
+  members WorkspaceMember[]
+
+  @@unique([orgId, name])
+}
+
+// A problem report or suggestion filed by a workspace owner/admin.
+// Submission is in-app (see /api/workspaces/[id]/tickets); triage and
+// status updates are superadmin-only (see /api/admin/tickets) - the
+// submitter does not get a status view back, by design (kept simple
+// for the pilot).
+model Ticket {
+  id            String   @id @default(cuid())
+  orgId         String?
+  workspaceId   String
+  submittedById String
+  type          String
+  subject       String
+  description   String
+  status        String   @default("open")
+  adminNotes    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  org         Org?      @relation(fields: [orgId], references: [id])
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  submittedBy User      @relation(fields: [submittedById], references: [id])
 }
 
 model WorkspaceInvite {
@@ -1293,7 +1345,20 @@ model Org {
   cancelAtPeriodEnd    Boolean   @default(false)
   periodEnd            DateTime?
 
-  users User[]
+  // Comped pilot access, granted by a superadmin (see
+  // /api/admin/pilot). While pilotEndsAt is in the future, the org's
+  // effective plan is pilotTier instead of tier - see
+  // resolveEffectivePlanId in src/lib/plans.ts. Deliberately computed
+  // lazily from these dates rather than needing a cron job to flip
+  // anything: the pilot just stops granting access the moment
+  // pilotEndsAt passes.
+  pilotTier   String?
+  pilotStart  DateTime?
+  pilotEndsAt DateTime?
+
+  users   User[]
+  roles   OrgRole[]
+  tickets Ticket[]
 
   auditLogs       AuditLog[]
   ownedResources  SharedResource[] @relation("OwnedResources")
