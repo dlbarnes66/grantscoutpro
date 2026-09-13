@@ -47,6 +47,11 @@ export default function WorkspaceSettingsPage({ params }: { params: { workspaceI
       description: "View your plan, usage, and manage billing.",
       href: `${base}/workspace-billing`,
     },
+    {
+      title: "Report a Problem or Suggestion",
+      description: "Send the Grant Scout Pro team a bug report or an idea (owners/admins only).",
+      href: `${base}/settings/support`,
+    },
   ];
 
   return (
