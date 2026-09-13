@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import WorkspaceShell from "@/components/workspace/WorkspaceShell";
 import Card from "@/components/ui/Card";
-import { Sparkles, Handshake, PackageCheck, Loader2 } from "lucide-react";
+import { Sparkles, Handshake, PackageCheck, Loader2, Download, Bookmark, BookmarkCheck } from "lucide-react";
 
 interface GrantDetail {
   id: string;
@@ -49,6 +49,8 @@ export default function GrantDetailPage() {
   const [grant, setGrant] = useState<GrantDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
+  const [savingBusy, setSavingBusy] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -69,6 +71,37 @@ export default function GrantDetailPage() {
       cancelled = true;
     };
   }, [workspaceId, grantId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadSavedState() {
+      try {
+        const res = await fetch(`/api/saved-grant/${grantId}`);
+        if (!cancelled) setSaved(res.ok);
+      } catch {
+        // non-critical - leave saved state as-is
+      }
+    }
+    if (grantId) loadSavedState();
+    return () => {
+      cancelled = true;
+    };
+  }, [grantId]);
+
+  async function toggleSaved() {
+    if (savingBusy) return;
+    setSavingBusy(true);
+    try {
+      const res = await fetch(`/api/saved-grant/${grantId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: saved ? "unsave" : "save" }),
+      });
+      if (res.ok) setSaved((prev) => !prev);
+    } finally {
+      setSavingBusy(false);
+    }
+  }
 
   const whatsNeeded = grant?.aiRecommendations?.whatsNeeded || [];
   const awardFloor = grant?.awardFloor ?? grant?.amountMin ?? null;
@@ -148,6 +181,26 @@ export default function GrantDetailPage() {
           )}
 
           <div className="flex flex-wrap gap-2.5">
+            <a
+              href={`/api/grants/${grantId}/download?workspaceId=${workspaceId}`}
+              className="inline-flex items-center gap-1.5 rounded-md border border-white/[0.1] px-3.5 py-2 text-[13px] font-medium text-slate-200 hover:bg-white/[0.04]"
+            >
+              <Download size={15} />
+              Download PDF
+            </a>
+            <button
+              type="button"
+              onClick={toggleSaved}
+              disabled={savingBusy}
+              className={`inline-flex items-center gap-1.5 rounded-md border px-3.5 py-2 text-[13px] font-medium disabled:opacity-60 ${
+                saved
+                  ? "border-[#00E5FF]/40 bg-[#00E5FF]/10 text-[#00E5FF]"
+                  : "border-white/[0.1] text-slate-200 hover:bg-white/[0.04]"
+              }`}
+            >
+              {saved ? <BookmarkCheck size={15} /> : <Bookmark size={15} />}
+              {saved ? "Saved" : "Save Grant"}
+            </button>
             <Link
               href={`/workspace/${workspaceId}/grants/${grantId}/package`}
               className="inline-flex items-center gap-1.5 rounded-md bg-[#00E5FF] px-3.5 py-2 text-[13px] font-medium text-[#06131F] hover:opacity-90"

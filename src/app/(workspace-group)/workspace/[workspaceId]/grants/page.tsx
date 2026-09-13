@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import WorkspaceShell from "@/components/workspace/WorkspaceShell";
 import Card from "@/components/ui/Card";
 import Link from "next/link";
-import { Search, RefreshCw, PackageCheck, Scale } from "lucide-react";
+import { Search, RefreshCw, PackageCheck, Scale, Download, Bookmark, BookmarkCheck, BookmarkPlus } from "lucide-react";
 
 interface Grant {
   id: string;
@@ -49,6 +49,8 @@ export default function WorkspaceGrantsPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  const [savingId, setSavingId] = useState<string | null>(null);
 
   function toggleSelect(id: string) {
     setSelected((prev) => {
@@ -79,12 +81,51 @@ export default function WorkspaceGrantsPage() {
     if (res.ok) setStatus(json);
   }
 
+  async function loadSaved() {
+    try {
+      const res = await fetch("/api/saved-grant");
+      const json = await res.json();
+      if (res.ok) {
+        const ids = (json.savedGrants || [])
+          .filter((s: any) => s.grant?.workspaceId === workspaceId)
+          .map((s: any) => s.grantId as string);
+        setSavedIds(new Set(ids));
+      }
+    } catch {
+      // non-critical
+    }
+  }
+
   useEffect(() => {
     if (!workspaceId) return;
     loadGrants();
     loadStatus();
+    loadSaved();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workspaceId]);
+
+  async function toggleSaved(grantId: string) {
+    if (savingId) return;
+    setSavingId(grantId);
+    const isSaved = savedIds.has(grantId);
+    try {
+      const res = await fetch(`/api/saved-grant/${grantId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: isSaved ? "unsave" : "save" }),
+      });
+      if (res.ok) {
+        setSavedIds((prev) => {
+          const next = new Set(prev);
+          if (isSaved) next.delete(grantId);
+          else next.add(grantId);
+          return next;
+        });
+      }
+    } finally {
+      setSavingId(null);
+    }
+  }
 
   async function runSearch() {
     setSearching(true);
@@ -185,6 +226,13 @@ export default function WorkspaceGrantsPage() {
             </h2>
 
             <div className="flex items-center gap-3">
+              <Link
+                href={`/workspace/${workspaceId}/grants/saved`}
+                className="inline-flex items-center gap-1.5 rounded-md border border-white/[0.1] px-3 py-1.5 text-[13px] font-medium text-slate-200 hover:bg-white/[0.04]"
+              >
+                <BookmarkPlus size={14} />
+                Saved Grants
+              </Link>
               <span className="text-xs text-slate-500">
                 {selected.size > 0
                   ? `${selected.size} of 4 selected`
@@ -273,6 +321,32 @@ export default function WorkspaceGrantsPage() {
                 )}
 
                 <div className="flex flex-wrap items-center gap-2.5 pt-1">
+                  <Link
+                    href={`/workspace/${workspaceId}/grants/${grant.id}`}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-white/[0.1] px-3 py-1.5 text-[13px] font-medium text-slate-200 hover:bg-white/[0.04]"
+                  >
+                    View
+                  </Link>
+                  <a
+                    href={`/api/grants/${grant.id}/download?workspaceId=${workspaceId}`}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-white/[0.1] px-3 py-1.5 text-[13px] font-medium text-slate-200 hover:bg-white/[0.04]"
+                  >
+                    <Download size={14} />
+                    Download
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => toggleSaved(grant.id)}
+                    disabled={savingId === grant.id}
+                    className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-[13px] font-medium disabled:opacity-60 ${
+                      savedIds.has(grant.id)
+                        ? "border-[#00E5FF]/40 bg-[#00E5FF]/10 text-[#00E5FF]"
+                        : "border-white/[0.1] text-slate-200 hover:bg-white/[0.04]"
+                    }`}
+                  >
+                    {savedIds.has(grant.id) ? <BookmarkCheck size={14} /> : <Bookmark size={14} />}
+                    {savedIds.has(grant.id) ? "Saved" : "Save"}
+                  </button>
                   <Link
                     href={`/workspace/${workspaceId}/grants/${grant.id}/package`}
                     className="inline-flex items-center gap-1.5 rounded-md bg-[#00E5FF] px-3 py-1.5 text-[13px] font-medium text-[#06131F] hover:opacity-90"
