@@ -1211,6 +1211,26 @@ export default function MarketingHomePage() {
         <div
           style={{
             marginTop: "30px",
+            paddingTop: "20px",
+            borderTop: "1px solid rgba(255,255,255,.06)",
+            maxWidth: "900px",
+            marginLeft: "auto",
+            marginRight: "auto",
+            textAlign: "center",
+            fontSize: "12px",
+            lineHeight: 1.6,
+            color: "#7C8CA0",
+          }}
+        >
+          Grant Scout Pro uses AI to help identify, draft, and manage grant applications. AI-generated content may
+          contain errors and should be independently reviewed before submission. Grant Scout Pro does not guarantee
+          funding outcomes, eligibility determinations, or award decisions, which are made solely by the awarding
+          agency or funder. Nothing on this site constitutes legal, financial, or tax advice.
+        </div>
+
+        <div
+          style={{
+            marginTop: "20px",
             textAlign: "center",
             fontSize: "14px",
           }}
