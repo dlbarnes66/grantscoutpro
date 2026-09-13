@@ -316,6 +316,7 @@ model Workspace {
 
   suspended   Boolean   @default(false)
   suspendedAt DateTime?
+  deletedAt   DateTime?
 
   workspaceDocumentActivities WorkspaceDocumentActivity[]
   workspaceBillingActivities  WorkspaceBillingActivity[]

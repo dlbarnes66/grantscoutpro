@@ -12,6 +12,7 @@ export async function GET() {
   try {
     const workspaces = await prisma.workspace.findMany({
       where: {
+        deletedAt: null,
         OR: [
           { ownerId: userId },
           { members: { some: { userId } } },

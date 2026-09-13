@@ -13,6 +13,16 @@ export default function WorkspaceSettingsPage({ params }: { params: { workspaceI
 
   const links = [
     {
+      title: "Workspace Details",
+      description: "Rename this workspace, or delete it (owners/admins only).",
+      href: `${base}/settings/workspace`,
+    },
+    {
+      title: "Organization Profile",
+      description: "Edit the account-level organization this workspace belongs to (owners/admins only).",
+      href: `${base}/settings/organization`,
+    },
+    {
       title: "Integrations",
       description: "Connect Slack, Stripe, and other tools with your own API keys.",
       href: `${base}/settings/integrations`,

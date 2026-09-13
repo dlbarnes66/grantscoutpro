@@ -87,6 +87,29 @@ if (pathname.startsWith("/api/workspaces/")) {
         );
       }
 
+      // ---------------------------------------------------------
+      // SOFT-DELETED WORKSPACES
+      // ---------------------------------------------------------
+      // Owners/admins can delete a workspace (sets deletedAt rather than
+      // a hard delete - this app has ~80 relations hanging off Workspace
+      // with no cascade rules, so a real delete would either throw on
+      // the first FK constraint or, worse, cascade somewhere it
+      // shouldn't). Checked here rather than in each of the ~150
+      // workspace-scoped routes individually, so every one of them
+      // (not just the ones that happen to remember to check) 404s once
+      // a workspace is gone.
+      const workspaceRecord = await prisma.workspace.findUnique({
+        where: { id: workspaceId },
+        select: { deletedAt: true },
+      });
+
+      if (!workspaceRecord || workspaceRecord.deletedAt) {
+        return NextResponse.json(
+          { error: "Workspace not found." },
+          { status: 404 }
+        );
+      }
+
       const billing =
         await prisma.workspaceBilling.findFirst({
           where: {
