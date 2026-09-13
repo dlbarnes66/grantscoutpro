@@ -149,7 +149,7 @@ export default function MemberProfileModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg bg-white shadow-xl">
+      <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg bg-white text-gray-900 shadow-xl">
         <div className="sticky top-0 flex items-center justify-between border-b bg-white px-6 py-4">
           <div>
             <h3 className="text-lg font-bold">Edit Member Profile</h3>

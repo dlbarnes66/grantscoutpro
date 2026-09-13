@@ -173,7 +173,7 @@ export default function MembersSection({ workspaceId }: { workspaceId: string })
   };
 
   return (
-    <div className="border rounded-lg p-6 bg-white shadow-sm space-y-4">
+    <div className="border rounded-lg p-6 bg-white text-gray-900 shadow-sm space-y-4">
       <h2 className="text-xl font-bold">Members</h2>
 
       {error && (
