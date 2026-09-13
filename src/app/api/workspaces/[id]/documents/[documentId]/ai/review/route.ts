@@ -62,7 +62,7 @@ Return JSON with:
   const __aiGuard = await guardAIRequest(params.id, userId);
   if (__aiGuard) return __aiGuard;
 
-  const result = await callUnifiedModel(prompt);
+  const result = await callUnifiedModel(prompt, undefined, params.id);
 
   console.log("OPENAI RESPONSE RECEIVED");
 

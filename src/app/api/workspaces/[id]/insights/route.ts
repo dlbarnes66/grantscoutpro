@@ -129,7 +129,7 @@ Stats:
 ${JSON.stringify(stats, null, 2)}
 `;
 
-    const summary = await callUnifiedModel(prompt);
+    const summary = await callUnifiedModel(prompt, undefined, params.id);
 
     const insight = await prisma.workspaceInsightLog.create({
       data: {

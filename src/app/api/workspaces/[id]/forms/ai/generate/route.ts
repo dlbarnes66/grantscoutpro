@@ -89,7 +89,7 @@ Description of the form to build:
 ${description}
 `;
 
-    const raw = await callUnifiedModel(prompt);
+    const raw = await callUnifiedModel(prompt, undefined, params.id);
 
     let draft: any;
     try {

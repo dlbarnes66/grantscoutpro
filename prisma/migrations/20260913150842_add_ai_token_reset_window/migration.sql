@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "WorkspaceBilling" ADD COLUMN     "aiTokensResetAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;

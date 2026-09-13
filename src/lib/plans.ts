@@ -15,6 +15,12 @@ export interface PlanConfig {
   maxSeats: number | null; // null = unlimited seats, per workspace
   maxWorkspaces: number; // workspaces per account (Org) - not unlimited even on Enterprise
   manualSearchesPerDay: number | null; // null = unlimited manual searches/day
+  // Real OpenAI cost cap, enforced in callUnifiedModel via
+  // src/lib/ai/aiUsage.ts against WorkspaceBilling.aiTokensUsed on a
+  // rolling 30-day window. Deliberately a finite number even on
+  // Enterprise (no null/unlimited option here) - a bug or a scraped
+  // client can otherwise run up an unbounded OpenAI bill.
+  aiTokensMonthly: number;
   access: PlanAccess;
 }
 
@@ -30,6 +36,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
     maxSeats: 1,
     maxWorkspaces: 1,
     manualSearchesPerDay: 1,
+    aiTokensMonthly: 75_000,
     access: { federal: true, state: false, foundation: false, crm: false, tasks: false },
   },
   team: {
@@ -39,6 +46,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
     maxSeats: 5,
     maxWorkspaces: 3,
     manualSearchesPerDay: 5,
+    aiTokensMonthly: 250_000,
     access: { federal: true, state: true, foundation: false, crm: false, tasks: true },
   },
   business: {
@@ -48,6 +56,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
     maxSeats: 10,
     maxWorkspaces: 6,
     manualSearchesPerDay: 15,
+    aiTokensMonthly: 750_000,
     access: { federal: true, state: true, foundation: true, crm: false, tasks: true },
   },
   enterprise: {
@@ -57,6 +66,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
     maxSeats: null,
     maxWorkspaces: 100,
     manualSearchesPerDay: null,
+    aiTokensMonthly: 3_000_000,
     access: { federal: true, state: true, foundation: true, crm: true, tasks: true },
   },
 };

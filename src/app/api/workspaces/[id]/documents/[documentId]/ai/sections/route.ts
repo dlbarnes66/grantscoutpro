@@ -70,7 +70,7 @@ Return JSON:
     const __aiGuard = await guardAIRequest(params.id, userId);
     if (__aiGuard) return __aiGuard;
 
-    const result = await callUnifiedModel(aiPrompt);
+    const result = await callUnifiedModel(aiPrompt, undefined, params.id);
 
     console.log(
       "SECTION GENERATOR RESPONSE RECEIVED"

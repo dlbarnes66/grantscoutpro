@@ -5,7 +5,7 @@ import { callUnifiedModel } from "@/app/api/ai/autoeditor/_lib/unifiedModel";
 export const dynamic = "force-dynamic";
 
 export async function POST(req, { params }) {
-  const { _id: workspaceId } = params;
+  const { id: workspaceId } = params;
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -26,6 +26,6 @@ Return JSON with:
 - recommendedMitigation
 `;
 
-  const result = await callUnifiedModel(prompt);
+  const result = await callUnifiedModel(prompt, undefined, workspaceId);
   return NextResponse.json({ success: true, riskFlags: result });
 }

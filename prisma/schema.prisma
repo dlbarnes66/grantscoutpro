@@ -530,11 +530,16 @@ model WorkspaceBilling {
   periodStart          DateTime  @default(now())
   periodEnd            DateTime?
 
-  seats           Int @default(1)
-  aiTokensMonthly Int @default(50000)
-  aiTokensUsed    Int @default(0)
-  documentLimit   Int @default(100)
-  storageLimitMb  Int @default(500)
+  seats           Int      @default(1)
+  aiTokensMonthly Int      @default(50000)
+  aiTokensUsed    Int      @default(0)
+  // Rolling 30-day window for aiTokensUsed - mirrors the daily reset
+  // pattern already used for manualSearchCount/manualSearchResetAt.
+  // Kept independent of the Stripe period fields above since most
+  // workspaces (pilots, unpaid, pre-org-billing) don't have those set.
+  aiTokensResetAt DateTime @default(now())
+  documentLimit   Int      @default(100)
+  storageLimitMb  Int      @default(500)
 
   // Daily manual grant-search allowance (distinct from the monthly
   // usageSearches/period billing counters above) - resets every 24h.

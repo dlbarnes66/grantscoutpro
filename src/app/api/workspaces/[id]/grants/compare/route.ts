@@ -85,7 +85,7 @@ ${compared
   )
   .join("\n")}`;
 
-      aiSummary = await callUnifiedModel(prompt);
+      aiSummary = await callUnifiedModel(prompt, undefined, params.id);
     }
 
     return NextResponse.json({ success: true, compared, ignored, aiSummary });

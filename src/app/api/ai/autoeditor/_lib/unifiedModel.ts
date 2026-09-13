@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { checkAiTokenBudget, recordAiTokenUsage } from "@/lib/ai/aiUsage";
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -7,22 +8,37 @@ const client = new OpenAI({
 const DEFAULT_MODEL = process.env.AUTOEDITOR_MODEL || "gpt-4o-mini";
 
 // Blanket, app-wide safety net: every AI panel in this codebase (200+
-// call sites) funnels through this one function, but most of those
-// call sites have no idea what workspace/user is asking and can't be
-// individually rate-limited without a much larger refactor. This caps
-// total OpenAI spend across the whole app regardless of caller, so a
-// runaway loop, a scraped/looping client, or a bug in any one panel
-// can't quietly run up an unbounded bill. Per-workspace limits belong
-// at the call site (see src/lib/ai/guardAIRequest.ts) where the
-// workspace is actually known -- this is the last line of defense,
-// not a replacement for that.
+// call sites) funnels through this one function. Most of those call
+// sites don't pass a workspaceId (a much larger refactor to thread
+// through all of them), so this global rate limit stays as the last
+// line of defense against a runaway loop or a scraped/looping client
+// regardless of caller.
+//
+// Callers that DO know their workspaceId (currently the ~55
+// per-document AI panels under
+// src/app/api/workspaces/[id]/documents/[documentId]/ai/*) pass it as
+// the third argument, which enforces a real per-plan monthly OpenAI
+// token budget (see src/lib/ai/aiUsage.ts) - this is the actual cost
+// cap; the call-count limit above is not a substitute for it, since a
+// handful of huge prompts can cost far more than many small ones.
 const GLOBAL_CALLS_PER_MINUTE = Number(process.env.OPENAI_GLOBAL_CALLS_PER_MINUTE ?? 120);
 
-export async function callUnifiedModel(prompt: string, model?: string) {
+export async function callUnifiedModel(prompt: string, model?: string, workspaceId?: string) {
   const rl = await checkRateLimit("openai:global", GLOBAL_CALLS_PER_MINUTE, 60);
   if (!rl.allowed) {
     console.error("Unified Model Error: global OpenAI call rate limit hit");
     return "[ERROR: AI request volume is unusually high right now. Please try again in a moment.]";
+  }
+
+  if (workspaceId) {
+    const budget = await checkAiTokenBudget(workspaceId).catch((err) => {
+      console.error("AI token budget check failed:", err);
+      return null;
+    });
+    if (budget && !budget.allowed) {
+      const resetDate = budget.nextResetAt.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      return `[ERROR: This workspace has used its monthly AI budget (${budget.limit.toLocaleString()} tokens). It resets around ${resetDate}, or upgrade your plan for a higher limit.]`;
+    }
   }
 
   try {
@@ -42,6 +58,11 @@ export async function callUnifiedModel(prompt: string, model?: string) {
     });
 
     const output = response.choices?.[0]?.message?.content || "";
+
+    if (workspaceId) {
+      void recordAiTokenUsage(workspaceId, response.usage?.total_tokens ?? 0);
+    }
+
     return output;
   } catch (error) {
     console.error("Unified Model Error:", error);
