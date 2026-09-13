@@ -12,7 +12,11 @@ type Member = {
   status: string;
   createdAt: string;
   isOwner: boolean;
+  customRoleId: string | null;
+  customRoleName: string | null;
 };
+
+type OrgRoleOption = { id: string; name: string };
 
 type Invite = {
   id: string;
@@ -37,6 +41,8 @@ export default function MembersSection({ workspaceId }: { workspaceId: string })
   const [busyUserId, setBusyUserId] = useState<string | null>(null);
   const [busyInviteId, setBusyInviteId] = useState<string | null>(null);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [orgRoles, setOrgRoles] = useState<OrgRoleOption[]>([]);
+  const [busyCustomRoleUserId, setBusyCustomRoleUserId] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -55,10 +61,40 @@ export default function MembersSection({ workspaceId }: { workspaceId: string })
     }
   };
 
+  const loadOrgRoles = async () => {
+    try {
+      const res = await fetch(`/api/workspaces/${workspaceId}/organization/roles`);
+      const json = await res.json();
+      if (res.ok) setOrgRoles((json.roles || []).map((r: any) => ({ id: r.id, name: r.name })));
+    } catch {
+      // Non-critical - role assignment dropdown just stays empty.
+    }
+  };
+
   useEffect(() => {
     load();
+    loadOrgRoles();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workspaceId]);
+
+  const handleCustomRoleChange = async (targetUserId: string, customRoleId: string) => {
+    setBusyCustomRoleUserId(targetUserId);
+    setError(null);
+    try {
+      const res = await fetch(`/api/workspaces/${workspaceId}/admin/members`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: targetUserId, customRoleId: customRoleId || null }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to update role");
+      await load();
+    } catch (err: any) {
+      setError(err.message || "Failed to update role");
+    } finally {
+      setBusyCustomRoleUserId(null);
+    }
+  };
 
   const isOwnerViewer = viewerRole === "owner";
   const isAdminOrOwnerViewer = viewerRole === "owner" || viewerRole === "admin";
@@ -199,6 +235,7 @@ export default function MembersSection({ workspaceId }: { workspaceId: string })
                 <th className="py-2 pr-4">Email</th>
                 <th className="py-2 pr-4">Role</th>
                 <th className="py-2 pr-4">Status</th>
+                <th className="py-2 pr-4">Custom Role</th>
                 {isAdminOrOwnerViewer && <th className="py-2 pr-4">Profile</th>}
                 {isOwnerViewer && <th className="py-2 pr-4">Actions</th>}
               </tr>
@@ -227,6 +264,25 @@ export default function MembersSection({ workspaceId }: { workspaceId: string })
                     )}
                   </td>
                   <td className="py-2 pr-4 capitalize">{m.status}</td>
+                  <td className="py-2 pr-4">
+                    {isAdminOrOwnerViewer && !m.isOwner ? (
+                      <select
+                        value={m.customRoleId || ""}
+                        disabled={busyCustomRoleUserId === m.userId}
+                        onChange={(e) => handleCustomRoleChange(m.userId, e.target.value)}
+                        className="border rounded px-2 py-1"
+                      >
+                        <option value="">None</option>
+                        {orgRoles.map((r) => (
+                          <option key={r.id} value={r.id}>
+                            {r.name}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      m.customRoleName || "—"
+                    )}
+                  </td>
                   {isAdminOrOwnerViewer && (
                     <td className="py-2 pr-4">
                       <button

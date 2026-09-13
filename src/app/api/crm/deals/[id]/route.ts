@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getWorkspaceRole } from "@/lib/crm/access";
 import { hasCrmAccess } from "@/lib/crm/entitlement";
+import { hasPermission } from "@/lib/workspace/permissions";
 import { isCrmStage, stageLabel } from "@/lib/crm/stages";
 
 export const dynamic = "force-dynamic";
@@ -68,6 +69,13 @@ export async function PATCH(req: NextRequest, context: { params: Promise<Params>
     );
   }
 
+  if (!(await hasPermission(workspaceId, userId, "manage_crm"))) {
+    return NextResponse.json(
+      { error: "You don't have permission to manage CRM records in this workspace." },
+      { status: 403 }
+    );
+  }
+
   try {
     const existing = await prisma.crmDeal.findUnique({ where: { id } });
     if (!existing || existing.workspaceId !== workspaceId) {
@@ -125,6 +133,13 @@ export async function DELETE(req: NextRequest, context: { params: Promise<Params
     return NextResponse.json(
       { error: "CRM isn't included in this workspace's plan. Upgrade to Enterprise or add the CRM addon.", upgrade: true },
       { status: 402 }
+    );
+  }
+
+  if (!(await hasPermission(workspaceId, userId, "manage_crm"))) {
+    return NextResponse.json(
+      { error: "You don't have permission to manage CRM records in this workspace." },
+      { status: 403 }
     );
   }
 

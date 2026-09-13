@@ -38,6 +38,11 @@ export default function WorkspaceSettingsPage({ params }: { params: { workspaceI
       href: `${base}/admin`,
     },
     {
+      title: "Roles & Permissions",
+      description: "Create custom roles for your organization and control what each one can access (owners/admins only).",
+      href: `${base}/settings/roles`,
+    },
+    {
       title: "Billing",
       description: "View your plan, usage, and manage billing.",
       href: `${base}/workspace-billing`,

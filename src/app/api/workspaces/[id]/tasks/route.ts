@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getEffectivePlan } from "@/lib/plans";
 import { getEffectiveTaskStatus } from "@/lib/tasks";
+import { hasPermission } from "@/lib/workspace/permissions";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -91,6 +92,13 @@ export async function POST(req: NextRequest, { params }: { params: Params }) {
           error:
             "Task assignments are available on the Team, Business, and Enterprise plans. Upgrade to start assigning tasks.",
         },
+        { status: 403 }
+      );
+    }
+
+    if (!(await hasPermission(id, userId, "manage_tasks"))) {
+      return NextResponse.json(
+        { error: "You don't have permission to create tasks in this workspace." },
         { status: 403 }
       );
     }

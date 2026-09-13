@@ -55,7 +55,7 @@ export async function GET(
     const workspace = await prisma.workspace.findUnique({
       where: { id: params.id },
       include: {
-        members: { include: { user: true } },
+        members: { include: { user: true, customRole: true } },
         invites: { where: { status: "pending" }, orderBy: { createdAt: "desc" } },
       },
     });
@@ -82,6 +82,8 @@ export async function GET(
       status: m.status,
       createdAt: m.createdAt,
       isOwner: m.userId === workspace.ownerId,
+      customRoleId: m.customRoleId,
+      customRoleName: m.customRole?.name ?? null,
     }));
 
     const invites = workspace.invites.map((i) => ({
@@ -356,7 +358,11 @@ export async function POST(
   }
 }
 
-// PATCH { userId, role } -> change an existing (non-owner) member's role.
+// PATCH { userId, role? , customRoleId? } -> change an existing
+// (non-owner) member's base role and/or their custom org role.
+// Base role (member/admin) stays owner-only, since it controls
+// sensitive actions (billing, member management). Assigning a custom
+// role is a narrower, additive action available to owners AND admins.
 export async function PATCH(
   req: NextRequest,
   context: { params: Promise<Params> }
@@ -370,9 +376,9 @@ export async function PATCH(
     if (!workspace) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
-    if (!me || me.role !== "owner") {
+    if (!me || (me.role !== "owner" && me.role !== "admin")) {
       return NextResponse.json(
-        { error: "Only the workspace owner can change member roles" },
+        { error: "Only the workspace owner or an admin can change member roles" },
         { status: 403 }
       );
     }
@@ -380,21 +386,51 @@ export async function PATCH(
     const body = await req.json().catch(() => null);
     const targetUserId = body?.userId as string | undefined;
     const role = body?.role as AssignableRole | undefined;
+    const hasCustomRoleField = body && Object.prototype.hasOwnProperty.call(body, "customRoleId");
+    const customRoleId = hasCustomRoleField ? (body.customRoleId as string | null) : undefined;
 
-    if (!targetUserId || !role) {
-      return NextResponse.json({ error: "Missing userId or role" }, { status: 400 });
-    }
-    if (!ASSIGNABLE_ROLES.includes(role)) {
-      return NextResponse.json(
-        { error: `Role must be one of: ${ASSIGNABLE_ROLES.join(", ")}` },
-        { status: 400 }
-      );
+    if (!targetUserId) {
+      return NextResponse.json({ error: "Missing userId" }, { status: 400 });
     }
     if (targetUserId === workspace.ownerId) {
       return NextResponse.json(
         { error: "Cannot change the owner's role" },
         { status: 400 }
       );
+    }
+    if (role === undefined && !hasCustomRoleField) {
+      return NextResponse.json({ error: "Provide role and/or customRoleId" }, { status: 400 });
+    }
+
+    const data: { role?: AssignableRole; customRoleId?: string | null } = {};
+
+    if (role !== undefined) {
+      if (me.role !== "owner") {
+        return NextResponse.json(
+          { error: "Only the workspace owner can change a member's base role" },
+          { status: 403 }
+        );
+      }
+      if (!ASSIGNABLE_ROLES.includes(role)) {
+        return NextResponse.json(
+          { error: `Role must be one of: ${ASSIGNABLE_ROLES.join(", ")}` },
+          { status: 400 }
+        );
+      }
+      data.role = role;
+    }
+
+    if (hasCustomRoleField) {
+      if (customRoleId !== null) {
+        if (!workspace.org) {
+          return NextResponse.json({ error: "This workspace has no organization to assign a role from." }, { status: 400 });
+        }
+        const orgRole = await prisma.orgRole.findUnique({ where: { id: customRoleId as string } });
+        if (!orgRole || orgRole.orgId !== workspace.org.id) {
+          return NextResponse.json({ error: "Role not found" }, { status: 404 });
+        }
+      }
+      data.customRoleId = customRoleId;
     }
 
     const updated = await prisma.workspaceMember.update({
@@ -404,12 +440,24 @@ export async function PATCH(
           userId: targetUserId,
         },
       },
-      data: { role },
+      data,
+      include: { customRole: true },
     });
 
-    await logActivitySafe(params.id, "member_role_changed", { targetUserId, role }, userId);
+    await logActivitySafe(
+      params.id,
+      "member_role_changed",
+      { targetUserId, role: updated.role, customRoleId: updated.customRoleId },
+      userId
+    );
 
-    return NextResponse.json({ success: true, updated });
+    return NextResponse.json({
+      success: true,
+      updated: {
+        ...updated,
+        customRoleName: updated.customRole?.name ?? null,
+      },
+    });
   } catch (err: any) {
     console.error("WORKSPACE ADMIN MEMBERS PATCH ERROR:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
