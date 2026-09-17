@@ -66,6 +66,15 @@ export async function POST(
 
 // Persist the discovered profile so it survives past this one response -
 // previously this endpoint scraped the site and threw the result away.
+// Social links come straight from the onboarding form (step 1), not
+// from the site scrape - they're not something discoverOrganization()
+// can infer, so pass through whatever the user typed. Empty strings
+// are normalized to undefined so an unfilled field doesn't overwrite
+// something the user already saved from Settings.
+const linkedin = typeof body.linkedin === "string" && body.linkedin.trim() ? body.linkedin.trim() : undefined;
+const facebook = typeof body.facebook === "string" && body.facebook.trim() ? body.facebook.trim() : undefined;
+const instagram = typeof body.instagram === "string" && body.instagram.trim() ? body.instagram.trim() : undefined;
+
 await prisma.userProfile.upsert({
   where: { userId },
   update: {
@@ -73,6 +82,9 @@ await prisma.userProfile.upsert({
     mission: profile.mission,
     website: profile.website,
     focusAreas: profile.keywords,
+    ...(linkedin !== undefined ? { linkedin } : {}),
+    ...(facebook !== undefined ? { facebook } : {}),
+    ...(instagram !== undefined ? { instagram } : {}),
   },
   create: {
     userId,
@@ -80,6 +92,9 @@ await prisma.userProfile.upsert({
     mission: profile.mission,
     website: profile.website,
     focusAreas: profile.keywords,
+    linkedin,
+    facebook,
+    instagram,
   },
 });
 

@@ -179,20 +179,36 @@ model UserProfile {
   mission          String?
   website          String?
 
+  // Social profiles collected in onboarding step 1 (or added later from
+  // Settings if skipped) - used to enrich organization discovery, not
+  // required for grant matching.
+  linkedin  String?
+  facebook  String?
+  instagram String?
+
   country String?
   state   String?
   city    String?
 
   nonprofitStatus String?
   ein             String?
+  uei             String?
 
   staffSize       Int?
   annualBudget    Int?
+  // Bucketed range from the onboarding form's dropdown (e.g. "Under
+  // $100K") - kept separate from the precise annualBudget above, which
+  // is entered directly in Settings.
+  budgetRange     String?
   grantExperience String?
 
   focusAreas        String[]
   populationsServed String[]
   geographicService String[]
+  // Breadth of service from onboarding's dropdown (County/Regional/
+  // Statewide/National) - a level, distinct from geographicService's
+  // list of specific named areas.
+  serviceScope      String?
 
   pastGrants String?
   pastWins   Int?

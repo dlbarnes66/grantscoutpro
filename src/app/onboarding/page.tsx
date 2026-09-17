@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { US_STATES } from "@/lib/location/states";
 
 function Tooltip({
   text,
@@ -101,7 +102,71 @@ const [programAreas, setProgramAreas] =
     }
   }
 
-  function nextStep() {
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  // Steps 3 and 4 gather most of what onboarding is actually for, but
+  // until now none of it (besides organizationName/mission/website/
+  // focusAreas from the step-1 site scrape) ever reached the database -
+  // it lived in this component's state and was thrown away the moment
+  // someone clicked through to /home. This persists everything via the
+  // same profile-upsert endpoint Settings uses, so nothing typed here is
+  // lost even if the user never opens Settings afterward.
+  async function saveProfile() {
+    setSavingProfile(true);
+    setSaveError(null);
+    try {
+      const existingKeywords: string[] = Array.isArray(profile?.keywords) ? profile.keywords : [];
+      const programAreaList = programAreas
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const mergedFocusAreas = Array.from(new Set([...existingKeywords, ...programAreaList]));
+
+      const populationsServedList = populationsServed
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      const res = await fetch("/api/settings/profile/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          profile: {
+            organizationType,
+            budgetRange,
+            priorityAreas: fundingPriorities,
+            strategicGoals: grantGoals,
+            ein,
+            uei,
+            state: primaryState,
+            serviceScope,
+            populationsServed: populationsServedList,
+            ...(mergedFocusAreas.length ? { focusAreas: mergedFocusAreas } : {}),
+          },
+        }),
+      });
+
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json?.error || "Failed to save your profile");
+      }
+    } catch (error: any) {
+      console.error("Onboarding profile save failed:", error);
+      // Best-effort: don't trap someone in onboarding over a save hiccup,
+      // but let them know so they can double check Settings afterward.
+      setSaveError(
+        "Some of your answers couldn't be saved just now - you can add or fix them anytime from Workspace Settings > Grant Profile."
+      );
+    } finally {
+      setSavingProfile(false);
+    }
+  }
+
+  async function nextStep() {
+    if (step === 4) {
+      await saveProfile();
+    }
     setStep((prev) =>
       Math.min(prev + 1, 6)
     );
@@ -383,6 +448,102 @@ const [programAreas, setProgramAreas] =
                 placeholder="Education, housing, workforce development..."
               />
             </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="mb-2 flex items-center gap-2 text-slate-300">
+                  Primary State
+                  <Tooltip text="Turns on state-grant scanning for your state, where we have a source configured." />
+                </label>
+
+                <select
+                  value={primaryState}
+                  onChange={(e) => setPrimaryState(e.target.value)}
+                  className="w-full rounded-lg p-3 text-black"
+                >
+                  <option value="">Select...</option>
+                  {US_STATES.map((s) => (
+                    <option key={s.code} value={s.code}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-slate-300">
+                  Service Scope
+                </label>
+
+                <select
+                  value={serviceScope}
+                  onChange={(e) => setServiceScope(e.target.value)}
+                  className="w-full rounded-lg p-3 text-black"
+                >
+                  <option>County</option>
+                  <option>Regional</option>
+                  <option>Statewide</option>
+                  <option>National</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-slate-300">
+                  EIN
+                </label>
+
+                <input
+                  type="text"
+                  placeholder="XX-XXXXXXX"
+                  className="w-full rounded-lg p-3 text-black"
+                  value={ein}
+                  onChange={(e) => setEin(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 flex items-center gap-2 text-slate-300">
+                  UEI
+                  <Tooltip text="Unique Entity Identifier from SAM.gov - needed for most federal applications." />
+                </label>
+
+                <input
+                  type="text"
+                  className="w-full rounded-lg p-3 text-black"
+                  value={uei}
+                  onChange={(e) => setUei(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-slate-300">
+                Populations Served
+              </label>
+
+              <input
+                type="text"
+                placeholder="Veterans, youth, families experiencing homelessness..."
+                className="w-full rounded-lg p-3 text-black"
+                value={populationsServed}
+                onChange={(e) => setPopulationsServed(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 flex items-center gap-2 text-slate-300">
+                Program Areas
+                <Tooltip text="The specific programs and services your organization runs day to day - added to your grant-matching keywords alongside what we found on your website." />
+              </label>
+
+              <input
+                type="text"
+                placeholder="Transitional housing, job training, case management..."
+                className="w-full rounded-lg p-3 text-black"
+                value={programAreas}
+                onChange={(e) => setProgramAreas(e.target.value)}
+              />
+            </div>
           </div>
         )}
 
@@ -487,6 +648,10 @@ const [programAreas, setProgramAreas] =
         )}
       </div>
 
+      {saveError && (
+        <p className="mt-4 text-sm text-amber-400">{saveError}</p>
+      )}
+
       <div className="mt-8 flex justify-between">
         <button
           onClick={previousStep}
@@ -510,9 +675,10 @@ const [programAreas, setProgramAreas] =
         ) : step < 6 ? (
           <button
             onClick={nextStep}
-            className="rounded-lg bg-cyan-500 px-5 py-3 font-semibold text-black"
+            disabled={savingProfile}
+            className="rounded-lg bg-cyan-500 px-5 py-3 font-semibold text-black disabled:opacity-60"
           >
-            Next
+            {savingProfile ? "Saving..." : "Next"}
           </button>
         ) : (
           <button

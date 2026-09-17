@@ -23,6 +23,11 @@ export default function WorkspaceSettingsPage({ params }: { params: { workspaceI
       href: `${base}/settings/organization`,
     },
     {
+      title: "Grant Profile",
+      description: "Edit the organization details used for grant matching - website, social media, location, tax IDs, budget, focus areas and goals (owners/admins only).",
+      href: `${base}/settings/grant-profile`,
+    },
+    {
       title: "Integrations",
       description: "Connect Slack, Stripe, and other tools with your own API keys.",
       href: `${base}/settings/integrations`,
