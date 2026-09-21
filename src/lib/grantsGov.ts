@@ -41,9 +41,52 @@ export interface GrantsGovOpportunity {
 export class GrantsGovConfigError extends Error {}
 export class GrantsGovRequestError extends Error {}
 
+// The full applicant_type enum, confirmed against the live
+// /openapi.json for api.simpler.grants.gov (ApplicantTypeFilterV1Schema).
+// Exported so callers can compose a subset rather than typing raw
+// strings that are easy to get wrong.
+export type GrantsGovApplicantType =
+  | "state_governments"
+  | "county_governments"
+  | "city_or_township_governments"
+  | "special_district_governments"
+  | "independent_school_districts"
+  | "public_and_state_institutions_of_higher_education"
+  | "private_institutions_of_higher_education"
+  | "federally_recognized_native_american_tribal_governments"
+  | "other_native_american_tribal_organizations"
+  | "public_and_indian_housing_authorities"
+  | "nonprofits_non_higher_education_with_501c3"
+  | "nonprofits_non_higher_education_without_501c3"
+  | "individuals"
+  | "for_profit_organizations_other_than_small_businesses"
+  | "small_businesses"
+  | "other"
+  | "unrestricted";
+
+// The applicant types worth searching for a for-profit/business
+// workspace: opportunities actually open to a for-profit (either
+// specifically, or because they're open to anyone). Deliberately does
+// NOT include "other" - that bucket is too ambiguous to assume is a
+// for-profit fit.
+export const FOR_PROFIT_APPLICANT_TYPES: GrantsGovApplicantType[] = [
+  "small_businesses",
+  "for_profit_organizations_other_than_small_businesses",
+  "unrestricted",
+];
+
+export interface SearchFederalGrantsOptions {
+  // Restrict results to opportunities whose posted eligible-applicant
+  // types include at least one of these. Omit for the existing
+  // unfiltered behavior (every posted/forecasted opportunity matching
+  // the query, regardless of who can apply).
+  applicantTypes?: GrantsGovApplicantType[];
+}
+
 export async function searchFederalGrants(
   query: string,
-  pageSize = 25
+  pageSize = 25,
+  options: SearchFederalGrantsOptions = {}
 ): Promise<GrantsGovOpportunity[]> {
   const apiKey = process.env.GRANTSGOV_API_KEY || process.env.GRANTS_GOV_API_KEY;
 
@@ -51,6 +94,13 @@ export async function searchFederalGrants(
     throw new GrantsGovConfigError(
       "GRANTSGOV_API_KEY is not set. Get a free key from Login.gov and add it to your environment - see wiki.simpler.grants.gov."
     );
+  }
+
+  const filters: Record<string, any> = {
+    opportunity_status: { one_of: ["posted", "forecasted"] },
+  };
+  if (options.applicantTypes && options.applicantTypes.length > 0) {
+    filters.applicant_type = { one_of: options.applicantTypes };
   }
 
   const res = await fetch(SEARCH_URL, {
@@ -61,9 +111,7 @@ export async function searchFederalGrants(
     },
     body: JSON.stringify({
       query: query || undefined,
-      filters: {
-        opportunity_status: { one_of: ["posted", "forecasted"] },
-      },
+      filters,
       pagination: {
         page_offset: 1,
         page_size: pageSize,

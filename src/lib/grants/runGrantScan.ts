@@ -3,9 +3,10 @@ import { sendEmailSafe } from "@/lib/email/sendgrid";
 import { grantMatchEmail } from "@/lib/email/templates";
 import { rescanOrganizationWebsite } from "@/lib/ai/organizationScan";
 import { scoreGrantMatch } from "@/lib/ai/grantMatch";
-import { searchFederalGrants, grantsGovDetailUrl, stripHtml, GrantsGovConfigError, GrantsGovRequestError } from "@/lib/grantsGov";
+import { searchFederalGrants, grantsGovDetailUrl, stripHtml, GrantsGovConfigError, GrantsGovRequestError, FOR_PROFIT_APPLICANT_TYPES } from "@/lib/grantsGov";
 import { fetchStateGrants, type StateGrantRaw } from "@/lib/grants/state/fetchStateGrants";
 import { fetchFoundations } from "@/lib/grants/foundations/fetchFoundations";
+import { fetchSbirGrants, sbirAgencyName, earliestSbirDueDate, summarizeSbirTopics } from "@/lib/grants/sbir/fetchSbirGrants";
 
 // The twice-daily (or whatever schedule you point a cron at) job behind
 // the notification bell: per workspace, refresh the owner's profile from
@@ -24,6 +25,16 @@ import { fetchFoundations } from "@/lib/grants/foundations/fetchFoundations";
 // - real organizations and real financials, but not live "open call for
 // proposals" listings the way federal/state grants are, since no free
 // source of those exists for foundations.
+//
+// For-profit workspaces (profile.organizationType === "For-Profit") get
+// a different mix: foundation prospecting is skipped (private
+// foundations fund 501(c)(3)s, essentially never for-profits), federal
+// search is scoped to applicant types that actually admit a for-profit
+// (small_businesses / for_profit_organizations_other_than_small_businesses
+// / unrestricted - see FOR_PROFIT_APPLICANT_TYPES in grantsGov.ts), and
+// SBIR/STTR solicitations (src/lib/grants/sbir/fetchSbirGrants.ts) are
+// pulled in as an extra source, since that program is open only to
+// for-profit small businesses.
 
 const MATCH_NOTIFY_THRESHOLD = Number(process.env.GRANT_MATCH_NOTIFY_THRESHOLD ?? 75);
 const MAX_GRANTS_SCORED_PER_WORKSPACE = 15;
@@ -34,6 +45,7 @@ export type GrantScanResult = {
   grantsIngested: number;
   stateGrantsIngested: number;
   foundationsIngested: number;
+  sbirGrantsIngested: number;
   grantsScored: number;
   matchesNotified: number;
   errors: string[];
@@ -96,6 +108,7 @@ export async function runGrantScan(): Promise<GrantScanResult> {
     grantsIngested: 0,
     stateGrantsIngested: 0,
     foundationsIngested: 0,
+    sbirGrantsIngested: 0,
     grantsScored: 0,
     matchesNotified: 0,
     errors: [],
@@ -125,10 +138,18 @@ export async function runGrantScan(): Promise<GrantScanResult> {
       if (!profile) continue;
 
       const query = (profile.focusAreas && profile.focusAreas.length > 0 ? profile.focusAreas : ["nonprofit"]).join(" ");
+      const isForProfit = profile.organizationType === "For-Profit";
 
       // 2. Pull in fresh federal grants matching the org's focus areas.
+      // For a for-profit workspace, scope this to applicant types that
+      // actually admit a for-profit - otherwise most of what comes back
+      // is a grant they're not eligible for in the first place.
       try {
-        const opportunities = await searchFederalGrants(query);
+        const opportunities = await searchFederalGrants(
+          query,
+          25,
+          isForProfit ? { applicantTypes: FOR_PROFIT_APPLICANT_TYPES } : {}
+        );
         for (const opp of opportunities) {
           const url = grantsGovDetailUrl(opp.opportunity_id);
           const s = opp.summary;
@@ -186,41 +207,82 @@ export async function runGrantScan(): Promise<GrantScanResult> {
 
       // 2c. Foundation prospects from IRS filings (ProPublica) - no
       // deadline, these are funders to research and reach out to, not
-      // opportunities with an application window.
-      try {
-        const foundationQuery = profile.focusAreas?.[0] || profile.mission?.slice(0, 60) || query;
-        const foundations = await fetchFoundations(foundationQuery, profile.state);
-        for (const f of foundations) {
-          if (!f.url || !f.name) continue;
-          const filingNote =
-            f.totalRevenue != null || f.totalAssets != null
-              ? ` Most recent IRS filing${f.latestFilingYear ? ` (FY${f.latestFilingYear})` : ""}: ${
-                  f.totalRevenue != null ? `revenue $${f.totalRevenue.toLocaleString()}` : "revenue unknown"
-                }, ${f.totalAssets != null ? `assets $${f.totalAssets.toLocaleString()}` : "assets unknown"}.`
-              : "";
-          const created = await upsertGrantOpportunity(workspace.id, f.url, {
-            title: f.name,
-            agency: "Private Foundation (prospect)",
-            category: f.nteeCode ? `NTEE ${f.nteeCode}` : "Foundation Prospect",
-            status: "open",
-            summary: `Prospective funder identified from IRS Form 990 filings, based in ${
-              [f.city, f.state].filter(Boolean).join(", ") || "an unknown location"
-            }.${filingNote} Not a live open call for proposals - research fit and reach out directly.`,
-            geographicFocus: f.state ?? undefined,
-            eligibleStates: f.state ?? undefined,
-            foundationName: f.name,
-            foundationEIN: f.ein ?? undefined,
-            foundation990PF: {
-              totalRevenue: f.totalRevenue ?? null,
-              totalAssets: f.totalAssets ?? null,
-              latestFilingYear: f.latestFilingYear ?? null,
-            } as any,
-            raw: f as any,
-          });
-          if (created) result.foundationsIngested += 1;
+      // opportunities with an application window. Skipped for a
+      // for-profit workspace: private foundations fund 501(c)(3)s,
+      // essentially never for-profit businesses, so this source is
+      // noise (or actively misleading) for them.
+      if (!isForProfit) {
+        try {
+          const foundationQuery = profile.focusAreas?.[0] || profile.mission?.slice(0, 60) || query;
+          const foundations = await fetchFoundations(foundationQuery, profile.state);
+          for (const f of foundations) {
+            if (!f.url || !f.name) continue;
+            const filingNote =
+              f.totalRevenue != null || f.totalAssets != null
+                ? ` Most recent IRS filing${f.latestFilingYear ? ` (FY${f.latestFilingYear})` : ""}: ${
+                    f.totalRevenue != null ? `revenue $${f.totalRevenue.toLocaleString()}` : "revenue unknown"
+                  }, ${f.totalAssets != null ? `assets $${f.totalAssets.toLocaleString()}` : "assets unknown"}.`
+                : "";
+            const created = await upsertGrantOpportunity(workspace.id, f.url, {
+              title: f.name,
+              agency: "Private Foundation (prospect)",
+              category: f.nteeCode ? `NTEE ${f.nteeCode}` : "Foundation Prospect",
+              status: "open",
+              summary: `Prospective funder identified from IRS Form 990 filings, based in ${
+                [f.city, f.state].filter(Boolean).join(", ") || "an unknown location"
+              }.${filingNote} Not a live open call for proposals - research fit and reach out directly.`,
+              geographicFocus: f.state ?? undefined,
+              eligibleStates: f.state ?? undefined,
+              foundationName: f.name,
+              foundationEIN: f.ein ?? undefined,
+              foundation990PF: {
+                totalRevenue: f.totalRevenue ?? null,
+                totalAssets: f.totalAssets ?? null,
+                latestFilingYear: f.latestFilingYear ?? null,
+              } as any,
+              raw: f as any,
+            });
+            if (created) result.foundationsIngested += 1;
+          }
+        } catch (err: any) {
+          result.errors.push(`Foundation prospecting failed for workspace ${workspace.id}: ${err?.message || err}`);
         }
-      } catch (err: any) {
-        result.errors.push(`Foundation prospecting failed for workspace ${workspace.id}: ${err?.message || err}`);
+      }
+
+      // 2d. SBIR/STTR solicitations - only for a for-profit workspace,
+      // since the program is open only to for-profit small businesses.
+      // See the known-issue note in fetchSbirGrants.ts: as of this
+      // writing SBIR.gov's own API is returning 403s while under
+      // maintenance, so this step is expected to no-op (logged, not
+      // fatal) until SBA restores it.
+      if (isForProfit) {
+        try {
+          const sbirQuery = profile.focusAreas?.[0] || query;
+          const solicitations = await withTimeout(fetchSbirGrants(sbirQuery), 30_000, "SBIR search");
+          for (const s of solicitations) {
+            const url = s.sbir_solicitation_link || s.solicitation_agency_url;
+            const title = s.solicitation_title;
+            if (!url || !title) continue;
+            const deadline = earliestSbirDueDate(s);
+            const created = await upsertGrantOpportunity(workspace.id, url, {
+              title,
+              agency: sbirAgencyName(s.agency) ?? s.agency ?? undefined,
+              category: [s.program, s.phase].filter(Boolean).join(" ") || "SBIR/STTR",
+              status: "open",
+              summary:
+                summarizeSbirTopics(s) ||
+                `${s.program || "SBIR/STTR"} solicitation from ${sbirAgencyName(s.agency) ?? s.agency ?? "a federal agency"}.`,
+              eligibleApplicants:
+                "SBIR/STTR program rule: U.S. small business concerns only (organized for profit, majority U.S.-owned, generally under 500 employees). Confirm current size/ownership thresholds before applying.",
+              deadline: deadline ?? undefined,
+              openDate: s.open_date ? new Date(s.open_date) : undefined,
+              raw: s as any,
+            });
+            if (created) result.sbirGrantsIngested += 1;
+          }
+        } catch (err: any) {
+          result.errors.push(`SBIR search failed for workspace ${workspace.id}: ${err?.message || err}`);
+        }
       }
 
       // 3. Score any open grants that haven't been scored yet, capped

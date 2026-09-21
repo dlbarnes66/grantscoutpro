@@ -8,6 +8,7 @@ import {
   stripHtml,
   GrantsGovConfigError,
   GrantsGovRequestError,
+  FOR_PROFIT_APPLICANT_TYPES,
   type GrantsGovOpportunity,
 } from "@/lib/grantsGov";
 
@@ -168,9 +169,20 @@ export async function POST(
   const body = await req.json().catch(() => ({}));
   const query: string = typeof body.query === "string" ? body.query : "";
 
+  // Scope results to applicant types that actually admit a for-profit
+  // when that's what this workspace is - otherwise a manual search
+  // (which counts against a limited daily allowance) mostly returns
+  // grants the org can't apply to. Mirrors the same branching in the
+  // twice-daily automated scan (see runGrantScan.ts).
+  const ownerProfile = await prisma.userProfile.findUnique({
+    where: { userId: workspace.ownerId },
+    select: { organizationType: true },
+  });
+  const isForProfit = ownerProfile?.organizationType === "For-Profit";
+
   let opportunities: GrantsGovOpportunity[] = [];
   try {
-    opportunities = await searchFederalGrants(query);
+    opportunities = await searchFederalGrants(query, 25, isForProfit ? { applicantTypes: FOR_PROFIT_APPLICANT_TYPES } : {});
   } catch (err) {
     if (err instanceof GrantsGovConfigError) {
       return NextResponse.json({ error: err.message }, { status: 500 });

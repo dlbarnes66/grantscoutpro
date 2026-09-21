@@ -28,7 +28,7 @@ const FALLBACK: GrantMatchResult = {
  * text, not a guarantee of the real form fields.
  */
 export async function scoreGrantMatch(
-  profile: Pick<UserProfile, "organizationName" | "mission" | "focusAreas" | "currentProjects" | "state">,
+  profile: Pick<UserProfile, "organizationName" | "organizationType" | "mission" | "focusAreas" | "currentProjects" | "state">,
   grant: Pick<
     Grant,
     "title" | "summary" | "agency" | "category" | "eligibleApplicants" | "eligibility" | "amountMin" | "amountMax" | "awardFloor" | "awardCeiling" | "deadline"
@@ -40,6 +40,7 @@ export async function scoreGrantMatch(
   const projects = Array.isArray(profile.currentProjects) ? profile.currentProjects : [];
 
   const profileText = `Organization: ${profile.organizationName || "Unknown"}
+Organization type: ${profile.organizationType || "Not specified"}
 Mission: ${profile.mission || "Not provided"}
 Focus areas: ${(profile.focusAreas || []).join(", ") || "Not provided"}
 State: ${profile.state || "Not provided"}
@@ -63,7 +64,7 @@ Deadline: ${grant.deadline ? new Date(grant.deadline).toDateString() : "Not spec
       messages: [
         {
           role: "system",
-          content: `You score how well a grant opportunity fits a nonprofit's mission and current projects, for a grant-matching tool. Return JSON: { "score": number (0-100), "rationale": string (1-2 sentences, specific to this org and grant), "whatsNeeded": string[] (a short checklist of what the org will likely need to prepare for this application, based only on the grant's own posted description/eligibility text - things like "proof of 501(c)(3) status", "a program budget", "letters of support" if the text implies them; keep it to what's reasonably inferable, not invented specifics). A score above 75 should mean a genuinely strong, specific fit - not just a shared broad category.`,
+          content: `You score how well a grant or funding opportunity fits an organization's mission and current projects, for a grant-matching tool. The organization's type is given in its profile (Nonprofit, For-Profit, School District, College / University, Municipality, Tribal Government, or similar) - judge fit and eligibility against that actual type, not an assumed nonprofit. Weigh the grant's "Eligible applicants" / "Eligibility notes" text against the organization's type: if that text clearly excludes the organization's type (e.g. a nonprofit-only grant for a For-Profit organization, or a small-business-only grant for a Nonprofit), the score should be low regardless of subject-matter fit, and the rationale should say why. Return JSON: { "score": number (0-100), "rationale": string (1-2 sentences, specific to this org and grant), "whatsNeeded": string[] (a short checklist of what the org will likely need to prepare for this application, based only on the grant's own posted description/eligibility text - things like "proof of 501(c)(3) status" for a nonprofit, "SAM.gov registration and small-business certification" for a for-profit, "a program budget", "letters of support" if the text implies them; keep it to what's reasonably inferable, not invented specifics). A score above 75 should mean a genuinely strong, specific, and eligible fit - not just a shared broad category.`,
         },
         { role: "user", content: `Organization profile:\n${profileText}\n\nGrant:\n${grantText}` },
       ],
