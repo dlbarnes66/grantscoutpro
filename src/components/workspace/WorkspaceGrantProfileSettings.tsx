@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Card from "@/components/ui/Card";
 import { US_STATES } from "@/lib/location/states";
+import { ORG_TYPES } from "@/lib/grants/orgType";
 
 // Everything here is a superset of what /onboarding collects (Organization
 // Discovery + Funding Profile + Grant Goals). Onboarding only ever
@@ -75,15 +76,6 @@ const EMPTY: ProfileData = {
   strategicGoals: "",
   priorityAreas: "",
 };
-
-const ORG_TYPES = [
-  "Nonprofit",
-  "School District",
-  "College / University",
-  "Municipality",
-  "Tribal Government",
-  "For-Profit",
-];
 
 function Field({
   label,
@@ -205,7 +197,10 @@ export default function WorkspaceGrantProfileSettings({ workspaceId }: { workspa
               onChange={(e) => set("organizationName", e.target.value)}
             />
           </Field>
-          <Field label="Organization Type">
+          <Field
+            label="Organization Type"
+            hint="Just for this workspace - other workspaces you own can have a different type."
+          >
             <select
               className={inputClass}
               disabled={!canEdit}

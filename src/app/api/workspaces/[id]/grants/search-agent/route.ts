@@ -8,6 +8,7 @@ import {
   AGENT_CATEGORY_LABELS,
   type AgentSearchCategory,
 } from "@/lib/grants/agent/searchBeyondProfile";
+import { resolveOrganizationType } from "@/lib/grants/orgType";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -99,7 +100,7 @@ export async function GET(
   if (!isMember) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const profile = await loadOwnerProfile(workspace.ownerId);
-  const eligible = profile?.organizationType === "For-Profit";
+  const eligible = resolveOrganizationType(workspace, profile) === "For-Profit";
 
   const plan = getEffectivePlan(workspace);
   let used = workspace.billing?.agentSearchCount ?? 0;
@@ -147,7 +148,7 @@ export async function POST(
       { status: 400 }
     );
   }
-  if (profile.organizationType !== "For-Profit") {
+  if (resolveOrganizationType(workspace, profile) !== "For-Profit") {
     return NextResponse.json(
       {
         error:

@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { prisma } from "@/lib/prisma";
+import { resolveOrganizationType } from "@/lib/grants/orgType";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const MODEL = process.env.AUTOEDITOR_MODEL || "gpt-4o-mini";
@@ -133,10 +134,10 @@ export async function buildNegotiationContext(grantId: string) {
 
   const workspace = await prisma.workspace.findUnique({
     where: { id: grant.workspaceId },
-    select: { name: true, ownerId: true },
+    select: { name: true, ownerId: true, organizationTypeOverride: true },
   });
 
-  const orgProfile = workspace
+  const rawOrgProfile = workspace
     ? await prisma.userProfile.findUnique({
         where: { userId: workspace.ownerId },
         select: {
@@ -151,6 +152,15 @@ export async function buildNegotiationContext(grantId: string) {
         },
       })
     : null;
+
+  // A workspace can override its organization type independent of the
+  // owner's account default (see resolveOrganizationType) - the
+  // negotiation-prep AI should reason about the type this workspace
+  // actually is, not whatever the owner's other workspaces are.
+  const orgProfile =
+    rawOrgProfile && workspace
+      ? { ...rawOrgProfile, organizationType: resolveOrganizationType(workspace, rawOrgProfile) }
+      : rawOrgProfile;
 
   return { grant, workspaceName: workspace?.name ?? null, orgProfile };
 }

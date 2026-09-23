@@ -240,6 +240,16 @@ model Workspace {
   ownerId String
   owner   User   @relation("WorkspaceOwner", fields: [ownerId], references: [id])
 
+  // Overrides the owner's account-level UserProfile.organizationType for
+  // JUST this workspace. UserProfile is one row per user, so an owner
+  // running e.g. a nonprofit and a for-profit venture as two separate
+  // workspaces would otherwise have both share one organization type.
+  // Null means "inherit the owner's account default" - see
+  // resolveOrganizationType in src/lib/grants/orgType.ts, which every
+  // org-type-driven decision (grant eligibility, AI scoring/framing)
+  // should go through instead of reading UserProfile directly.
+  organizationTypeOverride String?
+
   members WorkspaceMember[] @relation("WorkspaceToMember")
   invites WorkspaceInvite[] @relation("WorkspaceToInvite")
 

@@ -34,10 +34,13 @@ function isOwnerOrAdmin(role: string | undefined | null) {
   return role === "owner" || role === "admin";
 }
 
-function serializeProfile(profile: Awaited<ReturnType<typeof prisma.userProfile.findUnique>>) {
+function serializeProfile(
+  profile: Awaited<ReturnType<typeof prisma.userProfile.findUnique>>,
+  organizationType: string
+) {
   return {
     organizationName: profile?.organizationName ?? "",
-    organizationType: profile?.organizationType ?? "",
+    organizationType,
     mission: profile?.mission ?? "",
     website: profile?.website ?? "",
 
@@ -90,11 +93,13 @@ export async function GET(_req: NextRequest, { params: paramsPromise }: { params
     }
 
     const profile = await prisma.userProfile.findUnique({ where: { userId: workspace.ownerId } });
+    const organizationType = workspace.organizationTypeOverride || profile?.organizationType || "";
 
     return NextResponse.json({
       success: true,
-      profile: serializeProfile(profile),
+      profile: serializeProfile(profile, organizationType),
       canEdit: isOwnerOrAdmin(me.role),
+      organizationTypeIsOverride: !!workspace.organizationTypeOverride,
     });
   } catch (err: any) {
     console.error("WORKSPACE PROFILE GET ERROR:", err);
@@ -109,9 +114,11 @@ export async function GET(_req: NextRequest, { params: paramsPromise }: { params
 // state-grant scanning). Every field is optional and only the keys
 // present in the body are touched, so partial saves from a form that
 // only shows a subset at a time are safe.
+// "organizationType" is handled separately in PATCH below - it writes
+// to Workspace.organizationTypeOverride, not UserProfile, so a workspace
+// can have its own type independent of the owner's other workspaces.
 const STRING_FIELDS = [
   "organizationName",
-  "organizationType",
   "mission",
   "website",
   "linkedin",
@@ -158,6 +165,20 @@ export async function PATCH(req: NextRequest, { params: paramsPromise }: { param
     const body = await req.json().catch(() => null);
     if (!body || typeof body !== "object") {
       return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    }
+
+    if ("organizationType" in body) {
+      const value = body.organizationType;
+      if (value !== null && typeof value !== "string") {
+        return NextResponse.json({ error: "organizationType must be a string" }, { status: 400 });
+      }
+      const trimmed = typeof value === "string" ? value.trim() : "";
+      // Empty string means "clear the override, inherit the account
+      // default" rather than "set the type to blank".
+      await prisma.workspace.update({
+        where: { id: workspace.id },
+        data: { organizationTypeOverride: trimmed.length ? trimmed : null },
+      });
     }
 
     const data: Record<string, any> = {};
@@ -207,7 +228,13 @@ export async function PATCH(req: NextRequest, { params: paramsPromise }: { param
       create: { userId: workspace.ownerId, ...data },
     });
 
-    return NextResponse.json({ success: true, profile: serializeProfile(updated) });
+    const freshWorkspace = await prisma.workspace.findUnique({
+      where: { id: workspace.id },
+      select: { organizationTypeOverride: true },
+    });
+    const organizationType = freshWorkspace?.organizationTypeOverride || updated.organizationType || "";
+
+    return NextResponse.json({ success: true, profile: serializeProfile(updated, organizationType) });
   } catch (err: any) {
     console.error("WORKSPACE PROFILE PATCH ERROR:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });

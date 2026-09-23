@@ -11,6 +11,7 @@ import {
   FOR_PROFIT_APPLICANT_TYPES,
   type GrantsGovOpportunity,
 } from "@/lib/grantsGov";
+import { resolveOrganizationType } from "@/lib/grants/orgType";
 
 export const dynamic = "force-dynamic";
 
@@ -178,7 +179,7 @@ export async function POST(
     where: { userId: workspace.ownerId },
     select: { organizationType: true },
   });
-  const isForProfit = ownerProfile?.organizationType === "For-Profit";
+  const isForProfit = resolveOrganizationType(workspace, ownerProfile) === "For-Profit";
 
   let opportunities: GrantsGovOpportunity[] = [];
   try {

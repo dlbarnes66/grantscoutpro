@@ -7,6 +7,7 @@ import { searchFederalGrants, grantsGovDetailUrl, stripHtml, GrantsGovConfigErro
 import { fetchStateGrants, type StateGrantRaw } from "@/lib/grants/state/fetchStateGrants";
 import { fetchFoundations } from "@/lib/grants/foundations/fetchFoundations";
 import { fetchSbirGrants, sbirAgencyName, earliestSbirDueDate, summarizeSbirTopics } from "@/lib/grants/sbir/fetchSbirGrants";
+import { resolveOrganizationType } from "@/lib/grants/orgType";
 
 // The twice-daily (or whatever schedule you point a cron at) job behind
 // the notification bell: per workspace, refresh the owner's profile from
@@ -115,7 +116,7 @@ export async function runGrantScan(): Promise<GrantScanResult> {
   };
 
   const workspaces = await prisma.workspace.findMany({
-    select: { id: true, name: true, ownerId: true },
+    select: { id: true, name: true, ownerId: true, organizationTypeOverride: true },
   });
 
   for (const workspace of workspaces) {
@@ -138,7 +139,9 @@ export async function runGrantScan(): Promise<GrantScanResult> {
       if (!profile) continue;
 
       const query = (profile.focusAreas && profile.focusAreas.length > 0 ? profile.focusAreas : ["nonprofit"]).join(" ");
-      const isForProfit = profile.organizationType === "For-Profit";
+      const effectiveOrgType = resolveOrganizationType(workspace, profile);
+      const isForProfit = effectiveOrgType === "For-Profit";
+      const scoringProfile = { ...profile, organizationType: effectiveOrgType };
 
       // 2. Pull in fresh federal grants matching the org's focus areas.
       // For a for-profit workspace, scope this to applicant types that
@@ -303,7 +306,7 @@ export async function runGrantScan(): Promise<GrantScanResult> {
 
       for (const grant of grantsToScore) {
         try {
-          const match = await withTimeout(scoreGrantMatch(profile, grant), 30_000, `Scoring "${grant.title}"`);
+          const match = await withTimeout(scoreGrantMatch(scoringProfile, grant), 30_000, `Scoring "${grant.title}"`);
           result.grantsScored += 1;
 
           await prisma.grant.update({
