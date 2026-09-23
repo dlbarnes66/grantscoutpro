@@ -562,6 +562,15 @@ model WorkspaceBilling {
   manualSearchCount   Int      @default(0)
   manualSearchResetAt DateTime @default(now())
 
+  // Daily allowance for the "search beyond my profile" AI agent
+  // (src/lib/grants/agent/searchBeyondProfile.ts) - a live Firecrawl
+  // web search + OpenAI extraction run, so kept separate and far
+  // lower than manualSearchCount above, which only hits Grants.gov.
+  // Same 24h reset pattern (see isManualSearchResetDue in
+  // src/lib/plans.ts, reused for this counter too).
+  agentSearchCount   Int      @default(0)
+  agentSearchResetAt DateTime @default(now())
+
   // Stripe subscription status ("active" | "trialing" | "past_due" |
   // "canceled" | "unpaid" | "incomplete"), synced from the
   // customer.subscription.* / invoice.payment_* webhook events.

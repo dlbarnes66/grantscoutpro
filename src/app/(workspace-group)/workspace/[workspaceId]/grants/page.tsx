@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import WorkspaceShell from "@/components/workspace/WorkspaceShell";
 import Card from "@/components/ui/Card";
 import Link from "next/link";
-import { Search, RefreshCw, PackageCheck, Scale, Download, Bookmark, BookmarkCheck, BookmarkPlus } from "lucide-react";
+import { Search, RefreshCw, PackageCheck, Scale, Download, Bookmark, BookmarkCheck, BookmarkPlus, Sparkles } from "lucide-react";
 
 interface Grant {
   id: string;
@@ -21,6 +21,15 @@ interface Grant {
 }
 
 interface SearchStatus {
+  plan: string;
+  limit: number | null;
+  used: number;
+  remaining: number | null;
+  resetAt: string;
+}
+
+interface AgentStatus {
+  eligible: boolean;
   plan: string;
   limit: number | null;
   used: number;
@@ -52,6 +61,11 @@ export default function WorkspaceGrantsPage() {
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [savingId, setSavingId] = useState<string | null>(null);
 
+  const [agentStatus, setAgentStatus] = useState<AgentStatus | null>(null);
+  const [agentSearching, setAgentSearching] = useState(false);
+  const [agentMessage, setAgentMessage] = useState<string | null>(null);
+  const [agentError, setAgentError] = useState<string | null>(null);
+
   function toggleSelect(id: string) {
     setSelected((prev) => {
       const next = new Set(prev);
@@ -81,6 +95,16 @@ export default function WorkspaceGrantsPage() {
     if (res.ok) setStatus(json);
   }
 
+  async function loadAgentStatus() {
+    try {
+      const res = await fetch(`/api/workspaces/${workspaceId}/grants/search-agent`);
+      const json = await res.json();
+      if (res.ok) setAgentStatus(json);
+    } catch {
+      // non-critical - button just won't show if this fails
+    }
+  }
+
   async function loadSaved() {
     try {
       const res = await fetch("/api/saved-grant");
@@ -101,6 +125,7 @@ export default function WorkspaceGrantsPage() {
     loadGrants();
     loadStatus();
     loadSaved();
+    loadAgentStatus();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workspaceId]);
 
@@ -158,6 +183,40 @@ export default function WorkspaceGrantsPage() {
       setSearching(false);
     }
   }
+
+  async function runAgentSearch() {
+    setAgentSearching(true);
+    setAgentMessage(null);
+    setAgentError(null);
+
+    try {
+      const res = await fetch(`/api/workspaces/${workspaceId}/grants/search-agent`, {
+        method: "POST",
+      });
+      const json = await res.json();
+
+      if (!res.ok) {
+        throw new Error(json?.error || "Agent search failed");
+      }
+
+      setAgentMessage(
+        json.newGrants > 0
+          ? `Found ${json.newGrants} new program${json.newGrants === 1 ? "" : "s"} (${json.totalResults} total matched).`
+          : `No new programs found this time (${json.totalResults} matched, already tracked).`
+      );
+
+      await loadGrants();
+      await loadAgentStatus();
+    } catch (err: any) {
+      setAgentError(err?.message || "Agent search failed");
+    } finally {
+      setAgentSearching(false);
+    }
+  }
+
+  const agentSearchDisabled =
+    agentSearching ||
+    (agentStatus?.limit !== null && (agentStatus?.remaining ?? 0) <= 0);
 
   const searchDisabled =
     searching || (status?.limit !== null && (status?.remaining ?? 0) <= 0);
@@ -218,6 +277,59 @@ export default function WorkspaceGrantsPage() {
           {message && <p className="text-[#00E5FF] text-sm">{message}</p>}
           {error && <p className="text-red-400 text-sm">{error}</p>}
         </Card>
+
+        {agentStatus?.eligible && (
+          <Card className="p-6 space-y-4 border border-[#F5C542]/20">
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 rounded-lg bg-[#F5C542]/10 p-2">
+                  <Sparkles className="w-5 h-5 text-[#F5C542]" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold">AI Agent: Search Beyond My Profile</h2>
+                  <p className="text-slate-400 text-sm mt-1 max-w-xl">
+                    Runs a live web search for for-profit, minority-owned,
+                    veteran-owned, and women-owned business grants - funding
+                    sources outside Grants.gov that don&apos;t have a
+                    structured database. Takes 30-60 seconds.
+                  </p>
+                </div>
+              </div>
+
+              {agentStatus && (
+                <span className="text-xs uppercase tracking-wide text-slate-500 shrink-0">
+                  {agentStatus.limit === null
+                    ? "Unlimited agent searches"
+                    : `${agentStatus.remaining} of ${agentStatus.limit} agent searches left today`}
+                </span>
+              )}
+            </div>
+
+            <button
+              onClick={runAgentSearch}
+              disabled={agentSearchDisabled}
+              className="inline-flex items-center gap-2 px-5 py-3 bg-[#F5C542] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-[#06131F] font-semibold rounded-lg transition"
+            >
+              {agentSearching ? (
+                <RefreshCw className="w-4 h-4 animate-spin" />
+              ) : (
+                <Sparkles className="w-4 h-4" />
+              )}
+              {agentSearching ? "Searching the web..." : "Search Beyond My Profile"}
+            </button>
+
+            {agentStatus?.limit !== null && (agentStatus?.remaining ?? 0) <= 0 && (
+              <p className="text-amber-400 text-sm">
+                You&apos;ve used all your agent searches for today on the{" "}
+                {agentStatus?.plan} plan. It resets in 24 hours, or upgrade
+                your plan for more.
+              </p>
+            )}
+
+            {agentMessage && <p className="text-[#00E5FF] text-sm">{agentMessage}</p>}
+            {agentError && <p className="text-red-400 text-sm">{agentError}</p>}
+          </Card>
+        )}
 
         <div>
           <div className="flex items-center justify-between gap-4 flex-wrap mb-3">
