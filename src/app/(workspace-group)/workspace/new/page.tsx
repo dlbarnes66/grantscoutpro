@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { ORG_TYPES } from "@/lib/grants/orgType";
 
 export default function NewWorkspacePage() {
   const [name, setName] = useState("");
+  const [organizationType, setOrganizationType] = useState("");
   const [error, setError] = useState("");
   const [creating, setCreating] = useState(false);
 
@@ -25,6 +27,7 @@ export default function NewWorkspacePage() {
           },
           body: JSON.stringify({
             name,
+            organizationType,
           }),
         }
       );
@@ -102,6 +105,32 @@ export default function NewWorkspacePage() {
             />
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-2">
+              Organization Type
+            </label>
+
+            <select
+              value={organizationType}
+              onChange={(e) => setOrganizationType(e.target.value)}
+              className="w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
+            >
+              <option value="">Select...</option>
+              {ORG_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+
+            <p className="mt-2 text-sm text-slate-500">
+              Sets grant search and eligibility for this workspace only -
+              choosing For-Profit unlocks searches for for-profit,
+              minority-, veteran-, and women-owned business funding here
+              without touching your other workspaces.
+            </p>
+          </div>
+
           {error && (
             <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-red-400">
               {error}
@@ -111,7 +140,7 @@ export default function NewWorkspacePage() {
           <button
             onClick={createWorkspace}
             disabled={
-              creating || !name.trim()
+              creating || !name.trim() || !organizationType
             }
             className="w-full rounded-xl bg-cyan-500 py-4 text-lg font-semibold text-slate-900 transition hover:bg-cyan-400 disabled:opacity-50"
           >

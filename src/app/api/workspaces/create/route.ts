@@ -6,6 +6,7 @@ import { logActivity } from "@/lib/ai/activity-log";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { ensureUserOrg, countWorkspacesForOwner } from "@/lib/workspace/orgAccess";
 import { getPlan, getWorkspaceLimitLabel, isAtWorkspaceLimit } from "@/lib/plans";
+import { ORG_TYPES } from "@/lib/grants/orgType";
 import slugify from "slugify";
 
 export const dynamic = "force-dynamic";
@@ -40,6 +41,9 @@ export async function POST(req: NextRequest) {
     if (!body || !body.name) {
       return NextResponse.json({ error: "Missing workspace name" }, { status: 400 });
     }
+    if (!body.organizationType || !ORG_TYPES.includes(body.organizationType)) {
+      return NextResponse.json({ error: "Choose an organization type for this workspace" }, { status: 400 });
+    }
 
     // Plans attach to the account (Org), not to any one workspace - Basic
     // gets 1 workspace, Team 3, Business 6, Enterprise 100. Find or create
@@ -65,6 +69,13 @@ export async function POST(req: NextRequest) {
         slug,
         ownerId: userId,
         orgId: org.id,
+        // Set from the start rather than left null (which would mean
+        // "inherit the owner's account default" - see
+        // resolveOrganizationType in @/lib/grants/orgType). This is
+        // what lets one owner run a for-profit workspace alongside
+        // nonprofit ones without them sharing eligibility/search
+        // behavior.
+        organizationTypeOverride: body.organizationType,
       },
     });
 
