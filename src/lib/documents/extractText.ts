@@ -3,7 +3,16 @@
 // (src/lib/ai/applicationAssistant.ts). Nothing else in the app reads
 // PDF/DOCX content today - the existing document upload
 // (workspaces/[id]/documents/upload) only handles plain text files.
-import pdfParse from "pdf-parse";
+// Import pdf-parse's internal implementation directly, not the package's
+// top-level index.js. That wrapper has a known bug: it checks
+// `!module.parent` to decide whether it's being "required directly" vs
+// imported as a library, and under Next.js's build-time module
+// evaluation (collecting page data) that check comes back true, so it
+// runs its debug/self-test branch and tries to read a bundled sample PDF
+// (./test/data/05-versions-space.pdf) that doesn't exist in the build
+// environment - crashing the whole build. This subpath import skips
+// index.js entirely and gets the same parsing function.
+import pdfParse from "pdf-parse/lib/pdf-parse.js";
 import mammoth from "mammoth";
 
 const MAX_CHARS = 20_000;
