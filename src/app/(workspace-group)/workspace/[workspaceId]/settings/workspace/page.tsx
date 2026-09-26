@@ -167,11 +167,17 @@ export default function WorkspaceDetailsSettingsPage() {
 
             <button
               onClick={deleteWorkspace}
-              disabled={deleting || confirmText !== name}
+              disabled={deleting || confirmText.trim().toLowerCase() !== name.trim().toLowerCase()}
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg transition"
             >
               {deleting ? "Deleting..." : "Delete Workspace"}
             </button>
+
+            {confirmText.length > 0 && confirmText.trim().toLowerCase() !== name.trim().toLowerCase() && (
+              <p className="text-slate-500 text-xs">
+                Doesn&apos;t match yet - type the workspace name exactly as shown above.
+              </p>
+            )}
 
             {deleteError && <p className="text-red-400 text-sm">{deleteError}</p>}
           </Card>

@@ -38,7 +38,8 @@ export async function POST(req: NextRequest) {
     await ensureUser();
 
     const body = await req.json().catch(() => null);
-    if (!body || !body.name) {
+    const trimmedName = typeof body?.name === "string" ? body.name.trim() : "";
+    if (!trimmedName) {
       return NextResponse.json({ error: "Missing workspace name" }, { status: 400 });
     }
     if (!body.organizationType || !ORG_TYPES.includes(body.organizationType)) {
@@ -61,23 +62,46 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const slug = slugify(body.name, { lower: true, strict: true });
+    // slug has no user-facing meaning today (not used in any route or
+    // shared link - see src/lib/grants/orgType.ts's sibling helpers for
+    // what actually is user-facing), it just has to be unique. Two
+    // workspaces with the same or similar name (easy to do once someone
+    // has both a nonprofit and a for-profit workspace) previously threw
+    // a raw Prisma unique-constraint error straight to the UI - retry
+    // with a short random suffix instead of failing the whole request.
+    const baseSlug = slugify(trimmedName, { lower: true, strict: true }) || `workspace-${Date.now()}`;
 
-    const workspace = await prisma.workspace.create({
-      data: {
-        name: body.name,
-        slug,
-        ownerId: userId,
-        orgId: org.id,
-        // Set from the start rather than left null (which would mean
-        // "inherit the owner's account default" - see
-        // resolveOrganizationType in @/lib/grants/orgType). This is
-        // what lets one owner run a for-profit workspace alongside
-        // nonprofit ones without them sharing eligibility/search
-        // behavior.
-        organizationTypeOverride: body.organizationType,
-      },
-    });
+    let workspace: Awaited<ReturnType<typeof prisma.workspace.create>> | null = null;
+    let slugAttempt = baseSlug;
+    for (let attempt = 0; attempt < 5 && !workspace; attempt++) {
+      try {
+        workspace = await prisma.workspace.create({
+          data: {
+            name: trimmedName,
+            slug: slugAttempt,
+            ownerId: userId,
+            orgId: org.id,
+            // Set from the start rather than left null (which would mean
+            // "inherit the owner's account default" - see
+            // resolveOrganizationType in @/lib/grants/orgType). This is
+            // what lets one owner run a for-profit workspace alongside
+            // nonprofit ones without them sharing eligibility/search
+            // behavior.
+            organizationTypeOverride: body.organizationType,
+          },
+        });
+      } catch (err: any) {
+        const isSlugCollision =
+          err?.code === "P2002" &&
+          Array.isArray(err?.meta?.target) &&
+          err.meta.target.includes("slug");
+        if (!isSlugCollision || attempt === 4) throw err;
+        slugAttempt = `${baseSlug}-${Math.random().toString(36).slice(2, 6)}`;
+      }
+    }
+    if (!workspace) {
+      return NextResponse.json({ error: "Couldn't create workspace - please try a different name." }, { status: 500 });
+    }
 
     await prisma.workspaceMember.create({
       data: {
