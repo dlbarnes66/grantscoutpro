@@ -33,9 +33,10 @@ model User {
 
   profile UserProfile?
 
-  applications         Application[]
-  applicationHistories ApplicationHistory[]
-  grantDrafts          GrantDraft[]
+  applications          Application[]
+  applicationHistories  ApplicationHistory[]
+  applicationAssistants ApplicationAssistant[]
+  grantDrafts           GrantDraft[]
   narratives           Narrative[]
 
   postAwardHistory          PostAwardHistory[]
@@ -270,8 +271,9 @@ model Workspace {
   searchAnalytics        SearchAnalytics[]
   workspaceNotifications WorkspaceNotification[] @relation("WorkspaceToNotification")
 
-  applications Application[]
-  reports      WorkspaceReport[] @relation("WorkspaceToReport")
+  applications          Application[]
+  applicationAssistants ApplicationAssistant[]
+  reports               WorkspaceReport[] @relation("WorkspaceToReport")
   budgets      WorkspaceBudget[] @relation("WorkspaceToBudget")
 
   documents  WorkspaceDocument[]  @relation("WorkspaceToDocument")
@@ -727,6 +729,41 @@ model Application {
   workspace   Workspace? @relation(fields: [workspaceId], references: [id])
 }
 
+// The "answer this funder's actual application questions" assistant
+// (src/lib/ai/applicationAssistant.ts, behind the /apply route) - a
+// different deliverable from Application above, which is Grant Scout
+// Pro's own generic 6-section narrative+budget package. This one is
+// funder-specific: the user pastes or uploads the funder's real
+// questions, AI drafts an answer to each one, and the user copies the
+// result into the funder's own web application (this app never submits
+// to a funder's site - same boundary Application's package draws).
+// Scoped to private/foundation funders only (Grant.source FOUNDATION or
+// PHILANTHROPIC) - federal/state applications use a rigid structured
+// form that doesn't fit a free-text Q&A drafting flow.
+model ApplicationAssistant {
+  id          String @id @default(cuid())
+  grantId     String
+  workspaceId String
+  userId      String
+
+  status String @default("draft") // draft | ready
+
+  // "pasted" | "uploaded" - which input mode produced sourceFileName/questions
+  sourceType     String
+  sourceFileName String?
+
+  // ApplicationQuestion[] - see src/lib/ai/applicationAssistant.ts for the
+  // shape ({ id, prompt, wordLimit, answer }).
+  questions Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  grant     Grant     @relation(fields: [grantId], references: [id])
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+}
+
 model Embedding {
   id String @id @default(cuid())
 
@@ -913,8 +950,9 @@ model Grant {
 
   workspace Workspace @relation("WorkspaceToGrant", fields: [workspaceId], references: [id])
 
-  applications         Application[]
-  applicationHistories ApplicationHistory[]
+  applications          Application[]
+  applicationHistories  ApplicationHistory[]
+  applicationAssistants ApplicationAssistant[]
 
   narratives        Narrative[]
   documents         GrantDocument[]

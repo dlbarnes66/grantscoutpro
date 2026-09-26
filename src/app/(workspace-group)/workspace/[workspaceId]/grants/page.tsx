@@ -18,7 +18,14 @@ interface Grant {
   awardCeiling: number | null;
   deadline: string | null;
   url: string | null;
+  source: string;
 }
+
+// Matches ELIGIBLE_SOURCES in the application-assistant API route - the
+// Application Assistant only makes sense for funders whose applications
+// are free-text Q&A (foundations/philanthropic), not the rigid
+// structured forms federal/state grants use.
+const APPLICATION_ASSISTANT_SOURCES = new Set(["FOUNDATION", "PHILANTHROPIC"]);
 
 interface SearchStatus {
   plan: string;
@@ -466,6 +473,15 @@ export default function WorkspaceGrantsPage() {
                     <PackageCheck size={14} />
                     Build Submission Package with AI
                   </Link>
+                  {APPLICATION_ASSISTANT_SOURCES.has(grant.source) && (
+                    <Link
+                      href={`/workspace/${workspaceId}/grants/${grant.id}/apply`}
+                      className="inline-flex items-center gap-1.5 rounded-md bg-[#F5C542] px-3 py-1.5 text-[13px] font-medium text-[#06131F] hover:opacity-90"
+                    >
+                      <Sparkles size={14} />
+                      Answer Application Questions with AI
+                    </Link>
+                  )}
                   <Link
                     href={`/workspace/${workspaceId}/grants/${grant.id}/negotiation`}
                     className="text-sm text-[#00E5FF] hover:underline inline-block"
