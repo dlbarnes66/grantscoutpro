@@ -256,7 +256,7 @@ export default function WorkspaceGrantsPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Keyword (optional) - e.g. housing, workforce development"
-              className="flex-1 min-w-[240px] p-3 rounded-lg text-black"
+              className="flex-1 min-w-[240px] p-3 rounded-lg bg-slate-900 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
 
             <button
