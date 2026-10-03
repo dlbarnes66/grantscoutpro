@@ -437,6 +437,27 @@ export default function SubmissionPackagePage() {
                   </>
                 )}
               </div>
+
+              <Card className="p-4">
+                <p className="text-[12.5px] text-slate-400">
+                  Federal opportunity? Your downloaded package PDF above also includes auto-filled
+                  SF-424, SF-424A and SF-424B pages built from your organization's Grant Profile and
+                  this package's budget - fill in any Settings &gt; Grant Profile fields it's still
+                  missing for a more complete fill. For reference, the official blank forms:{" "}
+                  <a href="/forms/federal/sf-424.pdf" target="_blank" rel="noreferrer" className="text-[#00E5FF] hover:underline">
+                    SF-424
+                  </a>
+                  {", "}
+                  <a href="/forms/federal/sf-424a.pdf" target="_blank" rel="noreferrer" className="text-[#00E5FF] hover:underline">
+                    SF-424A
+                  </a>
+                  {", "}
+                  <a href="/forms/federal/sf-424b.pdf" target="_blank" rel="noreferrer" className="text-[#00E5FF] hover:underline">
+                    SF-424B
+                  </a>
+                  .
+                </p>
+              </Card>
             </>
           )}
         </div>

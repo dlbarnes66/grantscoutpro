@@ -25,6 +25,17 @@ type ProfileData = {
   country: string;
   state: string;
   city: string;
+  streetAddress: string;
+  addressLine2: string;
+  zipCode: string;
+  county: string;
+  orgPhone: string;
+  congressionalDistrictApplicant: string;
+  congressionalDistrictProject: string;
+  authorizedRepName: string;
+  authorizedRepTitle: string;
+  authorizedRepPhone: string;
+  authorizedRepEmail: string;
 
   nonprofitStatus: string;
   ein: string;
@@ -59,6 +70,17 @@ const EMPTY: ProfileData = {
   country: "",
   state: "",
   city: "",
+  streetAddress: "",
+  addressLine2: "",
+  zipCode: "",
+  county: "",
+  orgPhone: "",
+  congressionalDistrictApplicant: "",
+  congressionalDistrictProject: "",
+  authorizedRepName: "",
+  authorizedRepTitle: "",
+  authorizedRepPhone: "",
+  authorizedRepEmail: "",
   nonprofitStatus: "",
   ein: "",
   uei: "",
@@ -320,6 +342,126 @@ export default function WorkspaceGrantProfileSettings({ workspaceId }: { workspa
               onChange={(e) => set("country", e.target.value)}
             />
           </Field>
+        </div>
+      </Card>
+
+      <Card className="p-6 space-y-4">
+        <h2 className="text-lg font-semibold text-white">Federal Compliance Details</h2>
+        <p className="text-sm text-slate-400">
+          Used to auto-populate the SF-424 form family (SF-424, SF-424A, SF-424B) whenever you
+          build a federal submission package - fill these in once so every package after this
+          one comes out complete instead of leaving these boxes blank.
+        </p>
+        <div className="grid gap-4 md:grid-cols-2">
+          <Field label="Street Address">
+            <input
+              className={inputClass}
+              disabled={!canEdit}
+              value={profile.streetAddress}
+              onChange={(e) => set("streetAddress", e.target.value)}
+            />
+          </Field>
+          <Field label="Address Line 2" hint="Suite, floor, unit, etc. - optional.">
+            <input
+              className={inputClass}
+              disabled={!canEdit}
+              value={profile.addressLine2}
+              onChange={(e) => set("addressLine2", e.target.value)}
+            />
+          </Field>
+          <Field label="ZIP Code">
+            <input
+              className={inputClass}
+              disabled={!canEdit}
+              value={profile.zipCode}
+              onChange={(e) => set("zipCode", e.target.value)}
+            />
+          </Field>
+          <Field label="County">
+            <input
+              className={inputClass}
+              disabled={!canEdit}
+              value={profile.county}
+              onChange={(e) => set("county", e.target.value)}
+            />
+          </Field>
+          <Field label="Organization Phone">
+            <input
+              className={inputClass}
+              disabled={!canEdit}
+              placeholder="(555) 555-5555"
+              value={profile.orgPhone}
+              onChange={(e) => set("orgPhone", e.target.value)}
+            />
+          </Field>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <Field
+            label="Congressional District - Applicant"
+            hint="Format like AL-07. Find yours at house.gov/representatives/find-your-representative."
+          >
+            <input
+              className={inputClass}
+              disabled={!canEdit}
+              placeholder="e.g. AL-07"
+              value={profile.congressionalDistrictApplicant}
+              onChange={(e) => set("congressionalDistrictApplicant", e.target.value)}
+            />
+          </Field>
+          <Field
+            label="Congressional District - Project"
+            hint="Leave blank if the same as the applicant's district above."
+          >
+            <input
+              className={inputClass}
+              disabled={!canEdit}
+              placeholder="e.g. AL-07"
+              value={profile.congressionalDistrictProject}
+              onChange={(e) => set("congressionalDistrictProject", e.target.value)}
+            />
+          </Field>
+        </div>
+        <div className="pt-2 border-t border-slate-800">
+          <h3 className="text-sm font-semibold text-white mb-1">Authorized Representative</h3>
+          <p className="text-xs text-slate-500 mb-3">
+            The person who signs SF-424B and is named in SF-424 Box 21 - not necessarily you.
+          </p>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field label="Full Name">
+              <input
+                className={inputClass}
+                disabled={!canEdit}
+                value={profile.authorizedRepName}
+                onChange={(e) => set("authorizedRepName", e.target.value)}
+              />
+            </Field>
+            <Field label="Title">
+              <input
+                className={inputClass}
+                disabled={!canEdit}
+                value={profile.authorizedRepTitle}
+                onChange={(e) => set("authorizedRepTitle", e.target.value)}
+              />
+            </Field>
+            <Field label="Phone">
+              <input
+                className={inputClass}
+                disabled={!canEdit}
+                placeholder="(555) 555-5555"
+                value={profile.authorizedRepPhone}
+                onChange={(e) => set("authorizedRepPhone", e.target.value)}
+              />
+            </Field>
+            <Field label="Email">
+              <input
+                type="email"
+                className={inputClass}
+                disabled={!canEdit}
+                value={profile.authorizedRepEmail}
+                onChange={(e) => set("authorizedRepEmail", e.target.value)}
+              />
+            </Field>
+          </div>
         </div>
       </Card>
 

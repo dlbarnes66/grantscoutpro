@@ -1,4 +1,12 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
+import {
+  addSf424Page,
+  addSf424APage,
+  addSf424BPage,
+  bucketBudgetForSf424A,
+  type Sf424Grant,
+  type Sf424Profile,
+} from "@/lib/documents/sf424";
 
 // Plain-text PDF layout: document content in this app is stored as a
 // plain string (src/lib/documents/getDocumentContent.ts /
@@ -52,10 +60,21 @@ function formatCurrency(n: number): string {
  * page/wrap machinery as generateDocumentPdf below rather than a second
  * copy of it.
  */
+export type FederalFormsInput = {
+  profile: Sf424Profile;
+  grant: Sf424Grant;
+  requestedAmount: number;
+};
+
 export async function generatePackagePdf(
   grantTitle: string,
   sections: PackageSection[],
-  budget: { lineItems: PackageBudgetLineItem[]; total: number; notes: string } | null
+  budget: { lineItems: PackageBudgetLineItem[]; total: number; notes: string } | null,
+  // When provided, appends auto-populated SF-424, SF-424A and SF-424B
+  // pages after the narrative/budget content - see
+  // src/lib/documents/sf424.ts. Optional and additive so every existing
+  // caller of generatePackagePdf keeps working unchanged.
+  federalForms: FederalFormsInput | null = null
 ): Promise<Uint8Array> {
   const pdf = await PDFDocument.create();
   const font = await pdf.embedFont(StandardFonts.Helvetica);
@@ -134,6 +153,13 @@ export async function generatePackagePdf(
     });
     y -= LINE_HEIGHT * 1.5;
     if (budget.notes) drawParagraphs(budget.notes);
+  }
+
+  if (federalForms) {
+    const buckets = bucketBudgetForSf424A(budget?.lineItems || []);
+    addSf424Page(pdf, font, boldFont, federalForms.profile, federalForms.grant, federalForms.requestedAmount);
+    addSf424APage(pdf, font, boldFont, federalForms.grant, buckets, budget?.notes || "");
+    addSf424BPage(pdf, font, boldFont, federalForms.profile);
   }
 
   const pages = pdf.getPages();

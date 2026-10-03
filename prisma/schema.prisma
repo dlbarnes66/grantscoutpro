@@ -37,7 +37,7 @@ model User {
   applicationHistories  ApplicationHistory[]
   applicationAssistants ApplicationAssistant[]
   grantDrafts           GrantDraft[]
-  narratives           Narrative[]
+  narratives            Narrative[]
 
   postAwardHistory          PostAwardHistory[]
   renewalHistory            RenewalHistory[]
@@ -191,6 +191,31 @@ model UserProfile {
   state   String?
   city    String?
 
+  // SF-424 federal application compliance fields - added so the SF-424
+  // form family (see src/lib/documents/sf424.ts) can auto-populate
+  // completely from the org's profile instead of leaving every address/
+  // contact box blank. Filled in once via Settings > Grant Profile.
+  streetAddress String?
+  addressLine2  String?
+  zipCode       String?
+  county        String?
+  orgPhone      String?
+
+  // SF-424 Box 8: congressional district of the applicant organization
+  // and of the area primarily benefiting from the project - these are
+  // often the same district but not always, so they're tracked
+  // separately (format like "AL-07" or "NC-04").
+  congressionalDistrictApplicant String?
+  congressionalDistrictProject   String?
+
+  // SF-424 Box 21 / SF-424B signature block: the person authorized to
+  // sign and submit on the organization's behalf. Not necessarily the
+  // Grant Scout Pro account holder.
+  authorizedRepName  String?
+  authorizedRepTitle String?
+  authorizedRepPhone String?
+  authorizedRepEmail String?
+
   nonprofitStatus String?
   ein             String?
   uei             String?
@@ -273,8 +298,8 @@ model Workspace {
 
   applications          Application[]
   applicationAssistants ApplicationAssistant[]
-  reports               WorkspaceReport[] @relation("WorkspaceToReport")
-  budgets      WorkspaceBudget[] @relation("WorkspaceToBudget")
+  reports               WorkspaceReport[]      @relation("WorkspaceToReport")
+  budgets               WorkspaceBudget[]      @relation("WorkspaceToBudget")
 
   documents  WorkspaceDocument[]  @relation("WorkspaceToDocument")
   files      WorkspaceFile[]      @relation("WorkspaceToFile")
@@ -900,6 +925,15 @@ model Grant {
   status      String   @default("open")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  // SF-424 Box 4 (Applicant Identifier is org-side) / Box 11: the
+  // funder's own identifiers for this opportunity, needed to auto-fill
+  // the SF-424 form family (src/lib/documents/sf424.ts). Nullable since
+  // most non-federal sources (foundations, state programs) don't have
+  // either, and even federal ingestion doesn't always surface them -
+  // the form falls back to grant.raw and then to a blank box.
+  opportunityNumber String?
+  cfdaNumber        String?
 
   amount         Float?
   amountMin      Float?
