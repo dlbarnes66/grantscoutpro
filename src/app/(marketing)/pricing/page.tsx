@@ -1,13 +1,11 @@
 import type { Metadata } from "next";
-import { auth } from "@clerk/nextjs/server";
-
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
+import PricingSection from "../components/PricingSection";
 
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Simple, transparent pricing for nonprofits — plans starting at $29/month with federal grant access, scaling up to state and foundation grants, CRM, and unlimited search.",
+    "Simple, transparent pricing for nonprofits and small businesses — plans starting at $29/month with federal grant access, scaling up to state and foundation grants, AI proposal writing, and unlimited search.",
+  alternates: { canonical: "/pricing" },
   openGraph: {
     title: "Grant Scout Pro Pricing",
     description:
@@ -31,15 +29,61 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function PricingPage() {
-  const { userId } = await auth();
-
+export default function PricingPage() {
   return (
-    <div className="py-24 text-center">
-      <h1 className="text-5xl font-bold text-white">Pricing</h1>
-      <p className="mt-4 text-xl text-zinc-300">
-        Choose the plan that fits your organization.
-      </p>
+    <div
+      style={{
+        background: "#071633",
+        color: "white",
+        minHeight: "100vh",
+        fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",
+      }}
+    >
+      <div
+        style={{
+          maxWidth: "900px",
+          margin: "0 auto",
+          padding: "100px 60px 0",
+        }}
+      >
+        <a
+          href="/"
+          style={{
+            color: "#CBD5E1",
+            textDecoration: "none",
+            fontSize: "14px",
+          }}
+        >
+          ← Back to Home
+        </a>
+
+        <h1
+          style={{
+            fontSize: "56px",
+            fontWeight: 800,
+            marginTop: "24px",
+            marginBottom: "16px",
+            textAlign: "center",
+          }}
+        >
+          Pricing
+        </h1>
+
+        <p
+          style={{
+            fontSize: "20px",
+            color: "#CBD5E1",
+            textAlign: "center",
+            maxWidth: "620px",
+            margin: "0 auto",
+          }}
+        >
+          Professional grant intelligence without the enterprise price.
+          Choose the funding universe you want access to.
+        </p>
+      </div>
+
+      <PricingSection />
     </div>
   );
 }

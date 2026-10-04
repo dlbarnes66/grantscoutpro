@@ -9,7 +9,7 @@ export default function Hero() {
         </h1>
 
         <p className="mt-6 text-xl text-gray-600 max-w-2xl mx-auto">
-          GrantScout Pro finds opportunities, writes winning narratives, and keeps your team aligned — all in one workspace.
+          Grant Scout Pro finds opportunities, writes winning narratives, and keeps your team aligned — all in one workspace.
         </p>
 
         <div className="mt-10 flex justify-center gap-4">

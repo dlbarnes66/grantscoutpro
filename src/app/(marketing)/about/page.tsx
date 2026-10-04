@@ -66,7 +66,7 @@ export default function AboutPage() {
             marginBottom: "24px",
           }}
         >
-          About GrantScout Pro
+          About Grant Scout Pro
         </h1>
 
         <p
@@ -79,7 +79,7 @@ export default function AboutPage() {
         >
           Grant funding is out there, but finding it, qualifying for it, and
           writing a competitive proposal takes time most nonprofit teams
-          don't have. GrantScout Pro was built to close that gap.
+          don't have. Grant Scout Pro was built to close that gap.
         </p>
 
         <p
@@ -105,7 +105,7 @@ export default function AboutPage() {
             marginBottom: "48px",
           }}
         >
-          GrantScout Pro is built and operated for nonprofit and mission-driven
+          Grant Scout Pro is built and operated for nonprofit and mission-driven
           teams who need a faster, more organized way to win the funding that
           keeps their work moving.
         </p>
