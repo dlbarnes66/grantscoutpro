@@ -3,6 +3,7 @@ import { Webhook } from "svix";
 import { prisma } from "@/lib/prisma";
 import { sendEmailSafe } from "@/lib/email/sendgrid";
 import { welcomeEmail } from "@/lib/email/templates";
+import { syncUserFromClerk } from "@/lib/userSync";
 
 export const dynamic = "force-dynamic";
 
@@ -67,19 +68,11 @@ export async function POST(req: NextRequest) {
         const email = primaryEmail(data);
         const name = [data.first_name, data.last_name].filter(Boolean).join(" ") || null;
 
-        await prisma.user.upsert({
-          where: { id: data.id },
-          update: {
-            ...(email ? { email } : {}),
-            ...(name ? { name } : {}),
-            ...(data.image_url ? { image: data.image_url } : {}),
-          },
-          create: {
-            id: data.id,
-            email,
-            name,
-            image: data.image_url ?? null,
-          },
+        await syncUserFromClerk({
+          id: data.id,
+          email,
+          name,
+          image: data.image_url ?? null,
         });
 
         // Fulfill any pending workspace invites sent to this email address
@@ -132,19 +125,11 @@ export async function POST(req: NextRequest) {
         const email = primaryEmail(data);
         const name = [data.first_name, data.last_name].filter(Boolean).join(" ") || null;
 
-        await prisma.user.upsert({
-          where: { id: data.id },
-          update: {
-            ...(email ? { email } : {}),
-            ...(name ? { name } : {}),
-            ...(data.image_url ? { image: data.image_url } : {}),
-          },
-          create: {
-            id: data.id,
-            email,
-            name,
-            image: data.image_url ?? null,
-          },
+        await syncUserFromClerk({
+          id: data.id,
+          email,
+          name,
+          image: data.image_url ?? null,
         });
 
         break;

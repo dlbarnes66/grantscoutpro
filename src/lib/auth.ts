@@ -1,5 +1,6 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
+import { syncUserFromClerk } from "@/lib/userSync";
 
 /**
  * Ensure a User row exists in our database for the current Clerk session,
@@ -27,19 +28,11 @@ export async function ensureUser() {
     ? [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ") || null
     : null;
 
-  return prisma.user.upsert({
-    where: { id: userId },
-    update: {
-      ...(email ? { email } : {}),
-      ...(name ? { name } : {}),
-      ...(clerkUser?.imageUrl ? { image: clerkUser.imageUrl } : {}),
-    },
-    create: {
-      id: userId,
-      email,
-      name,
-      image: clerkUser?.imageUrl ?? null,
-    },
+  return syncUserFromClerk({
+    id: userId,
+    email,
+    name,
+    image: clerkUser?.imageUrl ?? null,
   });
 }
 
