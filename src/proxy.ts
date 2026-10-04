@@ -16,6 +16,15 @@ const isPublicRoute = createRouteMatcher([
   "/about(.*)",
   "/contact(.*)",
   "/blog(.*)",
+  "/integrations(.*)",
+
+  // Legal pages - must stay public: besides being publicly accessible by
+  // law, Google's OAuth consent screen verification (and any other
+  // automated compliance check) fetches these unauthenticated and treats
+  // a redirect to /sign-in as "insufficient content" on the policy page.
+  "/privacy(.*)",
+  "/terms(.*)",
+  "/refund(.*)",
 
   // Clerk auth routes
   "/sign-in(.*)",
