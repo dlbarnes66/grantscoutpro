@@ -1,22 +1,29 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "GrantScout Pro — Integrations",
+  title: "Integrations",
   description:
-    "Connect GrantScout Pro to the communications, accounting, project management, and fundraising tools your team already uses.",
+    "Connect Grant Scout Pro to the communications, accounting, project management, and fundraising tools your team already uses.",
   openGraph: {
-    title: "GrantScout Pro — Integrations",
+    title: "Grant Scout Pro Integrations",
     description:
-      "Connect GrantScout Pro to the tools your team already uses.",
-    url: "https://grantscoutpro.com/integrations",
-    siteName: "GrantScout Pro",
+      "Connect Grant Scout Pro to the tools your team already uses.",
+    url: "https://www.grantscoutpro.com/integrations",
+    siteName: "Grant Scout Pro",
     images: [
       {
-        url: "/og-integrations.png",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
       },
     ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Grant Scout Pro Integrations",
+    description:
+      "Connect Grant Scout Pro to the tools your team already uses.",
+    images: ["/og-image.png"],
   },
 };
 

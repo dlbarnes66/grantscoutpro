@@ -4,21 +4,29 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export const metadata: Metadata = {
-  title: "GrantScout Pro — About",
-  description: "The mission behind GrantScout Pro.",
+  title: "About Us",
+  description:
+    "Grant Scout Pro is built by a team that knows the grant process from both sides. Learn about our mission to make federal, state, and foundation funding easier to find and win.",
   openGraph: {
-    title: "GrantScout Pro — About",
+    title: "About Grant Scout Pro",
     description:
-      "GrantScout Pro helps nonprofits find, win, and manage grant funding with AI-powered search, matching, and proposal writing.",
-    url: "https://grantscoutpro.com/about",
-    siteName: "GrantScout Pro",
+      "Learn about the team and mission behind Grant Scout Pro, the AI-powered grant discovery and application platform for nonprofits.",
+    url: "https://www.grantscoutpro.com/about",
+    siteName: "Grant Scout Pro",
     images: [
       {
-        url: "/og-about.png",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
       },
     ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "About Grant Scout Pro",
+    description:
+      "Learn about the team and mission behind Grant Scout Pro, the AI-powered grant discovery and application platform for nonprofits.",
+    images: ["/og-image.png"],
   },
 };
 

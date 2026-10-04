@@ -1,6 +1,12 @@
-"use client";
-
+import type { Metadata } from "next";
 import { LegalPageLayout, Section, SubHeading, List } from "@/components/legal/LegalPageLayout";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description:
+    "How Venture Collective Group, LLC collects, uses, and protects information in connection with Grant Scout Pro.",
+  alternates: { canonical: "/privacy" },
+};
 
 const TOC = [
   { id: "who-we-are", label: "Who We Are" },

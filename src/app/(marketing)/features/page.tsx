@@ -5,20 +5,29 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export const metadata: Metadata = {
-  title: "GrantScout Pro — Features",
-  description: "Explore everything GrantScout Pro can do.",
+  title: "Features",
+  description:
+    "AI-powered grant matching, deadline tracking, collaborative proposal writing, and auto-populated federal forms (SF-424 and more) — see everything Grant Scout Pro can do.",
   openGraph: {
-    title: "GrantScout Pro — Features",
-    description: "AI grant writing, collaboration tools, reviewer simulation, and more.",
-    url: "https://grantscoutpro.com/features",
-    siteName: "GrantScout Pro",
+    title: "Grant Scout Pro Features",
+    description:
+      "AI-powered grant matching, deadline tracking, collaborative proposal writing, and auto-populated federal forms.",
+    url: "https://www.grantscoutpro.com/features",
+    siteName: "Grant Scout Pro",
     images: [
       {
-        url: "/og-features.png",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
       },
     ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Grant Scout Pro Features",
+    description:
+      "AI-powered grant matching, deadline tracking, collaborative proposal writing, and auto-populated federal forms.",
+    images: ["/og-image.png"],
   },
 };
 

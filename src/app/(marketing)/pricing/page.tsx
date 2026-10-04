@@ -5,20 +5,29 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export const metadata: Metadata = {
-  title: "GrantScout Pro — Pricing",
-  description: "Choose the plan that fits your organization.",
+  title: "Pricing",
+  description:
+    "Simple, transparent pricing for nonprofits — plans starting at $29/month with federal grant access, scaling up to state and foundation grants, CRM, and unlimited search.",
   openGraph: {
-    title: "GrantScout Pro — Pricing",
-    description: "Simple, transparent pricing for nonprofits.",
-    url: "https://grantscoutpro.com/pricing",
-    siteName: "GrantScout Pro",
+    title: "Grant Scout Pro Pricing",
+    description:
+      "Compare Grant Scout Pro plans and find the right fit for your organization's grant program.",
+    url: "https://www.grantscoutpro.com/pricing",
+    siteName: "Grant Scout Pro",
     images: [
       {
-        url: "/og-pricing.png",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
       },
     ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Grant Scout Pro Pricing",
+    description:
+      "Compare Grant Scout Pro plans and find the right fit for your organization's grant program.",
+    images: ["/og-image.png"],
   },
 };
 

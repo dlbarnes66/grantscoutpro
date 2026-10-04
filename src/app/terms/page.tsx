@@ -1,6 +1,12 @@
-"use client";
-
+import type { Metadata } from "next";
 import { LegalPageLayout, Section, SubHeading, List } from "@/components/legal/LegalPageLayout";
+
+export const metadata: Metadata = {
+  title: "Terms of Service",
+  description:
+    "The terms governing your use of Grant Scout Pro, provided by Venture Collective Group, LLC.",
+  alternates: { canonical: "/terms" },
+};
 
 const TOC = [
   { id: "acceptance", label: "Acceptance of Terms" },
