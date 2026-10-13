@@ -46,7 +46,16 @@ function wrapLine(text: string, font: PDFFont, size: number, maxWidth: number): 
 }
 
 export type PackageSection = { title: string; content: string };
-export type PackageBudgetLineItem = { category: string; description: string; amount: number };
+export type PackageBudgetLineItem = { category: string; description: string; amount: number; justification?: string };
+export type PackageBudget = {
+  lineItems: PackageBudgetLineItem[];
+  total: number;
+  notes: string;
+  indirectRate?: number | null;
+  match?: { required: boolean; amount: number; notes: string };
+  otherFunding?: { source: string; amount: number; status: string }[];
+  cashFlow?: { period: string; inflow: number; outflow: number; notes?: string }[];
+};
 
 function formatCurrency(n: number): string {
   return `$${n.toLocaleString("en-US")}`;
@@ -69,7 +78,7 @@ export type FederalFormsInput = {
 export async function generatePackagePdf(
   grantTitle: string,
   sections: PackageSection[],
-  budget: { lineItems: PackageBudgetLineItem[]; total: number; notes: string } | null,
+  budget: PackageBudget | null,
   // When provided, appends auto-populated SF-424, SF-424A and SF-424B
   // pages after the narrative/budget content - see
   // src/lib/documents/sf424.ts. Optional and additive so every existing
@@ -141,6 +150,14 @@ export async function generatePackagePdf(
         font: boldFont,
         color: rgb(0.05, 0.1, 0.2),
       });
+      if (item.justification && item.justification.trim()) {
+        for (const l of wrapLine(`Justification: ${item.justification.trim()}`, font, 9.5, CONTENT_WIDTH - 20)) {
+          ensureSpace(LINE_HEIGHT);
+          page.drawText(l, { x: MARGIN + 14, y, size: 9.5, font, color: rgb(0.35, 0.35, 0.4) });
+          y -= LINE_HEIGHT * 0.9;
+        }
+        y -= 3;
+      }
     }
     y -= 4;
     ensureSpace(LINE_HEIGHT * 1.5);
@@ -153,6 +170,42 @@ export async function generatePackagePdf(
     });
     y -= LINE_HEIGHT * 1.5;
     if (budget.notes) drawParagraphs(budget.notes);
+
+    // Matching funds / other funding sources.
+    const funding = budget.otherFunding || [];
+    if (budget.match?.required || (budget.match?.amount || 0) > 0 || funding.length > 0) {
+      ensureSpace(LINE_HEIGHT * 3);
+      drawHeading("Matching Funds and Other Funding Sources", 12);
+      if (budget.match && (budget.match.required || budget.match.amount > 0)) {
+        drawParagraphs(
+          `Match ${budget.match.required ? "required" : "committed"}: ${formatCurrency(budget.match.amount || 0)}. ${budget.match.notes || ""}`.trim()
+        );
+      }
+      for (const f of funding) {
+        ensureSpace(LINE_HEIGHT);
+        drawParagraphs(`${f.source} (${f.status}): ${formatCurrency(f.amount)}`);
+      }
+    }
+
+    // Cash-flow plan.
+    const cashFlow = budget.cashFlow || [];
+    if (cashFlow.length > 0) {
+      ensureSpace(LINE_HEIGHT * 4);
+      drawHeading("Cash-Flow Plan", 12);
+      const cols = [MARGIN, MARGIN + 190, MARGIN + 300];
+      page.drawText("Period", { x: cols[0], y, size: 10, font: boldFont });
+      page.drawText("Expected receipts", { x: cols[1], y, size: 10, font: boldFont });
+      page.drawText("Spending", { x: cols[2], y, size: 10, font: boldFont });
+      y -= LINE_HEIGHT;
+      for (const c of cashFlow) {
+        ensureSpace(LINE_HEIGHT);
+        page.drawText(c.period.slice(0, 34), { x: cols[0], y, size: 10, font });
+        page.drawText(formatCurrency(c.inflow), { x: cols[1], y, size: 10, font });
+        page.drawText(formatCurrency(c.outflow), { x: cols[2], y, size: 10, font });
+        y -= LINE_HEIGHT;
+      }
+      y -= 4;
+    }
   }
 
   if (federalForms) {

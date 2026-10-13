@@ -8,11 +8,15 @@ const GLOBAL_CALLS_PER_MINUTE = Number(process.env.OPENAI_GLOBAL_CALLS_PER_MINUT
 
 export type ProposalSection = { title: string; content: string };
 
-const STANDARD_SECTIONS = [
+export const STANDARD_SECTIONS = [
+  "Executive Summary",
   "Statement of Need",
   "Goals & Objectives",
   "Program Description / Methodology",
+  "Work Plan & Timeline",
+  "Staffing, Partners & Responsibilities",
   "Evaluation Plan",
+  "Sustainability Plan",
   "Organizational Background",
   "Budget Narrative",
 ];
@@ -28,7 +32,8 @@ const FALLBACK: ProposalSection[] = [];
  * limits, only what's inferable from the grant's own posted text.
  */
 export async function generateProposalSections(
-  grant: Pick<Grant, "title" | "summary" | "agency" | "eligibility" | "eligibleApplicants">,
+  grant: Pick<Grant, "title" | "summary" | "agency" | "eligibility" | "eligibleApplicants"> &
+    Partial<Pick<Grant, "description" | "awardFloor" | "awardCeiling" | "deadline">>,
   profile: Pick<UserProfile, "organizationName" | "mission" | "currentProjects" | "focusAreas">,
   matchRationale: string
 ): Promise<ProposalSection[]> {
@@ -45,11 +50,11 @@ export async function generateProposalSections(
       messages: [
         {
           role: "system",
-          content: `You write a first-draft grant proposal narrative for a nonprofit, organized into standard sections: ${STANDARD_SECTIONS.join(", ")}. Return JSON: { "sections": [{ "title": string, "content": string }] } covering all of those sections in that order. Write specifically about the organization's real mission and current projects given below, connected to this specific grant - not generic boilerplate. Each section should be a few solid paragraphs. This is an editable first draft, not a final submission.`,
+          content: `You write a first-draft grant proposal narrative for a nonprofit, organized into standard sections: ${STANDARD_SECTIONS.join(", ")}. Return JSON: { "sections": [{ "title": string, "content": string }] } covering all of those sections in that order. Write specifically about the organization's real mission and current projects given below, connected to this specific grant - not generic boilerplate. Each section should be a few solid paragraphs. Section guidance: Executive Summary = organization, need, project, expected outcomes, total cost and amount requested in one page; Statement of Need = the problem, who is affected, gaps in existing services, evidence; Goals & Objectives = goals plus measurable objectives; Work Plan & Timeline = phased activities with milestones by month or quarter; Staffing, Partners & Responsibilities = roles needed and who is responsible for what; Evaluation Plan = performance indicators with targets, data collection methods, reporting schedule, short- and long-term outcomes; Sustainability Plan = how the work continues after grant funding ends; Budget Narrative = a plain-English explanation of the costs. HONESTY RULES: use only facts present in the organization profile and grant context below. Never invent statistics, named people, partner organizations, prior award amounts or dates. Where a specific fact is needed but not provided (a statistic, a staff name, a partner, a target number), write a clearly marked placeholder in square brackets such as [add local statistic and source] so the applicant fills it in. This is an editable first draft, not a final submission.`,
         },
         {
           role: "user",
-          content: `Grant: ${grant.title} (${grant.agency || "funder not specified"})\n${grant.summary || ""}\nEligible applicants: ${grant.eligibleApplicants || "not specified"}\nWhy this is a good fit: ${matchRationale || "not scored yet"}\n\nOrganization: ${profile.organizationName || "Unknown"}\nMission: ${profile.mission || "Not provided"}\nFocus areas: ${(profile.focusAreas || []).join(", ") || "Not provided"}\nCurrent/planned projects:\n${projects.map((p: any) => `- ${p.title}: ${p.description || ""}`).join("\n") || "None on file"}`,
+          content: `Grant: ${grant.title} (${grant.agency || "funder not specified"})\n${grant.summary || ""}\nEligible applicants: ${grant.eligibleApplicants || "not specified"}\nAward range: ${grant.awardFloor ?? "?"} to ${grant.awardCeiling ?? "?"}\nDeadline: ${grant.deadline ? new Date(grant.deadline).toISOString().slice(0, 10) : "not stated"}\nFunder's posted description: ${(grant.description || "").slice(0, 3000) || "not provided"}\nWhy this is a good fit: ${matchRationale || "not scored yet"}\n\nOrganization: ${profile.organizationName || "Unknown"}\nMission: ${profile.mission || "Not provided"}\nFocus areas: ${(profile.focusAreas || []).join(", ") || "Not provided"}\nCurrent/planned projects:\n${projects.map((p: any) => `- ${p.title}: ${p.description || ""}`).join("\n") || "None on file"}`,
         },
       ],
     });

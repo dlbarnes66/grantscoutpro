@@ -2,8 +2,8 @@ import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { assertGrantWorkspaceAccess } from "@/lib/ai/negotiation";
-import { generatePackagePdf, type FederalFormsInput } from "@/lib/documents/generatePdf";
-import { resolveOrganizationType } from "@/lib/grants/orgType";
+import { generatePackagePdf } from "@/lib/documents/generatePdf";
+import { buildFederalFormsInput } from "@/lib/documents/federalFormsInput";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -47,62 +47,9 @@ export async function GET(_req: NextRequest, context: { params: Promise<Params> 
   }
 
   // The SF-424 family (see src/lib/documents/sf424.ts) is a federal OMB
-  // form set - only append it for federally-sourced grants, same as the
-  // rest of the app's federal-only feature gating. State/foundation
+  // form set - only appended for federally-sourced grants. State/foundation
   // packages keep the narrative+budget PDF exactly as before.
-  let federalForms: FederalFormsInput | null = null;
-  if (grant.source === "FEDERAL") {
-    const workspace = await prisma.workspace.findUnique({
-      where: { id: params.id },
-      select: { ownerId: true, organizationTypeOverride: true },
-    });
-    const profile = workspace
-      ? await prisma.userProfile.findUnique({ where: { userId: workspace.ownerId } })
-      : null;
-    const budgetTotal = (application.budget as any)?.total;
-    const requestedAmount =
-      typeof budgetTotal === "number" ? budgetTotal : grant.awardCeiling ?? grant.awardFloor ?? 0;
-
-    federalForms = {
-      profile: {
-        organizationName: profile?.organizationName ?? null,
-        organizationType:
-          resolveOrganizationType(
-            { organizationTypeOverride: workspace?.organizationTypeOverride ?? null },
-            profile
-          ) ?? null,
-        ein: profile?.ein ?? null,
-        uei: profile?.uei ?? null,
-        streetAddress: profile?.streetAddress ?? null,
-        addressLine2: profile?.addressLine2 ?? null,
-        city: profile?.city ?? null,
-        state: profile?.state ?? null,
-        zipCode: profile?.zipCode ?? null,
-        county: profile?.county ?? null,
-        country: profile?.country ?? null,
-        orgPhone: profile?.orgPhone ?? null,
-        congressionalDistrictApplicant: profile?.congressionalDistrictApplicant ?? null,
-        congressionalDistrictProject: profile?.congressionalDistrictProject ?? null,
-        authorizedRepName: profile?.authorizedRepName ?? null,
-        authorizedRepTitle: profile?.authorizedRepTitle ?? null,
-        authorizedRepPhone: profile?.authorizedRepPhone ?? null,
-        authorizedRepEmail: profile?.authorizedRepEmail ?? null,
-        geographicService: profile?.geographicService ?? null,
-      },
-      grant: {
-        title: grant.title,
-        agency: grant.agency,
-        category: grant.category,
-        summary: grant.summary,
-        awardFloor: grant.awardFloor,
-        awardCeiling: grant.awardCeiling,
-        opportunityNumber: grant.opportunityNumber,
-        cfdaNumber: grant.cfdaNumber,
-        raw: grant.raw,
-      },
-      requestedAmount,
-    };
-  }
+  const federalForms = await buildFederalFormsInput(params.id, grant, application);
 
   let sections: { title: string; content: string }[] = [];
   try {

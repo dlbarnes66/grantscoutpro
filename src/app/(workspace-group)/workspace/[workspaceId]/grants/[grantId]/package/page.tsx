@@ -5,7 +5,8 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import WorkspaceShell from "@/components/workspace/WorkspaceShell";
 import Card from "@/components/ui/Card";
-import { Sparkles, Loader2, Download, Plus, Trash2, CheckCircle2 } from "lucide-react";
+import { Sparkles, Loader2, Download, Plus, Trash2, CheckCircle2, Package } from "lucide-react";
+import { BudgetExtras, ChecklistPanel, ReviewPanel } from "./PackageExtras";
 
 interface Section {
   title: string;
@@ -15,11 +16,16 @@ interface BudgetLineItem {
   category: string;
   description: string;
   amount: number;
+  justification?: string;
 }
 interface Budget {
   lineItems: BudgetLineItem[];
   total: number;
   notes: string;
+  indirectRate?: number | null;
+  match?: { required: boolean; amount: number; notes: string };
+  otherFunding?: { source: string; amount: number; status: string }[];
+  cashFlow?: { period: string; inflow: number; outflow: number; notes?: string }[];
 }
 
 // Plain-language, one-line explanations for the standard section titles
@@ -28,6 +34,10 @@ interface Budget {
 // "Evaluation Plan" actually means. Falls back to a generic hint for any
 // section title that doesn't match (custom sections, funder-specific ones).
 const SECTION_HINTS: Record<string, string> = {
+  "Executive Summary": "A one-page overview: who you are, the need, what you'll do, expected results, total cost and the amount you're requesting. Often read first, so write it last.",
+  "Work Plan & Timeline": "Who does what and when - phases, milestones and deadlines from start to finish.",
+  "Staffing, Partners & Responsibilities": "Who will run the project, which partners help, and what each is responsible for. Add real names and roles.",
+  "Sustainability Plan": "How the work continues after this grant ends - other funding, earned income, partners, in-kind support.",
   "Statement of Need": "The problem you're solving - why it matters, who it affects, and why now.",
   "Goals & Objectives": "What success looks like. Goals are the big picture; objectives are specific, measurable steps toward it.",
   "Program Description / Methodology": "How you'll actually do the work - the plan, activities, and timeline.",
@@ -53,6 +63,8 @@ export default function SubmissionPackagePage() {
   const [reopening, setReopening] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
+  const [bundling, setBundling] = useState(false);
+  const [checklistKey, setChecklistKey] = useState(0);
 
   async function load() {
     setLoading(true);
@@ -157,6 +169,42 @@ export default function SubmissionPackagePage() {
     } finally {
       setDownloading(false);
     }
+  }
+
+  // Full submission bundle: application PDF, budget files, checklist,
+  // review and the attached supporting documents in one ZIP. Fetched as a
+  // blob (rather than navigating) so an error shows here instead of
+  // replacing the page with raw JSON.
+  async function downloadBundle() {
+    setBundling(true);
+    setError(null);
+    try {
+      const ok = await persistIfDirty();
+      if (!ok) return;
+      const res = await fetch(`/api/workspaces/${workspaceId}/grants/${grantId}/package/bundle`);
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || "Failed to build the bundle");
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${(grantTitle || "submission").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}-submission-bundle.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err: any) {
+      setError(err?.message || "Failed to build the bundle");
+    } finally {
+      setBundling(false);
+    }
+  }
+
+  function patchBudgetExtras(patch: Partial<Budget>) {
+    setBudget((prev) => (prev ? { ...prev, ...patch } : prev));
+    setDirty(true);
   }
 
   async function finalize() {
@@ -347,33 +395,42 @@ export default function SubmissionPackagePage() {
                       </button>
                     )}
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {budget.lineItems.map((item, i) => (
-                      <div key={i} className="grid grid-cols-[1fr_2fr_120px_auto] items-center gap-2">
+                      <div key={i} className="space-y-1.5">
+                        <div className="grid grid-cols-[1fr_2fr_120px_auto] items-center gap-2">
+                          <input
+                            value={item.category}
+                            disabled={isReady}
+                            onChange={(e) => updateBudgetItem(i, "category", e.target.value)}
+                            className="rounded-md border border-white/[0.08] bg-white/[0.03] px-2.5 py-1.5 text-[12.5px] text-white outline-none focus:border-[#00E5FF]/50 disabled:opacity-70"
+                          />
+                          <input
+                            value={item.description}
+                            disabled={isReady}
+                            onChange={(e) => updateBudgetItem(i, "description", e.target.value)}
+                            className="rounded-md border border-white/[0.08] bg-white/[0.03] px-2.5 py-1.5 text-[12.5px] text-white outline-none focus:border-[#00E5FF]/50 disabled:opacity-70"
+                          />
+                          <input
+                            type="number"
+                            value={item.amount}
+                            disabled={isReady}
+                            onChange={(e) => updateBudgetItem(i, "amount", e.target.value)}
+                            className="rounded-md border border-white/[0.08] bg-white/[0.03] px-2.5 py-1.5 text-right text-[12.5px] text-white outline-none focus:border-[#00E5FF]/50 disabled:opacity-70"
+                          />
+                          {!isReady && (
+                            <button onClick={() => removeBudgetRow(i)} className="text-slate-500 hover:text-red-400">
+                              <Trash2 size={14} />
+                            </button>
+                          )}
+                        </div>
                         <input
-                          value={item.category}
+                          value={item.justification || ""}
                           disabled={isReady}
-                          onChange={(e) => updateBudgetItem(i, "category", e.target.value)}
-                          className="rounded-md border border-white/[0.08] bg-white/[0.03] px-2.5 py-1.5 text-[12.5px] text-white outline-none focus:border-[#00E5FF]/50 disabled:opacity-70"
+                          placeholder="Justification: why this cost is needed and how the amount was calculated"
+                          onChange={(e) => updateBudgetItem(i, "justification", e.target.value)}
+                          className="w-full rounded-md border border-white/[0.06] bg-transparent px-2.5 py-1 text-[12px] text-slate-300 outline-none focus:border-[#00E5FF]/50 disabled:opacity-70"
                         />
-                        <input
-                          value={item.description}
-                          disabled={isReady}
-                          onChange={(e) => updateBudgetItem(i, "description", e.target.value)}
-                          className="rounded-md border border-white/[0.08] bg-white/[0.03] px-2.5 py-1.5 text-[12.5px] text-white outline-none focus:border-[#00E5FF]/50 disabled:opacity-70"
-                        />
-                        <input
-                          type="number"
-                          value={item.amount}
-                          disabled={isReady}
-                          onChange={(e) => updateBudgetItem(i, "amount", e.target.value)}
-                          className="rounded-md border border-white/[0.08] bg-white/[0.03] px-2.5 py-1.5 text-right text-[12.5px] text-white outline-none focus:border-[#00E5FF]/50 disabled:opacity-70"
-                        />
-                        {!isReady && (
-                          <button onClick={() => removeBudgetRow(i)} className="text-slate-500 hover:text-red-400">
-                            <Trash2 size={14} />
-                          </button>
-                        )}
                       </div>
                     ))}
                   </div>
@@ -386,6 +443,8 @@ export default function SubmissionPackagePage() {
                   {budget.notes && <p className="mt-2 text-[12px] text-slate-500">{budget.notes}</p>}
                 </Card>
               )}
+
+              {budget && <BudgetExtras budget={budget} disabled={isReady} onChange={patchBudgetExtras} />}
 
               <div className="flex flex-wrap items-center gap-2.5">
                 {!isReady && (
@@ -405,6 +464,14 @@ export default function SubmissionPackagePage() {
                 >
                   {downloading ? <Loader2 size={13} className="animate-spin" /> : <Download size={14} />}
                   Download Package PDF
+                </button>
+                <button
+                  onClick={downloadBundle}
+                  disabled={bundling}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-[#00E5FF]/40 px-3.5 py-2 text-[13px] font-medium text-[#00E5FF] hover:bg-[#00E5FF]/[0.06] disabled:opacity-50"
+                >
+                  {bundling ? <Loader2 size={13} className="animate-spin" /> : <Package size={14} />}
+                  Download Full Bundle (ZIP)
                 </button>
                 {isReady && (
                   <button
@@ -437,6 +504,16 @@ export default function SubmissionPackagePage() {
                   </>
                 )}
               </div>
+
+              <ChecklistPanel workspaceId={workspaceId} grantId={grantId} refreshKey={checklistKey} />
+
+              <ReviewPanel
+                workspaceId={workspaceId}
+                grantId={grantId}
+                dirty={dirty}
+                persist={persistIfDirty}
+                onReviewed={() => setChecklistKey((k) => k + 1)}
+              />
 
               <Card className="p-4">
                 <p className="text-[12.5px] text-slate-400">

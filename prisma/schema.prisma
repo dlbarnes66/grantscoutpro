@@ -745,6 +745,13 @@ model Application {
   status String @default("draft")
   budget Json?
 
+  // Full-submission additions: the grant-specific checklist (eligibility,
+  // forms, attachments, each tied to uploaded WorkspaceFile ids) and the
+  // latest compliance/consistency review. Shapes live in
+  // src/lib/ai/packageChecklist.ts and src/lib/ai/packageReview.ts.
+  checklist Json?
+  review    Json?
+
   user  User  @relation(fields: [userId], references: [id])
   grant Grant @relation(fields: [grantId], references: [id])
 
