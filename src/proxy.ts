@@ -18,6 +18,12 @@ const isPublicRoute = createRouteMatcher([
   "/blog(.*)",
   "/integrations(.*)",
 
+  // Free pilot signup page and its submit endpoint - applicants are
+  // prospects with no account yet. The API route rate-limits per IP and
+  // uses a honeypot field since there's no auth to lean on.
+  "/pilot(.*)",
+  "/api/pilot",
+
   // Legal pages - must stay public: besides being publicly accessible by
   // law, Google's OAuth consent screen verification (and any other
   // automated compliance check) fetches these unauthenticated and treats

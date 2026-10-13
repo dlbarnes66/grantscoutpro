@@ -2505,3 +2505,25 @@ model WorkspaceTask {
   @@index([workspaceId])
   @@index([assignedToId])
 }
+
+// Applications from the public /pilot page (free pilot program for a small
+// first cohort). Standalone on purpose: applicants usually don't have an
+// account yet. Once accepted, grant the comped pilot through the existing
+// /api/admin/pilot tool using the same email they sign up with.
+model PilotApplication {
+  id               String   @id @default(cuid())
+  email            String   @unique
+  name             String
+  organization     String
+  role             String
+  orgType          String
+  website          String?
+  state            String?
+  challenge        String
+  feedbackConsent  Boolean  @default(false)
+  status           String   @default("pending")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([status, createdAt])
+}
