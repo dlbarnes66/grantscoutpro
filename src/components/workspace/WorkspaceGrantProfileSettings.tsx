@@ -14,6 +14,10 @@ import { ORG_TYPES } from "@/lib/grants/orgType";
 // changed - had no way to add or fix it afterward. This page is that way.
 type ProfileData = {
   organizationName: string;
+  legalName: string;
+  websites: string[];
+  eo12372Status: string;
+  federalDebtDelinquent: boolean | null;
   organizationType: string;
   mission: string;
   website: string;
@@ -61,6 +65,10 @@ type ProfileData = {
 
 const EMPTY: ProfileData = {
   organizationName: "",
+  legalName: "",
+  websites: [],
+  eo12372Status: "",
+  federalDebtDelinquent: null,
   organizationType: "",
   mission: "",
   website: "",
@@ -165,6 +173,7 @@ export default function WorkspaceGrantProfileSettings({ workspaceId }: { workspa
     try {
       const body = {
         ...profile,
+        websites: profile.websites.map((w) => w.trim()).filter(Boolean),
         focusAreas: focusAreasText.split(",").map((s) => s.trim()).filter(Boolean),
         populationsServed: populationsText.split(",").map((s) => s.trim()).filter(Boolean),
         geographicService: geoText.split(",").map((s) => s.trim()).filter(Boolean),
@@ -220,6 +229,17 @@ export default function WorkspaceGrantProfileSettings({ workspaceId }: { workspa
             />
           </Field>
           <Field
+            label="Legal Name"
+            hint="Exactly as registered with the IRS and SAM.gov. Printed on SF-424 item 8a. Leave blank if it matches the name above."
+          >
+            <input
+              className={inputClass}
+              disabled={!canEdit}
+              value={profile.legalName}
+              onChange={(e) => set("legalName", e.target.value)}
+            />
+          </Field>
+          <Field
             label="Organization Type"
             hint="Just for this workspace - other workspaces you own can have a different type."
           >
@@ -246,6 +266,45 @@ export default function WorkspaceGrantProfileSettings({ workspaceId }: { workspa
               onChange={(e) => set("website", e.target.value)}
             />
           </Field>
+          <div className="md:col-span-2">
+            <Field
+              label="Additional Websites (optional)"
+              hint="Program or partner sites to scan alongside your main website - their projects and focus areas are added to your profile. Up to 4."
+            >
+              <div className="space-y-2">
+                {profile.websites.map((site, i) => (
+                  <div key={i} className="flex gap-2">
+                    <input
+                      className={inputClass}
+                      disabled={!canEdit}
+                      placeholder="https://program-site.org"
+                      value={site}
+                      onChange={(e) => set("websites", profile.websites.map((w, j) => (j === i ? e.target.value : w)))}
+                    />
+                    {canEdit && (
+                      <button
+                        type="button"
+                        onClick={() => set("websites", profile.websites.filter((_, j) => j !== i))}
+                        className="rounded-lg border border-slate-700 px-3 text-slate-400 hover:text-red-400"
+                        aria-label="Remove website"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                ))}
+                {canEdit && profile.websites.length < 4 && (
+                  <button
+                    type="button"
+                    onClick={() => set("websites", [...profile.websites, ""])}
+                    className="text-sm text-[#00E5FF] hover:underline"
+                  >
+                    + Add another website
+                  </button>
+                )}
+              </div>
+            </Field>
+          </div>
           <Field label="Nonprofit Status">
             <input
               className={inputClass}
@@ -460,6 +519,40 @@ export default function WorkspaceGrantProfileSettings({ workspaceId }: { workspa
                 value={profile.authorizedRepEmail}
                 onChange={(e) => set("authorizedRepEmail", e.target.value)}
               />
+            </Field>
+          </div>
+        </div>
+        <div className="pt-2 border-t border-slate-800">
+          <h3 className="text-sm font-semibold text-white mb-1">SF-424 Questions Only You Can Answer</h3>
+          <p className="text-xs text-slate-500 mb-3">
+            These are your organization's own statements on the form, so they are never filled in for you. Leave them unanswered
+            and the form shows "To be confirmed before submission".
+          </p>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field label="Item 19 - State review (Executive Order 12372)">
+              <select
+                className={inputClass}
+                disabled={!canEdit}
+                value={profile.eo12372Status}
+                onChange={(e) => set("eo12372Status", e.target.value)}
+              >
+                <option value="">Not answered</option>
+                <option value="a">a. Made available to the State for review</option>
+                <option value="b">b. Subject to E.O. 12372 but not selected for review</option>
+                <option value="c">c. Program is not covered by E.O. 12372</option>
+              </select>
+            </Field>
+            <Field label="Item 20 - Delinquent on any federal debt?">
+              <select
+                className={inputClass}
+                disabled={!canEdit}
+                value={profile.federalDebtDelinquent === null ? "" : profile.federalDebtDelinquent ? "yes" : "no"}
+                onChange={(e) => set("federalDebtDelinquent", e.target.value === "" ? null : e.target.value === "yes")}
+              >
+                <option value="">Not answered</option>
+                <option value="no">No</option>
+                <option value="yes">Yes (an explanation must be attached)</option>
+              </select>
             </Field>
           </div>
         </div>

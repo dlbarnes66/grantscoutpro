@@ -61,6 +61,23 @@ export type Sf424Profile = {
   authorizedRepPhone: string | null;
   authorizedRepEmail: string | null;
   geographicService: string[] | null;
+  // Applicant's own answers to SF-424 items 19 and 20 (never defaulted).
+  eo12372Status: string | null;
+  federalDebtDelinquent: boolean | null;
+};
+
+/**
+ * Per-application values that come from the package rather than the
+ * organization profile: project dates (from the work plan), what the
+ * applicant itself contributes (match), areas affected, and the quarterly
+ * federal cash needs (from the cash-flow plan) for SF-424A Section D.
+ */
+export type Sf424Project = {
+  startDate: string | null; // MM/DD/YYYY
+  endDate: string | null;
+  applicantContribution: number;
+  areasAffected: string | null;
+  quarterlyFederal: number[] | null; // exactly four values, or null
 };
 
 export type Sf424Grant = {
@@ -229,7 +246,7 @@ function box(ctx: RowCtx, label: string, value: string, opts: { width?: number; 
   const width = opts.width ?? CONTENT_WIDTH;
   const x = opts.x ?? MARGIN;
   ctx.page.drawText(label, { x, y: ctx.y, size: 7.5, font: ctx.boldFont, color: NOTE_GRAY });
-  const lines = wrapLine(value, ctx.font, 9.5, width);
+  const lines = value.split("\n").flatMap((part) => wrapLine(part, ctx.font, 9.5, width));
   let ly = ctx.y - 10;
   for (const line of lines) {
     ctx.page.drawText(line, {
@@ -252,7 +269,8 @@ export function addSf424Page(
   boldFont: PDFFont,
   profile: Sf424Profile,
   grant: Sf424Grant,
-  requestedAmount: number
+  requestedAmount: number,
+  project: Sf424Project | null = null
 ) {
   const { page, y: y0 } = newFormPage(
     pdf,
@@ -332,6 +350,13 @@ export function addSf424Page(
   );
   y = Math.min(leftY, rightY) - 6;
 
+  const areas = project?.areasAffected || (profile.geographicService || []).join(", ") || [profile.city, profile.state].filter(Boolean).join(", ");
+  ctx.y = y;
+  y = box(ctx, "14. AREAS AFFECTED BY PROJECT (CITIES, COUNTIES, STATES, ETC.)", fallback(areas), {
+    width: CONTENT_WIDTH,
+    placeholder: !areas,
+  }) - 6;
+
   ctx.y = y;
   y = box(ctx, "15. DESCRIPTIVE TITLE OF APPLICANT'S PROJECT", fallback(grant.title), { width: CONTENT_WIDTH }) - 6;
 
@@ -350,37 +375,42 @@ export function addSf424Page(
   y = Math.min(leftY, rightY) - 6;
 
   ctx.y = y;
-  leftY = box(ctx, "17. PROPOSED PROJECT START / END DATE", "To be completed before submission", {
-    x: col1,
-    width: colW,
-    placeholder: true,
-  });
-  rightY = box(ctx, "18a. ESTIMATED FUNDING - FEDERAL ($)", money(requestedAmount), { x: col2, width: colW });
+  const hasDates = !!(project?.startDate && project?.endDate);
+  leftY = box(
+    ctx,
+    "17. PROPOSED PROJECT START / END DATE",
+    hasDates ? `${project!.startDate}  to  ${project!.endDate}` : "Set the project start date in the Work Plan",
+    { x: col1, width: colW, placeholder: !hasDates }
+  );
+  const applicant = Math.max(0, Math.round(project?.applicantContribution || 0));
+  rightY = box(
+    ctx,
+    "18. ESTIMATED FUNDING ($)",
+    `a. Federal: ${money(requestedAmount)}\nb. Applicant: ${money(applicant)}\ng. TOTAL (federal + applicant): ${money(requestedAmount + applicant)}`,
+    { x: col2, width: colW }
+  );
   y = Math.min(leftY, rightY) - 10;
 
-  page.drawText("19. IS APPLICATION SUBJECT TO REVIEW BY STATE EXECUTIVE ORDER 12372 PROCESS?", {
-    x: col1,
-    y,
-    size: 7.5,
-    font: boldFont,
-    color: NOTE_GRAY,
-  });
-  y -= 11;
-  page.drawText("20. IS THE APPLICANT DELINQUENT ON ANY FEDERAL DEBT?", {
-    x: col1,
-    y,
-    size: 7.5,
-    font: boldFont,
-    color: NOTE_GRAY,
-  });
-  page.drawText("To be confirmed before submission (both items)", {
-    x: col1,
-    y: y - 11.5,
-    size: 9.5,
-    font,
-    color: NOTE_GRAY,
-  });
-  y -= 30;
+  const eoText: Record<string, string> = {
+    a: "a. This application was made available to the State under the Executive Order 12372 Process for review (date: ____________).",
+    b: "b. Program is subject to E.O. 12372 but has not been selected by the State for review.",
+    c: "c. Program is not covered by E.O. 12372.",
+  };
+  const eoValue = eoText[profile.eo12372Status || ""];
+  ctx.y = y;
+  y = box(ctx, "19. IS APPLICATION SUBJECT TO REVIEW BY STATE EXECUTIVE ORDER 12372 PROCESS?", eoValue || "To be confirmed before submission", {
+    width: CONTENT_WIDTH,
+    placeholder: !eoValue,
+  }) - 4;
+
+  const debt = profile.federalDebtDelinquent;
+  ctx.y = y;
+  y = box(
+    ctx,
+    "20. IS THE APPLICANT DELINQUENT ON ANY FEDERAL DEBT?",
+    debt === true ? "Yes. An explanation must be attached." : debt === false ? "No" : "To be confirmed before submission",
+    { width: CONTENT_WIDTH, placeholder: debt === null || debt === undefined }
+  ) - 8;
 
   page.drawText("21. AUTHORIZED REPRESENTATIVE", { x: col1, y, size: 9, font: boldFont, color: HEAD_INK });
   y -= 13;
@@ -425,7 +455,8 @@ export function addSf424APage(
   boldFont: PDFFont,
   grant: Sf424Grant,
   buckets: Sf424ABuckets,
-  notes: string
+  notes: string,
+  project: Sf424Project | null = null
 ) {
   const { page, y: y0 } = newFormPage(
     pdf,
@@ -439,8 +470,9 @@ export function addSf424APage(
   page.drawText("SECTION A - BUDGET SUMMARY", { x: MARGIN, y, size: 9.5, font: boldFont, color: HEAD_INK });
   y -= 16;
 
-  const headers = ["Grant Program / Function", "CFDA No.", "Federal ($)", "Total ($)"];
-  const colX = [MARGIN, MARGIN + 260, MARGIN + 340, MARGIN + 440];
+  const nonFederal = Math.max(0, Math.round(project?.applicantContribution || 0));
+  const headers = ["Grant Program / Function", "CFDA No.", "Federal ($)", "Non-Federal ($)", "Total ($)"];
+  const colX = [MARGIN, MARGIN + 215, MARGIN + 300, MARGIN + 375, MARGIN + 455];
   headers.forEach((h, i) =>
     page.drawText(h, { x: colX[i], y, size: 8, font: boldFont, color: NOTE_GRAY })
   );
@@ -449,9 +481,9 @@ export function addSf424APage(
   y -= 12;
 
   const cfda = extractCfdaNumber(grant) || "Not on file";
-  const row = [grant.title || "Untitled program", cfda, money(buckets.total), money(buckets.total)];
+  const row = [grant.title || "Untitled program", cfda, money(buckets.total), money(nonFederal), money(buckets.total + nonFederal)];
   row.forEach((cell, i) => {
-    const lines = wrapLine(cell, font, 9, i === 0 ? 250 : 90);
+    const lines = wrapLine(cell, font, 9, i === 0 ? 205 : 80);
     lines.slice(0, 2).forEach((l, li) =>
       page.drawText(l, { x: colX[i], y: y - li * 11, size: 9, font, color: INK })
     );
@@ -461,7 +493,8 @@ export function addSf424APage(
   y -= 12;
   page.drawText("Totals", { x: colX[0], y, size: 9, font: boldFont, color: HEAD_INK });
   page.drawText(money(buckets.total), { x: colX[2], y, size: 9, font: boldFont, color: HEAD_INK });
-  page.drawText(money(buckets.total), { x: colX[3], y, size: 9, font: boldFont, color: HEAD_INK });
+  page.drawText(money(nonFederal), { x: colX[3], y, size: 9, font: boldFont, color: HEAD_INK });
+  page.drawText(money(buckets.total + nonFederal), { x: colX[4], y, size: 9, font: boldFont, color: HEAD_INK });
   y -= 26;
 
   page.drawText("SECTION B - BUDGET CATEGORIES (Object Class)", {
@@ -495,13 +528,28 @@ export function addSf424APage(
   page.drawText(money(buckets.total), { x: MARGIN + 440, y, size: 9, font: boldFont, color: HEAD_INK });
   y -= 24;
 
+  page.drawText("SECTION C - NON-FEDERAL RESOURCES", { x: MARGIN, y, size: 9.5, font: boldFont, color: HEAD_INK });
+  y -= 14;
+  page.drawText("b. Applicant (match / cost share)", { x: MARGIN, y, size: 9, font, color: INK });
+  page.drawText(money(nonFederal), { x: MARGIN + 440, y, size: 9, font, color: INK });
+  y -= 18;
+
+  page.drawText("SECTION D - FORECASTED CASH NEEDS (FEDERAL)", { x: MARGIN, y, size: 9.5, font: boldFont, color: HEAD_INK });
+  y -= 14;
+  const q = project?.quarterlyFederal;
+  if (q && q.length === 4) {
+    ["1st Quarter", "2nd Quarter", "3rd Quarter", "4th Quarter"].forEach((label, i) => {
+      page.drawText(label, { x: MARGIN + i * 120, y, size: 8, font: boldFont, color: NOTE_GRAY });
+      page.drawText(money(q[i]), { x: MARGIN + i * 120, y: y - 12, size: 9, font, color: INK });
+    });
+    y -= 30;
+  } else {
+    page.drawText("Add a four-quarter cash-flow plan in the budget to fill this section.", { x: MARGIN, y, size: 8.5, font, color: NOTE_GRAY });
+    y -= 18;
+  }
+
   page.drawText(
-    "Sections C (Non-Federal Resources), D (Forecasted Cash Needs) and E (Budget Estimates - Future Years)",
-    { x: MARGIN, y, size: 8.5, font, color: NOTE_GRAY }
-  );
-  y -= 11;
-  page.drawText(
-    "are not populated here - Grant Scout Pro does not currently collect cost-share or multi-year figures.",
+    "Section E (Budget Estimates - Future Years) is not populated: this budget covers a single project period.",
     { x: MARGIN, y, size: 8.5, font, color: NOTE_GRAY }
   );
   y -= 20;

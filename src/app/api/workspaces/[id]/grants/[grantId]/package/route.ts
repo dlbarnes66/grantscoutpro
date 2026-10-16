@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { assertGrantWorkspaceAccess } from "@/lib/ai/negotiation";
+import { getProfileContext, parseSections, parseWorkPlan } from "@/lib/ai/packageContext";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -18,7 +19,7 @@ export async function GET(_req: NextRequest, context: { params: Promise<Params> 
 
   const grant = await prisma.grant.findUnique({
     where: { id: params.grantId },
-    select: { title: true, aiEligibilityScore: true, aiSummary: true },
+    select: { title: true, aiEligibilityScore: true, aiSummary: true, source: true },
   });
   if (!grant) return NextResponse.json({ error: "Grant not found" }, { status: 404 });
 
@@ -28,19 +29,23 @@ export async function GET(_req: NextRequest, context: { params: Promise<Params> 
     where: { workspaceId: params.id, grantId: params.grantId },
   });
 
-  let sections: { title: string; content: string }[] = [];
-  if (application?.content) {
-    try {
-      sections = JSON.parse(application.content)?.sections || [];
-    } catch {
-      sections = [];
-    }
-  }
+  const sections = parseSections(application?.content);
+  const workPlan = parseWorkPlan(application?.content);
+
+  // Which SF-424 details the organization profile is still missing, so the
+  // page can point to Grant Profile settings instead of the forms showing
+  // blanks.
+  const federal =
+    grant.source === "FEDERAL"
+      ? { applicable: true, gaps: (await getProfileContext(params.id)).gaps }
+      : { applicable: false, gaps: [] as string[] };
 
   return NextResponse.json({
     grant,
     status: application?.status || null,
     sections,
+    workPlan,
+    federal,
     budget: application?.budget || null,
     updatedAt: application?.updatedAt || null,
   });

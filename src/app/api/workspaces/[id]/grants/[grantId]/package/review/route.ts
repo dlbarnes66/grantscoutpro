@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { assertGrantWorkspaceAccess } from "@/lib/ai/negotiation";
 import { resolveChecklist, type PackageChecklist } from "@/lib/ai/packageChecklist";
 import { reviewPackage } from "@/lib/ai/packageReview";
-import { getProfileContext, packageActionAllowed, parseSections } from "@/lib/ai/packageContext";
+import { getProfileContext, packageActionAllowed, parseSections, parseWorkPlan } from "@/lib/ai/packageContext";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -57,6 +57,7 @@ export async function POST(_req: NextRequest, context: { params: Promise<Params>
     checklist,
     profileGaps: profile.gaps,
     organizationType: profile.organizationType,
+    workPlanStartSet: !!parseWorkPlan(application.content)?.startDate,
   });
 
   await prisma.application.update({ where: { id: application.id }, data: { review: review as any } });

@@ -52,6 +52,8 @@ export type ReviewInput = {
   checklist: ResolvedChecklistItem[] | null;
   profileGaps: string[];
   organizationType: string | null;
+  /** True once the Work Plan has a project start date (fills SF-424 item 17). */
+  workPlanStartSet?: boolean;
   now?: Date;
 };
 
@@ -158,6 +160,10 @@ export function runChecks(input: ReviewInput): ReviewFinding[] {
   // ---- Forms / profile
   if (grant.source === "FEDERAL" && input.profileGaps.length > 0) {
     add("warning", "forms", `The SF-424 forms will have blanks: ${input.profileGaps.join(", ")}.`, "Fill these in under Settings > Grant Profile before downloading.");
+  }
+
+  if (grant.source === "FEDERAL" && !input.workPlanStartSet) {
+    add("warning", "forms", "SF-424 item 17 (project start and end dates) is blank.", "Set the project start date and length in the Work Plan & Timeline section.");
   }
 
   // ---- Checklist and attachments

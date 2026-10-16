@@ -6,6 +6,7 @@ import {
   bucketBudgetForSf424A,
   type Sf424Grant,
   type Sf424Profile,
+  type Sf424Project,
 } from "@/lib/documents/sf424";
 
 // Plain-text PDF layout: document content in this app is stored as a
@@ -73,6 +74,9 @@ export type FederalFormsInput = {
   profile: Sf424Profile;
   grant: Sf424Grant;
   requestedAmount: number;
+  // Project dates, match and areas affected for the SF-424 (optional so
+  // older callers keep working).
+  project?: Sf424Project | null;
 };
 
 export async function generatePackagePdf(
@@ -210,8 +214,18 @@ export async function generatePackagePdf(
 
   if (federalForms) {
     const buckets = bucketBudgetForSf424A(budget?.lineItems || []);
-    addSf424Page(pdf, font, boldFont, federalForms.profile, federalForms.grant, federalForms.requestedAmount);
-    addSf424APage(pdf, font, boldFont, federalForms.grant, buckets, budget?.notes || "");
+    const project: Sf424Project | null = federalForms.project
+      ? {
+          ...federalForms.project,
+          // Quarterly federal cash needs come from the cash-flow plan when
+          // it has exactly four periods; otherwise Section D stays blank.
+          quarterlyFederal:
+            budget?.cashFlow && budget.cashFlow.length === 4 ? budget.cashFlow.map((c) => Math.round(Number(c.outflow) || 0)) : null,
+          applicantContribution: Math.round(Number(budget?.match?.amount) || 0),
+        }
+      : null;
+    addSf424Page(pdf, font, boldFont, federalForms.profile, federalForms.grant, federalForms.requestedAmount, project);
+    addSf424APage(pdf, font, boldFont, federalForms.grant, buckets, budget?.notes || "", project);
     addSf424BPage(pdf, font, boldFont, federalForms.profile);
   }
 

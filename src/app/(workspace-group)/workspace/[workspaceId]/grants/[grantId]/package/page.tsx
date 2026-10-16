@@ -5,8 +5,10 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import WorkspaceShell from "@/components/workspace/WorkspaceShell";
 import Card from "@/components/ui/Card";
-import { Sparkles, Loader2, Download, Plus, Trash2, CheckCircle2, Package } from "lucide-react";
+import { Sparkles, Loader2, Download, Plus, Trash2, CheckCircle2, Package, AlertTriangle } from "lucide-react";
 import { BudgetExtras, ChecklistPanel, ReviewPanel } from "./PackageExtras";
+import WorkPlanEditor from "./WorkPlanEditor";
+import { buildWorkPlanTemplate, renderWorkPlanText, WORK_PLAN_TITLE, type WorkPlan } from "@/lib/ai/workPlan";
 
 interface Section {
   title: string;
@@ -65,6 +67,9 @@ export default function SubmissionPackagePage() {
   const [dirty, setDirty] = useState(false);
   const [bundling, setBundling] = useState(false);
   const [checklistKey, setChecklistKey] = useState(0);
+  const [workPlan, setWorkPlan] = useState<WorkPlan | null>(null);
+  const [federal, setFederal] = useState<{ applicable: boolean; gaps: string[] }>({ applicable: false, gaps: [] });
+  const [sectionBusy, setSectionBusy] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
@@ -76,6 +81,8 @@ export default function SubmissionPackagePage() {
       setGrantTitle(data.grant?.title || "");
       setStatus(data.status);
       setSections(data.sections || []);
+      setWorkPlan(data.workPlan || null);
+      setFederal(data.federal || { applicable: false, gaps: [] });
       setBudget(data.budget || null);
       setDirty(false);
     } catch (err: any) {
@@ -117,6 +124,7 @@ export default function SubmissionPackagePage() {
       if (!res.ok) throw new Error(data?.error || "Failed to generate package");
       setStatus(data.status);
       setSections(data.sections || []);
+      setWorkPlan(data.workPlan || null);
       setBudget(data.budget || null);
       setDirty(false);
     } catch (err: any) {
@@ -136,10 +144,11 @@ export default function SubmissionPackagePage() {
       const res = await fetch(`/api/workspaces/${workspaceId}/grants/${grantId}/package/save`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sections, budget }),
+        body: JSON.stringify({ sections, budget, workPlan }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Failed to save");
+      if (Array.isArray(data.sections)) setSections(data.sections);
       setDirty(false);
       return true;
     } catch (err: any) {
@@ -199,6 +208,40 @@ export default function SubmissionPackagePage() {
       setError(err?.message || "Failed to build the bundle");
     } finally {
       setBundling(false);
+    }
+  }
+
+  // Work plan edits update the structured plan and the section text that
+  // gets printed, together (the server re-renders the text on save too).
+  function updateWorkPlan(plan: WorkPlan) {
+    setWorkPlan(plan);
+    setSections((prev) => prev.map((s) => (s.title === WORK_PLAN_TITLE ? { ...s, content: renderWorkPlanText(plan) } : s)));
+    setDirty(true);
+  }
+
+  // Builds or rebuilds one section on the server from the saved draft:
+  // AI for the Executive Summary and Sustainability Plan, the template for
+  // the Work Plan. Pending edits are saved first so nothing is lost.
+  async function buildSection(title: string, opts: { reset?: boolean } = {}) {
+    setSectionBusy(title);
+    setError(null);
+    try {
+      const ok = await persistIfDirty();
+      if (!ok) return;
+      const res = await fetch(`/api/workspaces/${workspaceId}/grants/${grantId}/package/section`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, reset: opts.reset === true }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Could not build that section");
+      setSections(data.sections || []);
+      setWorkPlan(data.workPlan || null);
+      setDirty(false);
+    } catch (err: any) {
+      setError(err?.message || "Could not build that section");
+    } finally {
+      setSectionBusy(null);
     }
   }
 
@@ -361,21 +404,104 @@ export default function SubmissionPackagePage() {
                 </p>
               )}
 
-              {sections.map((section, i) => (
-                <Card key={i} className="p-5">
-                  <p className="text-[13px] font-semibold text-white">{section.title}</p>
-                  <p className="mb-2 mt-0.5 text-[12px] text-slate-500">
-                    {SECTION_HINTS[section.title] || DEFAULT_SECTION_HINT}
+              {federal.applicable && federal.gaps.length > 0 && (
+                <Card className="flex gap-3 border-amber-500/25 bg-amber-500/[0.06] p-4">
+                  <AlertTriangle size={16} className="mt-0.5 shrink-0 text-amber-400" />
+                  <p className="text-[12.5px] text-amber-200">
+                    This is a federal grant. The SF-424 forms in your package will show blanks for: {federal.gaps.join(", ")}.{" "}
+                    <Link href={`/workspace/${workspaceId}/settings/grant-profile`} className="underline hover:text-amber-100">
+                      Add them in Grant Profile settings
+                    </Link>{" "}
+                    and they fill in automatically.
                   </p>
-                  <textarea
-                    value={section.content}
-                    onChange={(e) => updateSection(i, e.target.value)}
-                    disabled={isReady}
-                    rows={6}
-                    className="w-full resize-y rounded-md border border-white/[0.08] bg-white/[0.03] p-3 text-[13px] leading-relaxed text-slate-200 outline-none focus:border-[#00E5FF]/50 disabled:opacity-70"
-                  />
                 </Card>
-              ))}
+              )}
+
+              {!isReady && (
+                <div className="flex flex-wrap items-center gap-2">
+                  {[
+                    { title: "Executive Summary", label: "Add AI Executive Summary" },
+                    { title: WORK_PLAN_TITLE, label: "Add Work Plan template" },
+                    { title: "Sustainability Plan", label: "Add AI Sustainability Plan" },
+                  ]
+                    .filter((m) => !sections.some((s) => s.title === m.title))
+                    .map((m) => (
+                      <button
+                        key={m.title}
+                        onClick={() => buildSection(m.title)}
+                        disabled={sectionBusy !== null}
+                        className="inline-flex items-center gap-1.5 rounded-md border border-[#00E5FF]/40 px-3 py-1.5 text-[12.5px] text-[#00E5FF] hover:bg-[#00E5FF]/[0.06] disabled:opacity-50"
+                      >
+                        {sectionBusy === m.title ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
+                        {m.label}
+                      </button>
+                    ))}
+                </div>
+              )}
+
+              {sections.map((section, i) => {
+                const aiSection = section.title === "Executive Summary" || section.title === "Sustainability Plan";
+                const isWorkPlan = section.title === WORK_PLAN_TITLE;
+                return (
+                  <Card key={i} className="p-5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-[13px] font-semibold text-white">{section.title}</p>
+                        <p className="mb-2 mt-0.5 text-[12px] text-slate-500">
+                          {SECTION_HINTS[section.title] || DEFAULT_SECTION_HINT}
+                        </p>
+                      </div>
+                      {aiSection && !isReady && (
+                        <button
+                          onClick={() => {
+                            if (section.content.trim() && !confirm(`Replace the current ${section.title} with a new AI version? Your edits to it will be lost.`)) return;
+                            buildSection(section.title);
+                          }}
+                          disabled={sectionBusy !== null}
+                          className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-white/[0.1] px-3 py-1.5 text-[12.5px] text-slate-200 hover:bg-white/[0.04] disabled:opacity-50"
+                        >
+                          {sectionBusy === section.title ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} className="text-[#00E5FF]" />}
+                          {section.content.trim() ? "Regenerate with AI" : "Generate with AI"}
+                        </button>
+                      )}
+                    </div>
+                    {isWorkPlan && workPlan ? (
+                      <WorkPlanEditor
+                        plan={workPlan}
+                        disabled={isReady}
+                        onChange={updateWorkPlan}
+                        onReset={() => {
+                          const fresh = buildWorkPlanTemplate(workPlan.durationMonths, workPlan.startDate);
+                          updateWorkPlan(fresh);
+                        }}
+                      />
+                    ) : (
+                      <>
+                        <textarea
+                          value={section.content}
+                          onChange={(e) => updateSection(i, e.target.value)}
+                          disabled={isReady}
+                          rows={aiSection ? 10 : 6}
+                          className="w-full resize-y rounded-md border border-white/[0.08] bg-white/[0.03] p-3 text-[13px] leading-relaxed text-slate-200 outline-none focus:border-[#00E5FF]/50 disabled:opacity-70"
+                        />
+                        {isWorkPlan && !isReady && (
+                          <button
+                            onClick={() => {
+                              if (section.content.trim() && !confirm("Replace this section with the editable work plan template?")) return;
+                              buildSection(WORK_PLAN_TITLE, { reset: true });
+                            }}
+                            disabled={sectionBusy !== null}
+                            className="mt-2 inline-flex items-center gap-1.5 text-[12.5px] text-[#00E5FF] hover:underline disabled:opacity-50"
+                          >
+                            {sectionBusy === WORK_PLAN_TITLE && <Loader2 size={13} className="animate-spin" />}
+                            Use the editable work plan template
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </Card>
+                );
+              })}
 
               {budget && (
                 <Card className="p-5">

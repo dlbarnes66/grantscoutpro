@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { sanitizeProfilePatch, serializeProfileForClient } from "@/lib/profile/profilePatch";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -38,52 +39,7 @@ function serializeProfile(
   profile: Awaited<ReturnType<typeof prisma.userProfile.findUnique>>,
   organizationType: string
 ) {
-  return {
-    organizationName: profile?.organizationName ?? "",
-    organizationType,
-    mission: profile?.mission ?? "",
-    website: profile?.website ?? "",
-
-    linkedin: profile?.linkedin ?? "",
-    facebook: profile?.facebook ?? "",
-    instagram: profile?.instagram ?? "",
-
-    country: profile?.country ?? "",
-    state: profile?.state ?? "",
-    city: profile?.city ?? "",
-    streetAddress: profile?.streetAddress ?? "",
-    addressLine2: profile?.addressLine2 ?? "",
-    zipCode: profile?.zipCode ?? "",
-    county: profile?.county ?? "",
-    orgPhone: profile?.orgPhone ?? "",
-    congressionalDistrictApplicant: profile?.congressionalDistrictApplicant ?? "",
-    congressionalDistrictProject: profile?.congressionalDistrictProject ?? "",
-    authorizedRepName: profile?.authorizedRepName ?? "",
-    authorizedRepTitle: profile?.authorizedRepTitle ?? "",
-    authorizedRepPhone: profile?.authorizedRepPhone ?? "",
-    authorizedRepEmail: profile?.authorizedRepEmail ?? "",
-
-    nonprofitStatus: profile?.nonprofitStatus ?? "",
-    ein: profile?.ein ?? "",
-    uei: profile?.uei ?? "",
-
-    staffSize: profile?.staffSize ?? null,
-    annualBudget: profile?.annualBudget ?? null,
-    budgetRange: profile?.budgetRange ?? "",
-    grantExperience: profile?.grantExperience ?? "",
-
-    focusAreas: profile?.focusAreas ?? [],
-    populationsServed: profile?.populationsServed ?? [],
-    geographicService: profile?.geographicService ?? [],
-    serviceScope: profile?.serviceScope ?? "",
-
-    pastGrants: profile?.pastGrants ?? "",
-    pastWins: profile?.pastWins ?? null,
-    pastLosses: profile?.pastLosses ?? null,
-
-    strategicGoals: profile?.strategicGoals ?? "",
-    priorityAreas: profile?.priorityAreas ?? "",
-  };
+  return serializeProfileForClient(profile as Record<string, any> | null, organizationType);
 }
 
 export async function GET(_req: NextRequest, { params: paramsPromise }: { params: Promise<Params> }) {
@@ -128,42 +84,6 @@ export async function GET(_req: NextRequest, { params: paramsPromise }: { params
 // "organizationType" is handled separately in PATCH below - it writes
 // to Workspace.organizationTypeOverride, not UserProfile, so a workspace
 // can have its own type independent of the owner's other workspaces.
-const STRING_FIELDS = [
-  "organizationName",
-  "mission",
-  "website",
-  "linkedin",
-  "facebook",
-  "instagram",
-  "country",
-  "state",
-  "city",
-  "streetAddress",
-  "addressLine2",
-  "zipCode",
-  "county",
-  "orgPhone",
-  "congressionalDistrictApplicant",
-  "congressionalDistrictProject",
-  "authorizedRepName",
-  "authorizedRepTitle",
-  "authorizedRepPhone",
-  "authorizedRepEmail",
-  "nonprofitStatus",
-  "ein",
-  "uei",
-  "budgetRange",
-  "serviceScope",
-  "grantExperience",
-  "pastGrants",
-  "strategicGoals",
-  "priorityAreas",
-] as const;
-
-const INT_FIELDS = ["staffSize", "annualBudget", "pastWins", "pastLosses"] as const;
-
-const STRING_ARRAY_FIELDS = ["focusAreas", "populationsServed", "geographicService"] as const;
-
 export async function PATCH(req: NextRequest, { params: paramsPromise }: { params: Promise<Params> }) {
   const params = await paramsPromise;
   const { userId } = await auth();
@@ -189,6 +109,12 @@ export async function PATCH(req: NextRequest, { params: paramsPromise }: { param
       return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
     }
 
+    const patch = sanitizeProfilePatch(body);
+    if ("error" in patch) {
+      return NextResponse.json({ error: patch.error }, { status: 400 });
+    }
+    const data = patch.data;
+
     if ("organizationType" in body) {
       const value = body.organizationType;
       if (value !== null && typeof value !== "string") {
@@ -201,47 +127,6 @@ export async function PATCH(req: NextRequest, { params: paramsPromise }: { param
         where: { id: workspace.id },
         data: { organizationTypeOverride: trimmed.length ? trimmed : null },
       });
-    }
-
-    const data: Record<string, any> = {};
-
-    for (const field of STRING_FIELDS) {
-      if (field in body) {
-        const value = body[field];
-        if (value === null) {
-          data[field] = null;
-        } else if (typeof value === "string") {
-          const trimmed = value.trim();
-          data[field] = trimmed.length ? trimmed : null;
-        } else {
-          return NextResponse.json({ error: `${field} must be a string` }, { status: 400 });
-        }
-      }
-    }
-
-    for (const field of INT_FIELDS) {
-      if (field in body) {
-        const value = body[field];
-        if (value === null || value === "") {
-          data[field] = null;
-        } else {
-          const n = Number(value);
-          if (!Number.isFinite(n)) {
-            return NextResponse.json({ error: `${field} must be a number` }, { status: 400 });
-          }
-          data[field] = Math.trunc(n);
-        }
-      }
-    }
-
-    for (const field of STRING_ARRAY_FIELDS) {
-      if (field in body) {
-        const value = body[field];
-        if (!Array.isArray(value) || !value.every((v) => typeof v === "string")) {
-          return NextResponse.json({ error: `${field} must be an array of strings` }, { status: 400 });
-        }
-        data[field] = value.map((v) => v.trim()).filter(Boolean);
-      }
     }
 
     const updated = await prisma.userProfile.upsert({

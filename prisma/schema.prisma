@@ -220,6 +220,18 @@ model UserProfile {
   ein             String?
   uei             String?
 
+  // Federal application details collected at onboarding so the SF-424
+  // family fills in instead of showing placeholders. legalName is the name
+  // exactly as registered with the IRS/SAM.gov (organizationName is the
+  // display name and can differ). websites holds ADDITIONAL sites beyond
+  // the primary `website`. eo12372Status ("a" | "b" | "c") and
+  // federalDebtDelinquent are the applicant's own answers to SF-424 items
+  // 19 and 20 - never defaulted, because they are attestations.
+  legalName             String?
+  websites              String[] @default([])
+  eo12372Status         String?
+  federalDebtDelinquent Boolean?
+
   staffSize       Int?
   annualBudget    Int?
   // Bucketed range from the onboarding form's dropdown (e.g. "Under

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { resolveOrganizationType } from "@/lib/grants/orgType";
 import type { FederalFormsInput } from "@/lib/documents/generatePdf";
+import { formatUsDate, projectDates, sanitizeWorkPlan } from "@/lib/ai/workPlan";
 
 type GrantForForms = {
   title: string;
@@ -24,7 +25,7 @@ type GrantForForms = {
 export async function buildFederalFormsInput(
   workspaceId: string,
   grant: GrantForForms,
-  application: { budget: unknown }
+  application: { budget: unknown; content?: string | null }
 ): Promise<FederalFormsInput | null> {
   if (grant.source !== "FEDERAL") return null;
 
@@ -39,9 +40,28 @@ export async function buildFederalFormsInput(
   const requestedAmount =
     typeof budgetTotal === "number" ? budgetTotal : grant.awardCeiling ?? grant.awardFloor ?? 0;
 
+  // Project dates and the areas affected come from the package itself.
+  let workPlan = null;
+  try {
+    workPlan = application.content ? sanitizeWorkPlan(JSON.parse(application.content)?.workPlan) : null;
+  } catch {
+    workPlan = null;
+  }
+  const dates = projectDates(workPlan);
+  const areas = (profile?.geographicService || []).join(", ") || [profile?.city, profile?.state].filter(Boolean).join(", ");
+
   return {
+    project: {
+      startDate: formatUsDate(dates.start),
+      endDate: formatUsDate(dates.end),
+      applicantContribution: 0, // filled from the budget match when the PDF is drawn
+      areasAffected: areas || null,
+      quarterlyFederal: null, // filled from the cash-flow plan when the PDF is drawn
+    },
     profile: {
-      organizationName: profile?.organizationName ?? null,
+      // The legal name (as registered with the IRS / SAM.gov) is what
+      // belongs on SF-424 item 8a; fall back to the display name.
+      organizationName: profile?.legalName?.trim() || profile?.organizationName || null,
       organizationType:
         resolveOrganizationType(
           { organizationTypeOverride: workspace?.organizationTypeOverride ?? null },
@@ -64,6 +84,8 @@ export async function buildFederalFormsInput(
       authorizedRepPhone: profile?.authorizedRepPhone ?? null,
       authorizedRepEmail: profile?.authorizedRepEmail ?? null,
       geographicService: profile?.geographicService ?? null,
+      eo12372Status: profile?.eo12372Status ?? null,
+      federalDebtDelinquent: profile?.federalDebtDelinquent ?? null,
     },
     grant: {
       title: grant.title,

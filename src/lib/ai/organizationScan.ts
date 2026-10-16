@@ -64,7 +64,22 @@ export async function rescanOrganizationWebsite(userId: string): Promise<{
   if (!profile?.website) return null;
 
   const discovered = await discoverOrganization(profile.website);
-  const currentProjects = await extractCurrentProjects(discovered.rawMarkdown);
+
+  // Additional websites the organization listed (capped at 4 when saved).
+  // Their content is appended so projects described only on a program site
+  // are still picked up; one that fails to load is simply skipped.
+  const extraSites = (profile.websites || []).slice(0, 4);
+  const extraMarkdown: string[] = [];
+  const extraKeywords: string[] = [];
+  const extras = await Promise.allSettled(extraSites.map((site) => discoverOrganization(site)));
+  for (const r of extras) {
+    if (r.status === "fulfilled") {
+      extraMarkdown.push(r.value.rawMarkdown.slice(0, 6000));
+      extraKeywords.push(...(r.value.keywords || []));
+    }
+  }
+  const currentProjects = await extractCurrentProjects([discovered.rawMarkdown.slice(0, 12000), ...extraMarkdown].join("\n\n"));
+  const mergedKeywords = Array.from(new Set([...discovered.keywords, ...extraKeywords]));
 
   await prisma.userProfile.update({
     where: { userId },
@@ -73,10 +88,10 @@ export async function rescanOrganizationWebsite(userId: string): Promise<{
       lastScannedAt: new Date(),
       // Keep focusAreas/mission fresh too, same fields the onboarding
       // scrape already writes to.
-      focusAreas: discovered.keywords.length > 0 ? discovered.keywords : profile.focusAreas,
+      focusAreas: mergedKeywords.length > 0 ? mergedKeywords : profile.focusAreas,
       mission: discovered.mission || profile.mission,
     },
   });
 
-  return { currentProjects, focusAreas: discovered.keywords };
+  return { currentProjects, focusAreas: mergedKeywords };
 }

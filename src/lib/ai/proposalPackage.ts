@@ -21,6 +21,14 @@ export const STANDARD_SECTIONS = [
   "Budget Narrative",
 ];
 
+// The model writes every standard section except three that are built
+// another way: the Work Plan & Timeline is a structured template
+// (workPlan.ts), and the Executive Summary and Sustainability Plan are
+// generated afterwards from the finished draft (packageSections.ts).
+export const AI_SECTIONS = STANDARD_SECTIONS.filter(
+  (t) => t !== "Executive Summary" && t !== "Work Plan & Timeline" && t !== "Sustainability Plan"
+);
+
 const FALLBACK: ProposalSection[] = [];
 
 /**
@@ -50,7 +58,7 @@ export async function generateProposalSections(
       messages: [
         {
           role: "system",
-          content: `You write a first-draft grant proposal narrative for a nonprofit, organized into standard sections: ${STANDARD_SECTIONS.join(", ")}. Return JSON: { "sections": [{ "title": string, "content": string }] } covering all of those sections in that order. Write specifically about the organization's real mission and current projects given below, connected to this specific grant - not generic boilerplate. Each section should be a few solid paragraphs. Section guidance: Executive Summary = organization, need, project, expected outcomes, total cost and amount requested in one page; Statement of Need = the problem, who is affected, gaps in existing services, evidence; Goals & Objectives = goals plus measurable objectives; Work Plan & Timeline = phased activities with milestones by month or quarter; Staffing, Partners & Responsibilities = roles needed and who is responsible for what; Evaluation Plan = performance indicators with targets, data collection methods, reporting schedule, short- and long-term outcomes; Sustainability Plan = how the work continues after grant funding ends; Budget Narrative = a plain-English explanation of the costs. HONESTY RULES: use only facts present in the organization profile and grant context below. Never invent statistics, named people, partner organizations, prior award amounts or dates. Where a specific fact is needed but not provided (a statistic, a staff name, a partner, a target number), write a clearly marked placeholder in square brackets such as [add local statistic and source] so the applicant fills it in. This is an editable first draft, not a final submission.`,
+          content: `You write a first-draft grant proposal narrative for a nonprofit, organized into exactly these sections: ${AI_SECTIONS.join(", ")}. Return JSON: { "sections": [{ "title": string, "content": string }] } covering all of those sections in that order and no others. Write specifically about the organization's real mission and current projects given below, connected to this specific grant - not generic boilerplate. Each section should be a few solid paragraphs. Section guidance: Statement of Need = the problem, who is affected, gaps in existing services, evidence; Goals & Objectives = goals plus measurable objectives; Staffing, Partners & Responsibilities = roles needed and who is responsible for what; Evaluation Plan = performance indicators with targets, data collection methods, reporting schedule, short- and long-term outcomes; Budget Narrative = a plain-English explanation of the costs. HONESTY RULES: use only facts present in the organization profile and grant context below. Never invent statistics, named people, partner organizations, prior award amounts or dates. Where a specific fact is needed but not provided (a statistic, a staff name, a partner, a target number), write a clearly marked placeholder in square brackets such as [add local statistic and source] so the applicant fills it in. This is an editable first draft, not a final submission.`,
         },
         {
           role: "user",

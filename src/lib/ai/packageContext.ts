@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { resolveOrganizationType } from "@/lib/grants/orgType";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { sanitizeWorkPlan, type WorkPlan } from "@/lib/ai/workPlan";
 
 export type PackageSectionRow = { title: string; content: string };
 
@@ -11,6 +12,15 @@ export function parseSections(content: string | null | undefined): PackageSectio
     return Array.isArray(s) ? s : [];
   } catch {
     return [];
+  }
+}
+
+export function parseWorkPlan(content: string | null | undefined): WorkPlan | null {
+  if (!content) return null;
+  try {
+    return sanitizeWorkPlan(JSON.parse(content)?.workPlan);
+  } catch {
+    return null;
   }
 }
 
@@ -26,15 +36,20 @@ export async function getProfileContext(workspaceId: string): Promise<{
   if (!workspace) return { gaps: [], organizationType: null };
   const profile = await prisma.userProfile.findUnique({ where: { userId: workspace.ownerId } });
   const checks: [string, unknown][] = [
-    ["organization name", profile?.organizationName],
+    ["organization name", profile?.legalName || profile?.organizationName],
     ["EIN", profile?.ein],
     ["UEI", profile?.uei],
     ["street address", profile?.streetAddress],
     ["city", profile?.city],
     ["state", profile?.state],
     ["ZIP code", profile?.zipCode],
+    ["organization phone", profile?.orgPhone],
+    ["congressional district", profile?.congressionalDistrictApplicant],
     ["authorized representative name", profile?.authorizedRepName],
+    ["authorized representative title", profile?.authorizedRepTitle],
     ["authorized representative email", profile?.authorizedRepEmail],
+    ["Executive Order 12372 answer (SF-424 item 19)", profile?.eo12372Status],
+    ["federal debt answer (SF-424 item 20)", typeof profile?.federalDebtDelinquent === "boolean" ? "set" : null],
   ];
   return {
     gaps: checks.filter(([, v]) => !(typeof v === "string" && v.trim())).map(([k]) => k),

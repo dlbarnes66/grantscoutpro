@@ -4,6 +4,7 @@ import { getFirecrawl } from "@/lib/firecrawl";
 import { discoverOrganization } from "@/lib/organization-discovery";
 import { prisma } from "@/lib/prisma";
 import { ensureUser } from "@/lib/auth";
+import { MAX_ADDITIONAL_WEBSITES, normalizeWebsiteUrl } from "@/lib/profile/profilePatch";
 
 export const dynamic = "force-dynamic";
 
@@ -71,6 +72,31 @@ export async function POST(
 // can infer, so pass through whatever the user typed. Empty strings
 // are normalized to undefined so an unfilled field doesn't overwrite
 // something the user already saved from Settings.
+// Additional websites (optional): an organization with more than one site
+// (a parent site plus a program site, say) can list them. Each is scanned
+// the same way as the primary, and what they say about the organization's
+// focus areas is merged in. A failed or unreachable extra site is skipped,
+// never fatal - the primary site is what onboarding depends on.
+const rawExtras: string[] = Array.isArray(body.websites)
+  ? body.websites.filter((w: unknown): w is string => typeof w === "string")
+  : [];
+const extraSites: string[] = [];
+for (const raw of rawExtras) {
+  const url = normalizeWebsiteUrl(raw);
+  if (url && !extraSites.includes(url) && url !== normalizeWebsiteUrl(String(body.website || ""))) {
+    extraSites.push(url);
+  }
+}
+const extrasToScan = extraSites.slice(0, MAX_ADDITIONAL_WEBSITES);
+const extraResults = await Promise.allSettled(extrasToScan.map((site) => discoverOrganization(site)));
+const extraKeywords: string[] = [];
+const skippedSites: string[] = [];
+extraResults.forEach((r, i) => {
+  if (r.status === "fulfilled") extraKeywords.push(...(r.value.keywords || []));
+  else skippedSites.push(extrasToScan[i]);
+});
+const mergedKeywords = Array.from(new Set([...(profile.keywords || []), ...extraKeywords]));
+
 const linkedin = typeof body.linkedin === "string" && body.linkedin.trim() ? body.linkedin.trim() : undefined;
 const facebook = typeof body.facebook === "string" && body.facebook.trim() ? body.facebook.trim() : undefined;
 const instagram = typeof body.instagram === "string" && body.instagram.trim() ? body.instagram.trim() : undefined;
@@ -81,7 +107,8 @@ await prisma.userProfile.upsert({
     organizationName: profile.organizationName,
     mission: profile.mission,
     website: profile.website,
-    focusAreas: profile.keywords,
+    focusAreas: mergedKeywords,
+    websites: extrasToScan,
     ...(linkedin !== undefined ? { linkedin } : {}),
     ...(facebook !== undefined ? { facebook } : {}),
     ...(instagram !== undefined ? { instagram } : {}),
@@ -91,14 +118,15 @@ await prisma.userProfile.upsert({
     organizationName: profile.organizationName,
     mission: profile.mission,
     website: profile.website,
-    focusAreas: profile.keywords,
+    focusAreas: mergedKeywords,
+    websites: extrasToScan,
     linkedin,
     facebook,
     instagram,
   },
 });
 
-return NextResponse.json(profile);
+return NextResponse.json({ ...profile, keywords: mergedKeywords, websites: extrasToScan, skippedSites });
   } catch (err: any) {
     console.error("POST ERROR:", err);
 
