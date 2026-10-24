@@ -76,7 +76,7 @@ describe("plans", () => {
     const DAY = 24 * 3600 * 1000;
     const trialOrg = (startOffsetDays: number) => {
       const start = new Date(Date.now() + startOffsetDays * DAY);
-      return { tier: "basic", pilotTier: TRIAL_TIER, pilotStart: start, pilotEndsAt: new Date(start.getTime() + TRIAL_DAYS * DAY) };
+      return { tier: "basic", billingStatus: "trial", pilotTier: TRIAL_TIER, pilotStart: start, pilotEndsAt: new Date(start.getTime() + TRIAL_DAYS * DAY) };
     };
 
     it("is a 14-day Business trial", () => {
@@ -102,9 +102,9 @@ describe("plans", () => {
       expect(getEffectivePlan({ org }).id).toBe("basic");
     });
 
-    it("does not treat a long comped pilot as a trial", () => {
+    it("does not treat an admin-granted pilot as a trial, whatever its length", () => {
       const start = new Date();
-      const org = { tier: "basic", pilotTier: "team", pilotStart: start, pilotEndsAt: new Date(start.getTime() + 60 * DAY) };
+      const org = { tier: "basic", pilotTier: "business", pilotStart: start, pilotEndsAt: new Date(start.getTime() + 14 * DAY) };
       expect(getPilotInfo(org).isTrial).toBe(false);
     });
   });

@@ -102,10 +102,12 @@ export default function TermsOfServicePage() {
         </p>
         <SubHeading>Free Trials</SubHeading>
         <p>
-          We may offer a free trial period. You will not be charged during
-          the trial. Unless you cancel before the trial ends, your account
-          will automatically convert to a paid subscription and be billed
-          using your payment method on file.
+          New accounts receive a 14-day free trial of the Business plan. No
+          payment method is required and you will not be charged during the
+          trial. In the last 5 days of the trial we may offer a one-time
+          discount if you subscribe. If you do not subscribe by the end of the
+          trial, your account is locked until you choose a paid plan; your
+          workspaces and data are kept.
         </p>
         <SubHeading>Billing & Renewal</SubHeading>
         <p>

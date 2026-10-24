@@ -7,6 +7,10 @@
     {
       "path": "/api/internal/notifications/check-deadlines",
       "schedule": "0 13 * * *"
+    },
+    {
+      "path": "/api/internal/trial/check",
+      "schedule": "30 14 * * *"
     }
   ]
 }

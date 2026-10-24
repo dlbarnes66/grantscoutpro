@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { stripe, getPriceIdForPlan, type BillingInterval } from "@/lib/stripe";
 import { ensureUserOrg } from "@/lib/workspace/orgAccess";
+import { getTrialState, trialCouponId, trialDiscountAvailable } from "@/lib/billing/trial";
 
 export const dynamic = "force-dynamic";
 
@@ -54,8 +55,15 @@ export async function POST(req: NextRequest) {
     const appUrl = process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "";
     const returnPath = `/billing`;
 
+    // Last 5 days of the free trial: take 10% off (Stripe coupon from
+    // STRIPE_TRIAL_COUPON_ID). Decided here on the server from the account's
+    // own trial dates, so it cannot be claimed outside the window.
+    const trial = getTrialState(org);
+    const couponId = trialDiscountAvailable(trial) ? trialCouponId() : undefined;
+
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
+      ...(couponId ? { discounts: [{ coupon: couponId }] } : {}),
       customer: customerId,
       client_reference_id: org.id,
       line_items: [{ price: priceId, quantity: 1 }],

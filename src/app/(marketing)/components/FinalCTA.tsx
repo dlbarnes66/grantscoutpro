@@ -12,7 +12,7 @@ export default function FinalCTA() {
         href="/signup"
         className="mt-10 inline-block px-10 py-4 bg-white text-blue-700 rounded-xl text-lg font-semibold hover:bg-gray-100 transition"
       >
-        Start Free Trial
+        Start 14-Day Free Trial
       </a>
     </section>
   );

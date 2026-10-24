@@ -20,6 +20,7 @@ interface PilotInfo {
 export default function PilotBanner() {
   const [pilot, setPilot] = useState<PilotInfo | null>(null);
   const [org, setOrg] = useState<{ tier: string | null; stripeSubscriptionId: string | null } | null>(null);
+  const [trial, setTrial] = useState<{ discountOffered: boolean; discountPercent: number } | null>(null);
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
@@ -31,6 +32,7 @@ export default function PilotBanner() {
         const json = await res.json();
         if (!cancelled && json?.pilot) setPilot(json.pilot);
         if (!cancelled && json?.org) setOrg(json.org);
+        if (!cancelled && json?.trial) setTrial(json.trial);
       } catch {
         // Silent - a failed check just means no banner, not a broken page.
       }
@@ -79,19 +81,30 @@ export default function PilotBanner() {
       <span style={{ flex: 1 }}>
         {trialEnded ? (
           <>
-            Your 14-day free trial has ended and this account is on the Basic plan (1 search a day).{" "}
+            Your 14-day free trial has ended and this account is locked until you subscribe.{" "}
             <a href="/billing" style={{ color: "inherit", textDecoration: "underline" }}>
               Choose a plan
             </a>{" "}
-            to get the full platform back.
+            to get your account back.
           </>
         ) : trialRunning ? (
           <>
             Free trial: you have full {tierLabel} access for {days} more day{days === 1 ? "" : "s"}.{" "}
-            <a href="/billing" style={{ color: "inherit", textDecoration: "underline" }}>
-              Choose a plan
-            </a>{" "}
-            any time to keep it.
+            {trial?.discountOffered ? (
+              <>
+                Subscribe now and take {trial.discountPercent}% off.{" "}
+                <a href="/billing" style={{ color: "inherit", textDecoration: "underline" }}>
+                  Claim the discount
+                </a>
+              </>
+            ) : (
+              <>
+                <a href="/billing" style={{ color: "inherit", textDecoration: "underline" }}>
+                  Choose a plan
+                </a>{" "}
+                any time to keep it.
+              </>
+            )}
           </>
         ) : (
           <>

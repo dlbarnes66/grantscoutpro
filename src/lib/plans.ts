@@ -120,9 +120,9 @@ export const PILOT_WARNING_WINDOW_DAYS = 10;
 // Every new account starts with a free trial of this plan for this many days
 // (see ensureUserOrg in src/lib/workspace/orgAccess.ts). The trial is stored
 // as a pilot on the Org, so everything that already honours a pilot (the
-// effective plan, limits, banners) honours the trial too. A pilot whose
-// length is TRIAL_DAYS or less is shown to the customer as a "free trial";
-// longer comped pilots granted by a superadmin keep the "pilot" wording.
+// effective plan, limits, banners) honours the trial too. It is told apart
+// from a comped pilot granted by a superadmin by Org.billingStatus ===
+// "trial" - see src/lib/billing/trial.ts for the full lifecycle.
 export const TRIAL_DAYS = 14;
 export const TRIAL_TIER: PlanId = "business";
 
@@ -140,6 +140,7 @@ type OrgPilotFields = {
   pilotTier?: string | null;
   pilotStart?: Date | string | null;
   pilotEndsAt?: Date | string | null;
+  billingStatus?: string | null;
 };
 
 export function getPilotInfo(org: OrgPilotFields | null | undefined): PilotInfo {
@@ -150,10 +151,7 @@ export function getPilotInfo(org: OrgPilotFields | null | undefined): PilotInfo 
     return { tier: null, active: false, isTrial: false, daysRemaining: null, warning: false, endsAt: null };
   }
 
-  const startsAt = org?.pilotStart ? new Date(org.pilotStart) : null;
-  const lengthMs = startsAt && !Number.isNaN(startsAt.getTime()) ? endsAt.getTime() - startsAt.getTime() : null;
-  // One day of slack so a trial granted at 23:59 and rounded by the database still counts.
-  const isTrial = lengthMs !== null && lengthMs <= (TRIAL_DAYS + 1) * 24 * 60 * 60 * 1000;
+  const isTrial = org?.billingStatus === "trial";
 
   const msRemaining = endsAt.getTime() - Date.now();
   const active = msRemaining > 0;

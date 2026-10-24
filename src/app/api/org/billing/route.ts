@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ensureUserOrg, countWorkspacesForOwner } from "@/lib/workspace/orgAccess";
 import { getPlan, getPilotInfo } from "@/lib/plans";
+import { getTrialState, trialDiscountAvailable, TRIAL_DISCOUNT_PERCENT } from "@/lib/billing/trial";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,7 @@ export async function GET() {
     const pilot = getPilotInfo(org);
     const plan = getPlan(pilot.active && pilot.tier ? pilot.tier : org.tier ?? "basic");
     const workspacesUsed = await countWorkspacesForOwner(userId);
+    const trialState = getTrialState(org);
 
     return NextResponse.json({
       success: true,
@@ -37,6 +39,14 @@ export async function GET() {
       },
       plan,
       pilot,
+      trial: {
+        isTrial: trialState.isTrial,
+        active: trialState.active,
+        daysRemaining: trialState.daysRemaining,
+        locked: trialState.locked,
+        discountOffered: trialDiscountAvailable(trialState),
+        discountPercent: TRIAL_DISCOUNT_PERCENT,
+      },
       workspacesUsed,
     });
   } catch (err: any) {

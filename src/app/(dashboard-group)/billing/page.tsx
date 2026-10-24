@@ -34,6 +34,14 @@ interface OrgBillingResponse {
   };
   plan: PlanConfig;
   workspacesUsed: number;
+  trial?: {
+    isTrial: boolean;
+    active: boolean;
+    daysRemaining: number | null;
+    locked: boolean;
+    discountOffered: boolean;
+    discountPercent: number;
+  };
 }
 
 export default function BillingPage() {
@@ -124,6 +132,19 @@ export default function BillingPage() {
         )}
 
         {loading && <div className="text-slate-400">Loading…</div>}
+
+        {!loading && data?.trial?.locked && (
+          <div className="rounded-lg border border-red-400/30 bg-red-400/[0.08] p-4 text-[13px] font-medium text-red-300">
+            Your 14-day free trial has ended and your account is locked. Choose a plan below to get back in. Your
+            workspaces and data are safe.
+          </div>
+        )}
+        {!loading && data?.trial?.discountOffered && (
+          <div className="rounded-lg border border-emerald-400/30 bg-emerald-400/[0.08] p-4 text-[13px] text-emerald-300">
+            Your free trial ends in {data.trial.daysRemaining} day{data.trial.daysRemaining === 1 ? "" : "s"}.
+            Subscribe before it ends and {data.trial.discountPercent}% off is applied automatically at checkout.
+          </div>
+        )}
 
         {!loading && needsAttention && (
           <div className="rounded-lg border border-red-400/30 bg-red-400/[0.08] p-4 text-[13px] font-medium text-red-300">

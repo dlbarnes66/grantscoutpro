@@ -222,7 +222,7 @@ export default function MarketingHomePage() {
     display: "inline-block",
   }}
 >
-  Start Free Trial
+  Start 14-Day Free Trial
 </a>
 
          <a
@@ -702,7 +702,7 @@ export default function MarketingHomePage() {
     display: "inline-block",
   }}
 >
-  Start Free Trial
+  Start 14-Day Free Trial
 </a>
 
             <a

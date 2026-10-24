@@ -7,6 +7,7 @@ import { prisma } from "./lib/prisma";
 import { WORKSPACE_SCOPE_HEADER } from "./lib/ai/workspaceHeader";
 import { checkAiTokenBudget } from "./lib/ai/aiUsage";
 import { getWorkspacePlan } from "./lib/workspace/effectivePlan";
+import { isAccountLocked, isPathAllowedWhenLocked } from "./lib/billing/trial";
 
 // ---------------------------------------------------------
 // PUBLIC ROUTES (no auth required)
@@ -59,6 +60,7 @@ const isPublicRoute = createRouteMatcher([
   // own auth via a shared x-cron-secret header - see the route files.
   "/api/internal/grants/scan",
   "/api/internal/notifications/check-deadlines",
+  "/api/internal/trial/check",
 
   // Stripe and Clerk webhooks - sent server-to-server, so there is never a
   // Clerk session on these requests. Without these entries the auth gate
@@ -78,6 +80,47 @@ const isPublicRoute = createRouteMatcher([
   "/forms/(.*)",
   "/api/forms/public/(.*)",
 ]);
+
+// ---------------------------------------------------------
+// ACCOUNT LOCK (free trial over, not subscribed)
+// ---------------------------------------------------------
+// See src/lib/billing/trial.ts. A locked account can only reach billing and
+// the locked screen. The answer is cached for a short time per account so
+// every page and API call does not add a database query; the cost is that
+// a customer who has just subscribed may see the lock for up to this long.
+const LOCK_CACHE_MS = 30_000;
+const lockCache = new Map<string, { locked: boolean; expires: number }>();
+const NON_ID_SEGMENTS = new Set(["new", "create", "list"]);
+
+async function isLockedForRequest(userId: string, pathname: string): Promise<boolean> {
+  // Inside a workspace the workspace's own account decides (an invited
+  // teammate is not locked by the paying owner's workspace); everywhere
+  // else it is the signed-in user's own account.
+  const m = pathname.match(/^\/(?:api\/workspaces|workspace)\/([^/]+)/);
+  const workspaceId = m && !NON_ID_SEGMENTS.has(m[1]) ? m[1] : null;
+  const key = workspaceId ? `ws:${workspaceId}` : `user:${userId}`;
+
+  const hit = lockCache.get(key);
+  if (hit && hit.expires > Date.now()) return hit.locked;
+
+  const orgSelect = { billingStatus: true, stripeSubscriptionId: true, pilotEndsAt: true } as const;
+  let org: { billingStatus: string | null; stripeSubscriptionId: string | null; pilotEndsAt: Date | null } | null | undefined;
+  try {
+    if (workspaceId) {
+      org = (await prisma.workspace.findUnique({ where: { id: workspaceId }, select: { org: { select: orgSelect } } }))?.org;
+    } else {
+      org = (await prisma.user.findUnique({ where: { id: userId }, select: { Org: { select: orgSelect } } }))?.Org;
+    }
+  } catch (err) {
+    console.error("Account lock check failed, allowing request:", err);
+    return false;
+  }
+
+  const locked = isAccountLocked(org);
+  if (lockCache.size > 5000) lockCache.clear();
+  lockCache.set(key, { locked, expires: Date.now() + LOCK_CACHE_MS });
+  return locked;
+}
 
 export const proxy = clerkMiddleware(
   async (auth, req) => {
@@ -110,6 +153,19 @@ export const proxy = clerkMiddleware(
       return NextResponse.redirect(
         new URL("/sign-in", req.url)
       );
+    }
+
+    // ---------------------------------------------------------
+    // ACCOUNT LOCK
+    // ---------------------------------------------------------
+    if (!isPathAllowedWhenLocked(pathname) && (await isLockedForRequest(userId, pathname))) {
+      if (pathname.startsWith("/api/")) {
+        return NextResponse.json(
+          { error: "Your free trial has ended. Choose a plan to keep using Grant Scout Pro.", code: "ACCOUNT_LOCKED" },
+          { status: 402 }
+        );
+      }
+      return NextResponse.redirect(new URL("/locked", req.url));
     }
 
     // ---------------------------------------------------------

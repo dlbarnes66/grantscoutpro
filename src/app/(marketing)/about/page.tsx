@@ -125,7 +125,7 @@ export default function AboutPage() {
               display: "inline-block",
             }}
           >
-            Start Free Trial
+            Start 14-Day Free Trial
           </a>
 
           <a

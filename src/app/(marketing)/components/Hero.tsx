@@ -17,7 +17,7 @@ export default function Hero() {
             href="/signup"
             className="px-8 py-4 bg-blue-600 text-white rounded-xl text-lg font-semibold hover:bg-blue-700 transition"
           >
-            Start Free Trial
+            Start 14-Day Free Trial
           </a>
 
           <a

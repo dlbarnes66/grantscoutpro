@@ -22,8 +22,12 @@ export async function ensureUserOrg(userId: string) {
   }
 
   // New accounts start on a free trial of the top self-serve plan. Stored as
-  // a pilot so the effective-plan logic needs no special case: when
-  // pilotEndsAt passes, the account falls back to tier (Basic) on its own.
+  // a pilot so the effective-plan logic needs no special case; marked with
+  // billingStatus "trial" so the lock and the 10% offer (lib/billing/trial.ts)
+  // apply to it. Accounts that already own workspaces predate the trial, so
+  // they are never auto-trialled or locked - grant them one deliberately with
+  // scripts/grant-trials.mjs if you want to.
+  const existingWorkspaces = await prisma.workspace.count({ where: { ownerId: userId } });
   const trialStart = new Date();
   const trialEnd = new Date(trialStart.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
 
@@ -31,9 +35,9 @@ export async function ensureUserOrg(userId: string) {
     data: {
       name: user.name ? `${user.name}'s Organization` : "My Organization",
       tier: DEFAULT_PLAN_ID,
-      pilotTier: TRIAL_TIER,
-      pilotStart: trialStart,
-      pilotEndsAt: trialEnd,
+      ...(existingWorkspaces === 0
+        ? { pilotTier: TRIAL_TIER, pilotStart: trialStart, pilotEndsAt: trialEnd, billingStatus: "trial" }
+        : {}),
     },
   });
 

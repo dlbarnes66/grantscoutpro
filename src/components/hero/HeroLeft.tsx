@@ -26,7 +26,7 @@ export default function HeroLeft() {
           whileHover={{ scale: 1.05 }}
           className="px-6 py-3 bg-[#1E90FF] text-white rounded-lg shadow-lg hover:shadow-[#00E5FF] transition"
         >
-          Start Free Trial
+          Start 14-Day Free Trial
         </motion.button>
 
         <motion.button

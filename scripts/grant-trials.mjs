@@ -47,10 +47,10 @@ try {
   for (const o of orgs) {
     console.log(`  - ${o.name} (${o.users.map((u) => u.email).join(", ") || "no users"}), created ${o.createdAt.toISOString().slice(0, 10)}`);
     if (APPLY) {
-      await prisma.org.update({ where: { id: o.id }, data: { pilotTier: TRIAL_TIER, pilotStart: now, pilotEndsAt: ends } });
+      await prisma.org.update({ where: { id: o.id }, data: { pilotTier: TRIAL_TIER, pilotStart: now, pilotEndsAt: ends, billingStatus: "trial" } });
     }
   }
-  console.log(APPLY ? `Done. Trials run until ${ends.toISOString().slice(0, 10)}.` : "Dry run only. Re-run with --apply to grant these trials.");
+  console.log(APPLY ? `Done. Trials run until ${ends.toISOString().slice(0, 10)}. These accounts LOCK after that unless they subscribe.` : "Dry run only. Re-run with --apply to grant these trials.");
 } finally {
   await prisma.$disconnect();
 }
