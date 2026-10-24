@@ -58,3 +58,7 @@ temp/
 # Build artifacts
 coverage/
 .cache/
+
+# Claude-generated deliverables (decks, reports, media) - not source code
+Claude outputs/
+*.tmp

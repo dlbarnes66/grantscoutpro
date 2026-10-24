@@ -9,7 +9,10 @@
     "build": "next build",
     "postinstall": "prisma generate",
     "start": "next start -p 3000",
-    "worker": "node worker/index.js"
+    "worker": "node worker/index.js",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.105.0",
@@ -65,10 +68,13 @@
     "@types/node": "^25.9.5",
     "@types/react": "19.2.17",
     "autoprefixer": "^10.5.4",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.4.3",
     "postcss": "^8.5.26",
     "tailwindcss": "^4.3.3",
     "ts-node": "^10.9.2",
-    "typescript": "6.0.3"
+    "typescript": "6.0.3",
+    "vitest": "^5.0.5"
   },
   "allowScripts": {
     "@clerk/shared@3.47.8": true,
