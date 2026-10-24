@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { trackAiUsage } from "@/lib/ai/packageAiGuard";
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -36,6 +37,7 @@ Return a JSON object with:
       messages: [{ role: "user", content: prompt }],
       temperature: 0.2,
     });
+    trackAiUsage(completion);
 
     let parsed: { score: number; explanation: string };
 

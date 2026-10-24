@@ -15,6 +15,7 @@ import OpenAI from "openai";
 import type { Grant } from "@prisma/client";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { STANDARD_SECTIONS } from "@/lib/ai/proposalPackage";
+import { trackAiUsage } from "@/lib/ai/packageAiGuard";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const MODEL = process.env.PROPOSAL_PACKAGE_MODEL || "gpt-4o-mini";
@@ -172,6 +173,7 @@ export async function extractFunderRequirements(
         { role: "user", content: listing },
       ],
     });
+    trackAiUsage(response);
     const parsed = JSON.parse(response.choices?.[0]?.message?.content || "{}");
     const items = (Array.isArray(parsed.items) ? parsed.items : [])
       .filter((i: any) => i && typeof i.label === "string" && i.label.trim().length > 0)

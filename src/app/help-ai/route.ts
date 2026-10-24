@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
+import { trackAiUsage } from "@/lib/ai/packageAiGuard";
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -27,6 +28,7 @@ ${question}
     model: "gpt-4o-mini",
     messages: [{ role: "user", content: prompt }],
   });
+  trackAiUsage(response);
 
   const answer = response.choices[0].message.content;
 

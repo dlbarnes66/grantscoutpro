@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { discoverOrganization } from "@/lib/organization-discovery";
 import { prisma } from "@/lib/prisma";
+import { trackAiUsage } from "@/lib/ai/packageAiGuard";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const MODEL = process.env.ORG_SCAN_MODEL || "gpt-4o-mini";
@@ -35,6 +36,7 @@ export async function extractCurrentProjects(markdown: string): Promise<CurrentP
         { role: "user", content: markdown.slice(0, 12000) },
       ],
     });
+    trackAiUsage(response);
 
     const raw = response.choices?.[0]?.message?.content || "{}";
     const parsed = JSON.parse(raw);

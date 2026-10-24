@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { trackAiUsage } from "@/lib/ai/packageAiGuard";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const MODEL = process.env.HELP_CHAT_MODEL || "gpt-4o-mini";
@@ -54,6 +55,7 @@ export async function generateHelpReply(
       max_tokens: 400,
       messages: [{ role: "system", content: buildSystemPrompt(page) }, ...messages],
     });
+    trackAiUsage(response);
 
     const reply = response.choices?.[0]?.message?.content?.trim();
     return { reply: reply || "Sorry, I didn't catch that - could you rephrase your question?" };

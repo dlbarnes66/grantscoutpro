@@ -1,6 +1,8 @@
 import OpenAI from "openai";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { auth } from "@clerk/nextjs/server";
 import { checkAiTokenBudget, recordAiTokenUsage } from "@/lib/ai/aiUsage";
+import { getScopedWorkspaceId } from "@/lib/ai/workspaceScope";
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -23,11 +25,33 @@ const DEFAULT_MODEL = process.env.AUTOEDITOR_MODEL || "gpt-4o-mini";
 // handful of huge prompts can cost far more than many small ones.
 const GLOBAL_CALLS_PER_MINUTE = Number(process.env.OPENAI_GLOBAL_CALLS_PER_MINUTE ?? 120);
 
-export async function callUnifiedModel(prompt: string, model?: string, workspaceId?: string) {
+const UNSCOPED_CALLS_PER_USER_PER_HOUR = Number(process.env.AI_UNSCOPED_CALLS_PER_USER_PER_HOUR ?? 120);
+
+export async function callUnifiedModel(prompt: string, model?: string, explicitWorkspaceId?: string) {
+  // Most call sites do not pass a workspace id. For requests under
+  // /api/workspaces/[id]/..., the proxy has already verified membership and
+  // forwards the id, so those calls are capped and counted too.
+  const workspaceId = explicitWorkspaceId ?? (await getScopedWorkspaceId());
   const rl = await checkRateLimit("openai:global", GLOBAL_CALLS_PER_MINUTE, 60);
   if (!rl.allowed) {
     console.error("Unified Model Error: global OpenAI call rate limit hit");
     return "[ERROR: AI request volume is unusually high right now. Please try again in a moment.]";
+  }
+
+  // No workspace to charge (the /api/ai/* routes take no workspace in the
+  // URL): fall back to a per-user hourly cap so one signed-in account
+  // cannot run unlimited AI calls. This limits call volume only; token
+  // counting needs a workspace.
+  if (!workspaceId) {
+    const userId = await auth()
+      .then((a) => a.userId)
+      .catch(() => null);
+    if (userId) {
+      const ul = await checkRateLimit(`ai-user:${userId}`, UNSCOPED_CALLS_PER_USER_PER_HOUR, 60 * 60);
+      if (!ul.allowed) {
+        return "[ERROR: You have made a lot of AI requests in the last hour. Please try again a little later.]";
+      }
+    }
   }
 
   if (workspaceId) {

@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { prisma } from "@/lib/prisma";
 import { resolveOrganizationType } from "@/lib/grants/orgType";
+import { trackAiUsage } from "@/lib/ai/packageAiGuard";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const MODEL = process.env.AUTOEDITOR_MODEL || "gpt-4o-mini";
@@ -42,6 +43,7 @@ export async function generateNegotiationSection(
         { role: "user", content: userPrompt },
       ],
     });
+    trackAiUsage(response);
 
     const raw = response.choices?.[0]?.message?.content || "{}";
     let parsed: Record<string, unknown> | null = null;

@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import type { Grant, UserProfile } from "@prisma/client";
 import { checkRateLimit } from "@/lib/rateLimit";
-import { trackPackageAiUsage } from "@/lib/ai/packageAiGuard";
+import { trackAiUsage } from "@/lib/ai/packageAiGuard";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const MODEL = process.env.GRANT_MATCH_MODEL || "gpt-4o-mini";
@@ -70,7 +70,7 @@ Deadline: ${grant.deadline ? new Date(grant.deadline).toDateString() : "Not spec
         { role: "user", content: `Organization profile:\n${profileText}\n\nGrant:\n${grantText}` },
       ],
     });
-    trackPackageAiUsage(response);
+    trackAiUsage(response);
 
     const raw = response.choices?.[0]?.message?.content || "{}";
     const parsed = JSON.parse(raw);

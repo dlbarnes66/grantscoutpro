@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { trackAiUsage } from "@/lib/ai/packageAiGuard";
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -33,6 +34,7 @@ Return ONLY the narrative text.
     messages: [{ role: "user", content: prompt }],
     temperature: 0.4,
   });
+  trackAiUsage(completion);
 
   return completion.choices[0].message.content ?? "";
 }

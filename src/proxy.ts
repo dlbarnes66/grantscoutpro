@@ -4,6 +4,8 @@ import {
 } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "./lib/prisma";
+import { WORKSPACE_SCOPE_HEADER } from "./lib/ai/workspaceHeader";
+import { checkAiTokenBudget } from "./lib/ai/aiUsage";
 
 // ---------------------------------------------------------
 // PUBLIC ROUTES (no auth required)
@@ -81,11 +83,23 @@ export const proxy = clerkMiddleware(
     const { userId } = await auth();
     const pathname = req.nextUrl.pathname;
 
+    // Forward the request with our workspace header removed, so a client
+    // can never supply it. Workspace routes get it set below, after
+    // membership has been verified (see lib/ai/workspaceScope.ts).
+    const forwardedHeaders = new Headers(req.headers);
+    forwardedHeaders.delete(WORKSPACE_SCOPE_HEADER);
+    const passThrough = (verifiedWorkspaceId?: string) => {
+      const h = new Headers(forwardedHeaders);
+      if (verifiedWorkspaceId) h.set(WORKSPACE_SCOPE_HEADER, verifiedWorkspaceId);
+      return NextResponse.next({ request: { headers: h } });
+    };
+    let verifiedWorkspaceId: string | undefined;
+
     // ---------------------------------------------------------
     // PUBLIC ROUTES
     // ---------------------------------------------------------
     if (isPublicRoute(req)) {
-      return NextResponse.next();
+      return passThrough();
     }
 
     // ---------------------------------------------------------
@@ -101,7 +115,7 @@ export const proxy = clerkMiddleware(
 // WORKSPACE CREATION BYPASS
 // ---------------------------------------------------------
 if (pathname === "/api/workspaces/create") {
-  return NextResponse.next();
+  return passThrough();
 }
 
 // ---------------------------------------------------------
@@ -229,18 +243,23 @@ if (pathname.startsWith("/api/workspaces/")) {
       // AI TOKEN ENFORCEMENT
       // ---------------------------------------------------------
       if (pathname.includes("/ai/")) {
-        if (
-          billing.aiTokensUsed >=
-          billing.aiTokensMonthly
-        ) {
+        // Uses the same check as the AI model itself: it resolves the
+        // workspace's effective plan and rolls the 30-day window over. The
+        // previous version compared the raw stored counters here, which
+        // never reset, so a workspace that hit its limit stayed blocked
+        // forever (the reset only ran inside the AI call this check
+        // prevented).
+        const budget = await checkAiTokenBudget(workspaceId).catch((err) => {
+          console.error("Proxy AI budget check failed:", err);
+          return null;
+        });
+        if (budget && !budget.allowed) {
           return NextResponse.json(
             {
-              error:
-                "AI usage limit reached for this billing period.",
-              tokensAllowed:
-                billing.aiTokensMonthly,
-              tokensUsed:
-                billing.aiTokensUsed,
+              error: "AI usage limit reached for this billing period.",
+              tokensAllowed: budget.limit,
+              tokensUsed: budget.used,
+              resetsAt: budget.nextResetAt,
             },
             {
               status: 403,
@@ -343,7 +362,9 @@ if (pathname.startsWith("/api/workspaces/")) {
       }
     }
 
-    return NextResponse.next();
+    // Membership in this workspace was verified above.
+    verifiedWorkspaceId = pathname.startsWith("/api/workspaces/") ? pathname.split("/")[3] : undefined;
+    return passThrough(verifiedWorkspaceId);
   }
 );
 

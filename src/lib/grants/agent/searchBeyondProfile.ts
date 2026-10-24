@@ -27,6 +27,7 @@ import OpenAI from "openai";
 import type { UserProfile } from "@prisma/client";
 import { getFirecrawl } from "@/lib/firecrawl";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { trackAiUsage } from "@/lib/ai/packageAiGuard";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const MODEL = process.env.GRANT_MATCH_MODEL || "gpt-4o-mini";
@@ -159,6 +160,7 @@ async function extractFromPages(
         { role: "user", content: sourceBlock },
       ],
     });
+    trackAiUsage(response);
 
     const raw = response.choices?.[0]?.message?.content || "{}";
     const parsed = JSON.parse(raw);

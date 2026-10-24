@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import OpenAI from "openai";
+import { trackAiUsage } from "@/lib/ai/packageAiGuard";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -133,6 +134,7 @@ Instructions: ${instructions || "None provided"}
       ],
       temperature: 0.4,
     });
+    trackAiUsage(aiResponse);
 
     const sectionContent = aiResponse.choices[0].message.content || "";
 
@@ -152,6 +154,7 @@ Instructions: ${instructions || "None provided"}
       ],
       temperature: 0.3,
     });
+    trackAiUsage(analysisResponse);
 
     const analysis = analysisResponse.choices[0].message.content || "";
 

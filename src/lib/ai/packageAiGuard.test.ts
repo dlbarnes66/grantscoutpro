@@ -4,6 +4,7 @@ const state = vi.hoisted(() => ({
   budget: { allowed: true, limit: 75000, used: 1000, planId: "basic", nextResetAt: new Date("2026-11-20") } as any,
   recorded: [] as Array<[string, number]>,
   fail: false,
+  scoped: undefined as string | undefined,
 }));
 
 vi.mock("@/lib/ai/aiUsage", () => ({
@@ -16,7 +17,9 @@ vi.mock("@/lib/ai/aiUsage", () => ({
   },
 }));
 
-import { guardPackageAI, runWithAiWorkspace, trackPackageAiUsage } from "@/lib/ai/packageAiGuard";
+vi.mock("@/lib/ai/workspaceScope", () => ({ getScopedWorkspaceId: async () => state.scoped }));
+
+import { guardPackageAI, runWithAiWorkspace, trackAiUsage } from "@/lib/ai/packageAiGuard";
 
 describe("package AI guard", () => {
   beforeEach(() => {
@@ -24,6 +27,7 @@ describe("package AI guard", () => {
     state.budget = { allowed: true, limit: 75000, used: 1000, planId: "basic", nextResetAt: new Date("2026-11-20") };
     state.recorded = [];
     state.fail = false;
+    state.scoped = undefined;
   });
 
   it("allows a Basic workspace while the plan gate is off", async () => {
@@ -50,13 +54,28 @@ describe("package AI guard", () => {
     expect(await guardPackageAI("w1")).toBeNull();
   });
 
-  it("records token usage only inside a workspace scope", async () => {
-    trackPackageAiUsage({ usage: { total_tokens: 500 } });
+  it("records usage only for a workspace that is in scope", async () => {
+    trackAiUsage({ usage: { total_tokens: 500 } });
     expect(state.recorded).toHaveLength(0);
     await runWithAiWorkspace("w9", async () => {
       await new Promise((r) => setTimeout(r, 5));
-      trackPackageAiUsage({ usage: { total_tokens: 1234 } });
+      trackAiUsage({ usage: { total_tokens: 1234 } });
     });
     expect(state.recorded).toEqual([["w9", 1234]]);
+  });
+
+  it("falls back to the workspace the proxy verified for the request", async () => {
+    state.scoped = "w_from_proxy";
+    trackAiUsage({ usage: { total_tokens: 777 } });
+    await new Promise((r) => setTimeout(r, 5));
+    expect(state.recorded).toEqual([["w_from_proxy", 777]]);
+  });
+
+  it("ignores responses with no token count", async () => {
+    state.scoped = "w1";
+    trackAiUsage({ usage: null });
+    trackAiUsage({});
+    await new Promise((r) => setTimeout(r, 5));
+    expect(state.recorded).toHaveLength(0);
   });
 });

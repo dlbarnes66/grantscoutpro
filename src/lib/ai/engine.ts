@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { trackAiUsage } from "@/lib/ai/packageAiGuard";
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -12,6 +13,7 @@ export async function runAI(prompt: string): Promise<string> {
       { role: "user", content: prompt },
     ],
   });
+  trackAiUsage(response);
 
   return response.choices[0].message.content ?? "";
 }

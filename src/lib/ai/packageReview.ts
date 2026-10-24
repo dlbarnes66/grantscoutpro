@@ -11,7 +11,7 @@
 import OpenAI from "openai";
 import type { Grant } from "@prisma/client";
 import { checkRateLimit } from "@/lib/rateLimit";
-import { trackPackageAiUsage } from "@/lib/ai/packageAiGuard";
+import { trackAiUsage } from "@/lib/ai/packageAiGuard";
 import { STANDARD_SECTIONS } from "@/lib/ai/proposalPackage";
 import { slugify, type ResolvedChecklistItem } from "@/lib/ai/packageChecklist";
 
@@ -224,7 +224,7 @@ async function aiCrossCheck(input: ReviewInput): Promise<ReviewFinding[] | null>
         },
       ],
     });
-    trackPackageAiUsage(response);
+    trackAiUsage(response);
     const parsed = JSON.parse(response.choices?.[0]?.message?.content || "{}");
     const areas = ["narrative", "budget", "consistency", "eligibility"];
     return (Array.isArray(parsed.findings) ? parsed.findings : [])
