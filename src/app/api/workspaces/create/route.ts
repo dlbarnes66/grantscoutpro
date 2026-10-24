@@ -5,7 +5,7 @@ import { ensureUser } from "@/lib/auth";
 import { logActivity } from "@/lib/ai/activity-log";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { ensureUserOrg, countWorkspacesForOwner } from "@/lib/workspace/orgAccess";
-import { getPlan, getWorkspaceLimitLabel, isAtWorkspaceLimit } from "@/lib/plans";
+import { getPlan, getPilotInfo, getWorkspaceLimitLabel, isAtWorkspaceLimit } from "@/lib/plans";
 import { ORG_TYPES } from "@/lib/grants/orgType";
 import slugify from "slugify";
 
@@ -50,7 +50,8 @@ export async function POST(req: NextRequest) {
     // gets 1 workspace, Team 3, Business 6, Enterprise 100. Find or create
     // that Org, then enforce its workspace limit before creating another.
     const org = await ensureUserOrg(userId);
-    const plan = getPlan(org.tier);
+    const pilot = getPilotInfo(org);
+    const plan = getPlan(pilot.active && pilot.tier ? pilot.tier : org.tier);
     const existingCount = await countWorkspacesForOwner(userId);
 
     if (isAtWorkspaceLimit(plan, existingCount)) {

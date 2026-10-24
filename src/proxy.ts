@@ -6,6 +6,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "./lib/prisma";
 import { WORKSPACE_SCOPE_HEADER } from "./lib/ai/workspaceHeader";
 import { checkAiTokenBudget } from "./lib/ai/aiUsage";
+import { getWorkspacePlan } from "./lib/workspace/effectivePlan";
 
 // ---------------------------------------------------------
 // PUBLIC ROUTES (no auth required)
@@ -348,7 +349,7 @@ if (pathname.startsWith("/api/workspaces/")) {
       // Basic plan restriction
       if (
         pathname.includes("/ai/improve") &&
-        billing.plan === "basic"
+        (await getWorkspacePlan(workspaceId)).id === "basic"
       ) {
         return NextResponse.json(
           {

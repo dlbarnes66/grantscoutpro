@@ -117,9 +117,19 @@ export function getPlan(planId?: string | null): PlanConfig {
 // banner (see PilotBanner) starts warning before that happens.
 export const PILOT_WARNING_WINDOW_DAYS = 10;
 
+// Every new account starts with a free trial of this plan for this many days
+// (see ensureUserOrg in src/lib/workspace/orgAccess.ts). The trial is stored
+// as a pilot on the Org, so everything that already honours a pilot (the
+// effective plan, limits, banners) honours the trial too. A pilot whose
+// length is TRIAL_DAYS or less is shown to the customer as a "free trial";
+// longer comped pilots granted by a superadmin keep the "pilot" wording.
+export const TRIAL_DAYS = 14;
+export const TRIAL_TIER: PlanId = "business";
+
 export interface PilotInfo {
   tier: PlanId | null;
   active: boolean;
+  isTrial: boolean;
   daysRemaining: number | null;
   warning: boolean;
   endsAt: Date | null;
@@ -128,6 +138,7 @@ export interface PilotInfo {
 type OrgPilotFields = {
   tier?: string | null;
   pilotTier?: string | null;
+  pilotStart?: Date | string | null;
   pilotEndsAt?: Date | string | null;
 };
 
@@ -136,8 +147,13 @@ export function getPilotInfo(org: OrgPilotFields | null | undefined): PilotInfo 
   const endsAt = org?.pilotEndsAt ? new Date(org.pilotEndsAt) : null;
 
   if (!tier || !endsAt || Number.isNaN(endsAt.getTime())) {
-    return { tier: null, active: false, daysRemaining: null, warning: false, endsAt: null };
+    return { tier: null, active: false, isTrial: false, daysRemaining: null, warning: false, endsAt: null };
   }
+
+  const startsAt = org?.pilotStart ? new Date(org.pilotStart) : null;
+  const lengthMs = startsAt && !Number.isNaN(startsAt.getTime()) ? endsAt.getTime() - startsAt.getTime() : null;
+  // One day of slack so a trial granted at 23:59 and rounded by the database still counts.
+  const isTrial = lengthMs !== null && lengthMs <= (TRIAL_DAYS + 1) * 24 * 60 * 60 * 1000;
 
   const msRemaining = endsAt.getTime() - Date.now();
   const active = msRemaining > 0;
@@ -146,6 +162,7 @@ export function getPilotInfo(org: OrgPilotFields | null | undefined): PilotInfo 
   return {
     tier,
     active,
+    isTrial,
     daysRemaining: active ? daysRemaining : null,
     warning: active && daysRemaining <= PILOT_WARNING_WINDOW_DAYS,
     endsAt,

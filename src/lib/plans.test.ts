@@ -7,6 +7,10 @@ import {
   isAtWorkspaceLimit,
   isManualSearchResetDue,
   getAnnualMonthlyEquivalent,
+  getPilotInfo,
+  getEffectivePlan,
+  TRIAL_DAYS,
+  TRIAL_TIER,
 } from "@/lib/plans";
 
 describe("plans", () => {
@@ -66,5 +70,42 @@ describe("plans", () => {
 
   it("computes the annual monthly equivalent with the 15% discount", () => {
     expect(getAnnualMonthlyEquivalent(100)).toBe(85);
+  });
+
+  describe("free trial", () => {
+    const DAY = 24 * 3600 * 1000;
+    const trialOrg = (startOffsetDays: number) => {
+      const start = new Date(Date.now() + startOffsetDays * DAY);
+      return { tier: "basic", pilotTier: TRIAL_TIER, pilotStart: start, pilotEndsAt: new Date(start.getTime() + TRIAL_DAYS * DAY) };
+    };
+
+    it("is a 14-day Business trial", () => {
+      expect(TRIAL_DAYS).toBe(14);
+      expect(TRIAL_TIER).toBe("business");
+    });
+
+    it("gives full Business access while running", () => {
+      const org = trialOrg(0);
+      const info = getPilotInfo(org);
+      expect(info.active).toBe(true);
+      expect(info.isTrial).toBe(true);
+      expect(info.daysRemaining).toBe(14);
+      const plan = getEffectivePlan({ org, billing: { plan: "basic" } });
+      expect(plan.id).toBe("business");
+      expect(plan.access.foundation).toBe(true);
+      expect(plan.manualSearchesPerDay).toBe(15);
+    });
+
+    it("falls back to the account tier once it ends", () => {
+      const org = trialOrg(-15);
+      expect(getPilotInfo(org).active).toBe(false);
+      expect(getEffectivePlan({ org }).id).toBe("basic");
+    });
+
+    it("does not treat a long comped pilot as a trial", () => {
+      const start = new Date();
+      const org = { tier: "basic", pilotTier: "team", pilotStart: start, pilotEndsAt: new Date(start.getTime() + 60 * DAY) };
+      expect(getPilotInfo(org).isTrial).toBe(false);
+    });
   });
 });

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser, requireWorkspaceOwner } from "@/lib/auth";
-import { getPlan, getSeatLimitLabel, isAtSeatLimit } from "@/lib/plans";
+import { getEffectivePlan, getSeatLimitLabel, isAtSeatLimit } from "@/lib/plans";
 
 export async function POST(req: Request, { params }: { params: { workspaceId: string } }) {
   const user = await requireUser();
@@ -19,6 +19,7 @@ export async function POST(req: Request, { params }: { params: { workspaceId: st
     where: { id: workspaceId },
     include: {
       billing: true,
+      org: true,
       members: { where: { status: "active" } },
     },
   });
@@ -27,7 +28,7 @@ export async function POST(req: Request, { params }: { params: { workspaceId: st
     return NextResponse.json({ error: "Workspace not found." }, { status: 404 });
   }
 
-  const plan = getPlan(workspace.billing?.plan);
+  const plan = getEffectivePlan(workspace);
 
   if (isAtSeatLimit(plan, workspace.members.length)) {
     return NextResponse.json(

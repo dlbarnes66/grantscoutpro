@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { getPlan } from "@/lib/plans";
+import { getWorkspacePlan } from "@/lib/workspace/effectivePlan";
 
 // Federal search access (Grants.gov) is on every plan today - see
 // PLANS.*.access.federal in src/lib/plans.ts - so there's no addon for it.
@@ -17,11 +17,9 @@ async function planIncludesSource(
   workspaceId: string,
   source: "state" | "foundation"
 ): Promise<boolean> {
-  const billing = await prisma.workspaceBilling.findUnique({
-    where: { workspaceId },
-    select: { plan: true },
-  });
-  return getPlan(billing?.plan).access[source];
+  // Effective plan, so the free trial and pilots unlock state/foundation
+  // access (this used to read WorkspaceBilling.plan, which ignores both).
+  return (await getWorkspacePlan(workspaceId)).access[source];
 }
 
 async function hasActiveAddon(workspaceId: string, addonType: string): Promise<boolean> {

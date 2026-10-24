@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { DEFAULT_PLAN_ID } from "@/lib/plans";
+import { DEFAULT_PLAN_ID, TRIAL_DAYS, TRIAL_TIER } from "@/lib/plans";
 
 // Every workspace-owning user belongs to exactly one Org, which is what
 // plans actually attach to (see resolveEffectivePlanId in @/lib/plans) -
@@ -21,10 +21,19 @@ export async function ensureUserOrg(userId: string) {
     return user.Org;
   }
 
+  // New accounts start on a free trial of the top self-serve plan. Stored as
+  // a pilot so the effective-plan logic needs no special case: when
+  // pilotEndsAt passes, the account falls back to tier (Basic) on its own.
+  const trialStart = new Date();
+  const trialEnd = new Date(trialStart.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
+
   const org = await prisma.org.create({
     data: {
       name: user.name ? `${user.name}'s Organization` : "My Organization",
       tier: DEFAULT_PLAN_ID,
+      pilotTier: TRIAL_TIER,
+      pilotStart: trialStart,
+      pilotEndsAt: trialEnd,
     },
   });
 

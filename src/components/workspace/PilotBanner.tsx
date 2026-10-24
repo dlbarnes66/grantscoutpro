@@ -6,6 +6,7 @@ import { AlertTriangle } from "lucide-react";
 interface PilotInfo {
   tier: string | null;
   active: boolean;
+  isTrial?: boolean;
   daysRemaining: number | null;
   warning: boolean;
   endsAt: string | null;
@@ -18,6 +19,7 @@ interface PilotInfo {
 // load/session since the countdown is still real.
 export default function PilotBanner() {
   const [pilot, setPilot] = useState<PilotInfo | null>(null);
+  const [org, setOrg] = useState<{ tier: string | null; stripeSubscriptionId: string | null } | null>(null);
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
@@ -28,6 +30,7 @@ export default function PilotBanner() {
         if (!res.ok) return;
         const json = await res.json();
         if (!cancelled && json?.pilot) setPilot(json.pilot);
+        if (!cancelled && json?.org) setOrg(json.org);
       } catch {
         // Silent - a failed check just means no banner, not a broken page.
       }
@@ -37,7 +40,22 @@ export default function PilotBanner() {
     };
   }, []);
 
-  if (!pilot || !pilot.warning || dismissed) return null;
+  if (!pilot || dismissed) return null;
+
+  // Someone who has subscribed no longer needs trial messaging.
+  if (pilot.isTrial && org?.stripeSubscriptionId) return null;
+
+  const trialEnded =
+    !!pilot.isTrial &&
+    !pilot.active &&
+    !!org &&
+    !org.stripeSubscriptionId &&
+    (!org.tier || org.tier === "basic" || org.tier === "free");
+  const trialRunning = !!pilot.isTrial && pilot.active;
+
+  // A running trial is always visible; a comped pilot only inside its
+  // warning window (as before); an ended trial until they subscribe.
+  if (!trialRunning && !trialEnded && !pilot.warning) return null;
 
   const tierLabel = pilot.tier ? pilot.tier.charAt(0).toUpperCase() + pilot.tier.slice(1) : "pilot";
   const days = pilot.daysRemaining ?? 0;
@@ -59,8 +77,28 @@ export default function PilotBanner() {
     >
       <AlertTriangle size={16} style={{ flexShrink: 0 }} />
       <span style={{ flex: 1 }}>
-        Your {tierLabel} pilot ends in {days} day{days === 1 ? "" : "s"}. After that, this workspace drops back to
-        the Basic plan unless you upgrade.
+        {trialEnded ? (
+          <>
+            Your 14-day free trial has ended and this account is on the Basic plan (1 search a day).{" "}
+            <a href="/billing" style={{ color: "inherit", textDecoration: "underline" }}>
+              Choose a plan
+            </a>{" "}
+            to get the full platform back.
+          </>
+        ) : trialRunning ? (
+          <>
+            Free trial: you have full {tierLabel} access for {days} more day{days === 1 ? "" : "s"}.{" "}
+            <a href="/billing" style={{ color: "inherit", textDecoration: "underline" }}>
+              Choose a plan
+            </a>{" "}
+            any time to keep it.
+          </>
+        ) : (
+          <>
+            Your {tierLabel} pilot ends in {days} day{days === 1 ? "" : "s"}. After that, this workspace drops back to
+            the Basic plan unless you upgrade.
+          </>
+        )}
       </span>
       <button
         onClick={() => setDismissed(true)}
