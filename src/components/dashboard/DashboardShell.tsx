@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { ReactNode } from "react";
 import { BookOpen } from "lucide-react";
 import PilotBanner from "@/components/workspace/PilotBanner";
+import PlanLinks from "@/components/dashboard/PlanLinks";
 
 const UserButton = dynamic(
   () => import("@clerk/nextjs").then((mod) => mod.UserButton),
@@ -35,9 +36,12 @@ export default function DashboardShell({
           </nav>
         </div>
 
+        <div>
+          <PlanLinks />
         <div className="flex items-center gap-3 border-t border-[#1F2F4F] pt-4">
           <UserButton afterSignOutUrl="/" />
           <span className="text-sm text-slate-300">Account</span>
+        </div>
         </div>
       </aside>
 
