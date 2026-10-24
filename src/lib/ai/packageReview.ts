@@ -11,6 +11,7 @@
 import OpenAI from "openai";
 import type { Grant } from "@prisma/client";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { trackPackageAiUsage } from "@/lib/ai/packageAiGuard";
 import { STANDARD_SECTIONS } from "@/lib/ai/proposalPackage";
 import { slugify, type ResolvedChecklistItem } from "@/lib/ai/packageChecklist";
 
@@ -45,6 +46,8 @@ type Budget = {
 } | null;
 
 export type ReviewInput = {
+  // Skip the AI cross-check (over the AI allowance); built-in checks still run.
+  skipAi?: boolean;
   grant: Pick<Grant, "title" | "agency" | "summary" | "awardFloor" | "awardCeiling" | "deadline" | "source"> &
     Partial<Pick<Grant, "description" | "eligibleApplicants" | "ineligibleApplicants" | "eligibility">>;
   sections: Section[];
@@ -221,6 +224,7 @@ async function aiCrossCheck(input: ReviewInput): Promise<ReviewFinding[] | null>
         },
       ],
     });
+    trackPackageAiUsage(response);
     const parsed = JSON.parse(response.choices?.[0]?.message?.content || "{}");
     const areas = ["narrative", "budget", "consistency", "eligibility"];
     return (Array.isArray(parsed.findings) ? parsed.findings : [])
@@ -241,7 +245,7 @@ async function aiCrossCheck(input: ReviewInput): Promise<ReviewFinding[] | null>
 
 export async function reviewPackage(input: ReviewInput): Promise<PackageReview> {
   const checks = runChecks(input);
-  const ai = input.sections.length > 0 ? await aiCrossCheck(input) : null;
+  const ai = input.sections.length > 0 && !input.skipAi ? await aiCrossCheck(input) : null;
   const findings = [...checks, ...(ai || [])];
   const order = { blocker: 0, warning: 1, info: 2 } as const;
   findings.sort((a, b) => order[a.severity] - order[b.severity]);

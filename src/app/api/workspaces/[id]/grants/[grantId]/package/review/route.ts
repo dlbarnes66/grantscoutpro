@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { assertGrantWorkspaceAccess } from "@/lib/ai/negotiation";
+import { guardPackageAI, runWithAiWorkspace } from "@/lib/ai/packageAiGuard";
 import { resolveChecklist, type PackageChecklist } from "@/lib/ai/packageChecklist";
 import { reviewPackage } from "@/lib/ai/packageReview";
 import { getProfileContext, packageActionAllowed, parseSections, parseWorkPlan } from "@/lib/ai/packageContext";
@@ -28,7 +29,7 @@ export async function GET(_req: NextRequest, context: { params: Promise<Params> 
 
 // POST - run the final compliance and consistency review against the
 // SAVED draft (unsaved edits in the browser are not seen), and store it.
-export async function POST(_req: NextRequest, context: { params: Promise<Params> }) {
+async function handlePost(_req: NextRequest, context: { params: Promise<Params> }) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const params = await context.params;
@@ -50,7 +51,12 @@ export async function POST(_req: NextRequest, context: { params: Promise<Params>
   const checklist = stored ? resolveChecklist(stored, sections, budget) : null;
   const profile = await getProfileContext(params.id);
 
+  // Over the monthly AI allowance (or plan without the AI writer): still run
+  // the built-in checks, just skip the AI cross-check.
+  const skipAi = (await guardPackageAI(params.id)) !== null;
+
   const review = await reviewPackage({
+    skipAi,
     grant,
     sections,
     budget,
@@ -62,4 +68,12 @@ export async function POST(_req: NextRequest, context: { params: Promise<Params>
 
   await prisma.application.update({ where: { id: application.id }, data: { review: review as any } });
   return NextResponse.json({ review });
+}
+
+// Runs the handler with this workspace in scope so every OpenAI call made
+// underneath is counted against the workspace's monthly AI allowance
+// (see lib/ai/packageAiGuard.ts).
+export async function POST(req: NextRequest, context: { params: Promise<Params> }) {
+  const { id } = await context.params;
+  return runWithAiWorkspace(id, () => handlePost(req, context));
 }

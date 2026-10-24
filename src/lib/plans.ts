@@ -27,6 +27,10 @@ export interface PlanConfig {
   // Enterprise (no null/unlimited option here) - a bug or a scraped
   // client can otherwise run up an unbounded OpenAI bill.
   aiTokensMonthly: number;
+  // AI Proposal Writer (full package drafts). Listed from Team up on the
+  // pricing page; enforced by lib/ai/packageAiGuard.ts when
+  // ENFORCE_AI_PROPOSAL_PLAN_GATE=true.
+  aiProposalWriter: boolean;
   access: PlanAccess;
 }
 
@@ -44,6 +48,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
     manualSearchesPerDay: 1,
     agentSearchesPerDay: 1,
     aiTokensMonthly: 75_000,
+    aiProposalWriter: false,
     access: { federal: true, state: false, foundation: false, crm: false, tasks: false },
   },
   team: {
@@ -55,6 +60,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
     manualSearchesPerDay: 5,
     agentSearchesPerDay: 2,
     aiTokensMonthly: 250_000,
+    aiProposalWriter: true,
     access: { federal: true, state: true, foundation: false, crm: false, tasks: true },
   },
   business: {
@@ -66,6 +72,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
     manualSearchesPerDay: 15,
     agentSearchesPerDay: 4,
     aiTokensMonthly: 750_000,
+    aiProposalWriter: true,
     access: { federal: true, state: true, foundation: true, crm: false, tasks: true },
   },
   enterprise: {
@@ -77,6 +84,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
     manualSearchesPerDay: null,
     agentSearchesPerDay: null,
     aiTokensMonthly: 3_000_000,
+    aiProposalWriter: true,
     access: { federal: true, state: true, foundation: true, crm: true, tasks: true },
   },
 };

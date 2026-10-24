@@ -88,6 +88,14 @@ export async function POST(req: NextRequest) {
             // nonprofit ones without them sharing eligibility/search
             // behavior.
             organizationTypeOverride: body.organizationType,
+            // Owner membership and billing row are created in the same
+            // database write as the workspace (nested create = one
+            // transaction), so a failure part-way can no longer leave a
+            // workspace with no billing row - the proxy returns 500
+            // "Billing record not found" for every API call on such a
+            // workspace.
+            members: { create: { userId, role: "owner" } },
+            billing: { create: { plan: org.tier ?? "basic" } },
           },
         });
       } catch (err: any) {
@@ -102,20 +110,6 @@ export async function POST(req: NextRequest) {
     if (!workspace) {
       return NextResponse.json({ error: "Couldn't create workspace - please try a different name." }, { status: 500 });
     }
-
-    await prisma.workspaceMember.create({
-      data: {
-        workspaceId: workspace.id,
-        userId,
-        role: "owner",
-      },
-    });
-    await prisma.workspaceBilling.create({
-      data: {
-        workspaceId: workspace.id,
-        plan: org.tier ?? "basic",
-      },
-    });
 
     await logActivity(workspace.id, "workspace_created", { name: workspace.name }, userId).catch(
       (err) => console.error("Failed to log workspace activity \"workspace_created\":", err)

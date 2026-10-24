@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { GrantSource } from "@prisma/client";
 import { assertGrantWorkspaceAccess } from "@/lib/ai/negotiation";
+import { guardPackageAI, runWithAiWorkspace } from "@/lib/ai/packageAiGuard";
 import { draftApplicationAnswers, type ApplicationQuestion } from "@/lib/ai/applicationAssistant";
 import { extractTextFromFile, UnsupportedFileTypeError } from "@/lib/documents/extractText";
 
@@ -55,13 +56,16 @@ export async function GET(_req: NextRequest, context: { params: Promise<Params> 
 // "file") - exactly one input mode per call. Overwrites this grant's
 // existing assistant record (one per grant per workspace), same
 // "re-running replaces the draft" behavior as .../package/generate.
-export async function POST(req: NextRequest, context: { params: Promise<Params> }) {
+async function handlePost(req: NextRequest, context: { params: Promise<Params> }) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const params = await context.params;
   const hasAccess = await assertGrantWorkspaceAccess(params.id, params.grantId, userId);
   if (!hasAccess) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const aiGuard = await guardPackageAI(params.id);
+  if (aiGuard) return aiGuard;
 
   const grant = await loadGrant(params.id, params.grantId);
   if (!grant) return NextResponse.json({ error: "Grant not found" }, { status: 404 });
@@ -195,4 +199,12 @@ export async function PATCH(req: NextRequest, context: { params: Promise<Params>
   });
 
   return NextResponse.json({ assistant });
+}
+
+// Runs the handler with this workspace in scope so every OpenAI call made
+// underneath is counted against the workspace's monthly AI allowance
+// (see lib/ai/packageAiGuard.ts).
+export async function POST(req: NextRequest, context: { params: Promise<Params> }) {
+  const { id } = await context.params;
+  return runWithAiWorkspace(id, () => handlePost(req, context));
 }

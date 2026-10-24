@@ -10,6 +10,7 @@ export interface AiBudgetCheck {
   allowed: boolean;
   limit: number;
   used: number;
+  planId: string;
   nextResetAt: Date;
 }
 
@@ -49,6 +50,7 @@ export async function checkAiTokenBudget(workspaceId: string): Promise<AiBudgetC
 
   return {
     allowed: billing.aiTokensUsed < limit,
+    planId: plan.id,
     limit,
     used: billing.aiTokensUsed,
     nextResetAt: new Date(billing.aiTokensResetAt.getTime() + RESET_INTERVAL_MS),

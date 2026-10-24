@@ -14,6 +14,7 @@
 import OpenAI from "openai";
 import type { Grant, UserProfile } from "@prisma/client";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { trackPackageAiUsage } from "@/lib/ai/packageAiGuard";
 import { STANDARD_SECTIONS } from "@/lib/ai/proposalPackage";
 import { monthLabel, type WorkPlan } from "@/lib/ai/workPlan";
 
@@ -144,6 +145,7 @@ async function complete(system: string, user: string): Promise<string | null> {
         { role: "user", content: user },
       ],
     });
+    trackPackageAiUsage(response);
     const text = (response.choices?.[0]?.message?.content || "").trim();
     return text.length >= 200 ? text : null;
   } catch (err) {

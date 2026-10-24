@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import type { Grant, UserProfile } from "@prisma/client";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { trackPackageAiUsage } from "@/lib/ai/packageAiGuard";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const MODEL = process.env.PROPOSAL_PACKAGE_MODEL || "gpt-4o-mini";
@@ -66,6 +67,7 @@ export async function generateProposalSections(
         },
       ],
     });
+    trackPackageAiUsage(response);
 
     const raw = response.choices?.[0]?.message?.content || "{}";
     const parsed = JSON.parse(raw);

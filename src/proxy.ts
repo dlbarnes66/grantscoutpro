@@ -52,6 +52,15 @@ const isPublicRoute = createRouteMatcher([
   "/api/internal/grants/scan",
   "/api/internal/notifications/check-deadlines",
 
+  // Stripe and Clerk webhooks - sent server-to-server, so there is never a
+  // Clerk session on these requests. Without these entries the auth gate
+  // below redirected every delivery to /sign-in, so subscription and user
+  // sync events were never processed. Each handler verifies the sender's
+  // signature itself (Stripe signature / svix headers) and rejects
+  // anything unsigned. /api/webhooks/ai-events is deliberately NOT public.
+  "/api/webhooks/stripe",
+  "/api/webhooks/clerk",
+
   // Public AI-generated forms - an external respondent (donor, volunteer,
   // grant reviewer) filling one out has no Clerk account. The page and its
   // read/submit API are intentionally unauthenticated; each route only

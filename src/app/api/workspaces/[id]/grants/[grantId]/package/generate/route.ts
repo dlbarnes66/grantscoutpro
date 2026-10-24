@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { assertGrantWorkspaceAccess } from "@/lib/ai/negotiation";
+import { guardPackageAI, runWithAiWorkspace } from "@/lib/ai/packageAiGuard";
 import { scoreGrantMatch } from "@/lib/ai/grantMatch";
 import { generateProposalSections } from "@/lib/ai/proposalPackage";
 import { generateGrantBudget } from "@/lib/ai/budgetBuilder";
@@ -31,13 +32,16 @@ type Params = { id: string; grantId: string };
 // finalizing (see .../package/finalize). Re-running this overwrites the
 // previous draft, so the frontend should confirm before calling it again
 // on an already-generated package.
-export async function POST(_req: NextRequest, context: { params: Promise<Params> }) {
+async function handlePost(_req: NextRequest, context: { params: Promise<Params> }) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const params = await context.params;
   const hasAccess = await assertGrantWorkspaceAccess(params.id, params.grantId, userId);
   if (!hasAccess) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const aiGuard = await guardPackageAI(params.id);
+  if (aiGuard) return aiGuard;
 
   const grant = await prisma.grant.findUnique({ where: { id: params.grantId } });
   if (!grant || grant.workspaceId !== params.id) {
@@ -112,4 +116,12 @@ export async function POST(_req: NextRequest, context: { params: Promise<Params>
       });
 
   return NextResponse.json({ status: application.status, sections, workPlan, budget });
+}
+
+// Runs the handler with this workspace in scope so every OpenAI call made
+// underneath is counted against the workspace's monthly AI allowance
+// (see lib/ai/packageAiGuard.ts).
+export async function POST(req: NextRequest, context: { params: Promise<Params> }) {
+  const { id } = await context.params;
+  return runWithAiWorkspace(id, () => handlePost(req, context));
 }

@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { assertGrantWorkspaceAccess } from "@/lib/ai/negotiation";
+import { guardPackageAI, runWithAiWorkspace } from "@/lib/ai/packageAiGuard";
 import { packageActionAllowed, parseSections, parseWorkPlan } from "@/lib/ai/packageContext";
 import {
   EXECUTIVE_SUMMARY,
@@ -24,7 +25,7 @@ type Params = { id: string; grantId: string };
 //   "Work Plan & Timeline" the editable template (body.reset replaces an existing plan)
 // Works for adding a section an older draft doesn't have yet, too. The
 // browser saves pending edits first, because this reads the saved draft.
-export async function POST(req: NextRequest, context: { params: Promise<Params> }) {
+async function handlePost(req: NextRequest, context: { params: Promise<Params> }) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const params = await context.params;
@@ -58,6 +59,8 @@ export async function POST(req: NextRequest, context: { params: Promise<Params> 
     }
     sections = upsertSection(sections, WORK_PLAN_TITLE, renderWorkPlanText(workPlan));
   } else {
+  const aiGuard = await guardPackageAI(params.id);
+  if (aiGuard) return aiGuard;
     const grant = await prisma.grant.findUnique({ where: { id: params.grantId } });
     const workspace = await prisma.workspace.findUnique({ where: { id: params.id }, select: { ownerId: true } });
     const profile = workspace ? await prisma.userProfile.findUnique({ where: { userId: workspace.ownerId } }) : null;
@@ -78,4 +81,12 @@ export async function POST(req: NextRequest, context: { params: Promise<Params> 
   });
 
   return NextResponse.json({ sections, workPlan });
+}
+
+// Runs the handler with this workspace in scope so every OpenAI call made
+// underneath is counted against the workspace's monthly AI allowance
+// (see lib/ai/packageAiGuard.ts).
+export async function POST(req: NextRequest, context: { params: Promise<Params> }) {
+  const { id } = await context.params;
+  return runWithAiWorkspace(id, () => handlePost(req, context));
 }
