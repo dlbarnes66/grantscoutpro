@@ -46,6 +46,24 @@ export async function POST(req: NextRequest) {
     // Reuse the Stripe customer if this org already has one on file (e.g.
     // a prior subscription was canceled), otherwise create one.
     let customerId = org.stripeCustomerId ?? undefined;
+
+    // A saved customer id can be stale: created with a test-mode key, deleted
+    // in Stripe, or from another account. Stripe then answers "No such
+    // customer" and checkout can never succeed for that org. Check it first
+    // and start a fresh customer if it is not usable with the current key.
+    if (customerId) {
+      try {
+        const existing = await stripe.customers.retrieve(customerId);
+        if ((existing as { deleted?: boolean }).deleted) customerId = undefined;
+      } catch (err: any) {
+        if (err?.code === "resource_missing" || /No such customer/i.test(err?.message ?? "")) {
+          customerId = undefined;
+        } else {
+          throw err;
+        }
+      }
+    }
+
     if (!customerId) {
       const customer = await stripe.customers.create({
         metadata: { orgId: org.id },
@@ -55,7 +73,7 @@ export async function POST(req: NextRequest) {
 
     // Save the customer before creating the session, so a failed session
     // can be retried without creating another Stripe customer each time.
-    if (!org.stripeCustomerId) {
+    if (customerId !== org.stripeCustomerId) {
       await prisma.org.update({ where: { id: org.id }, data: { stripeCustomerId: customerId } });
     }
 
