@@ -7,7 +7,7 @@ const BRAND_COLOR = "#00E5FF";
 const APP_NAME = "Grant Scout Pro";
 
 function appUrl(path: string): string {
-  const base = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "https://app.grantscoutpro.com";
+  const base = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "https://www.grantscoutpro.com";
   return `${base.replace(/\/$/, "")}${path}`;
 }
 

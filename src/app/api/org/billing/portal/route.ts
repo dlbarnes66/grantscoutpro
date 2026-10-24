@@ -1,4 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
+import { getAppUrl } from "@/lib/appUrl";
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { ensureUserOrg } from "@/lib/workspace/orgAccess";
@@ -24,7 +25,7 @@ export async function POST() {
       );
     }
 
-    const appUrl = process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "";
+    const appUrl = await getAppUrl();
     const portal = await stripe.billingPortal.sessions.create({
       customer: org.stripeCustomerId,
       return_url: `${appUrl}/billing`,

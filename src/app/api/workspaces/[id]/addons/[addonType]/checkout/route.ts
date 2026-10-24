@@ -1,4 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
+import { getAppUrl } from "@/lib/appUrl";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { stripe, getAddonPriceId, type AddonType, type BillingInterval } from "@/lib/stripe";
@@ -110,7 +111,7 @@ export async function POST(req: NextRequest, context: { params: Promise<Params> 
       });
     }
 
-    const appUrl = process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "";
+    const appUrl = await getAppUrl();
     const returnPath = `/workspace/${workspace.id}/${ADDON_RETURN_PATH[addonType]}`;
 
     const session = await stripe.checkout.sessions.create({

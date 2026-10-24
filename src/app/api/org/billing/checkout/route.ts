@@ -1,4 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
+import { getAppUrl } from "@/lib/appUrl";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { stripe, getPriceIdForPlan, type BillingInterval } from "@/lib/stripe";
@@ -52,7 +53,13 @@ export async function POST(req: NextRequest) {
       customerId = customer.id;
     }
 
-    const appUrl = process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "";
+    // Save the customer before creating the session, so a failed session
+    // can be retried without creating another Stripe customer each time.
+    if (!org.stripeCustomerId) {
+      await prisma.org.update({ where: { id: org.id }, data: { stripeCustomerId: customerId } });
+    }
+
+    const appUrl = await getAppUrl();
     const returnPath = `/billing`;
 
     // Last 5 days of the free trial: take 10% off (Stripe coupon from
@@ -73,13 +80,6 @@ export async function POST(req: NextRequest) {
       metadata: { orgId: org.id, planId, kind: "org_plan" },
       success_url: `${appUrl}${returnPath}?checkout=success`,
       cancel_url: `${appUrl}${returnPath}?checkout=canceled`,
-    });
-
-    // Record the Stripe customer right away so a page refresh (before the
-    // webhook lands) doesn't create a second customer for this org.
-    await prisma.org.update({
-      where: { id: org.id },
-      data: { stripeCustomerId: customerId },
     });
 
     return NextResponse.json({ url: session.url });

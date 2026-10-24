@@ -1,4 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
+import { getAppUrl } from "@/lib/appUrl";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
@@ -43,7 +44,7 @@ export async function POST(req: NextRequest, context: { params: Promise<Params> 
   }
 
   try {
-    const appUrl = process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "";
+    const appUrl = await getAppUrl();
     const portal = await stripe.billingPortal.sessions.create({
       customer: customerId,
       return_url: `${appUrl}/workspace/${workspace.id}/workspace-billing`,
