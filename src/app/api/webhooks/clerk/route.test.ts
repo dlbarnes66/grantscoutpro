@@ -2,10 +2,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Webhook } from "svix";
 
 const sync = vi.hoisted(() => vi.fn(async () => ({})));
+const ensureOrg = vi.hoisted(() => vi.fn(async () => ({})));
 
 vi.mock("@/lib/prisma", () => ({
   prisma: { workspaceInvite: { findMany: async () => [], update: async () => ({}) }, workspaceMember: { upsert: async () => ({}) } },
 }));
+vi.mock("@/lib/workspace/orgAccess", () => ({ ensureUserOrg: ensureOrg }));
 vi.mock("@/lib/userSync", () => ({ syncUserFromClerk: sync }));
 vi.mock("@/lib/email/sendgrid", () => ({ sendEmailSafe: async () => ({ ok: true }) }));
 vi.mock("@/lib/email/templates", () => ({ welcomeEmail: () => ({ subject: "s", html: "h", text: "t" }) }));
@@ -30,12 +32,14 @@ describe("Clerk webhook", () => {
   beforeEach(() => {
     process.env.CLERK_WEBHOOK_SECRET = SECRET;
     sync.mockClear();
+    ensureOrg.mockClear();
   });
 
   it("accepts a correctly signed user.created event and syncs the user", async () => {
     const res = await POST(signed({ type: "user.created", data: { id: "user_1", first_name: "A", email_addresses: [] } }));
     expect(res.status).toBe(200);
     expect(sync).toHaveBeenCalledOnce();
+    expect(ensureOrg).toHaveBeenCalledWith("user_1");
   });
 
   it("rejects a bad signature with 400 and does nothing", async () => {

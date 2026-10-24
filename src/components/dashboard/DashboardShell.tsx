@@ -4,6 +4,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { ReactNode } from "react";
 import { BookOpen } from "lucide-react";
+import PilotBanner from "@/components/workspace/PilotBanner";
 
 const UserButton = dynamic(
   () => import("@clerk/nextjs").then((mod) => mod.UserButton),
@@ -59,6 +60,7 @@ export default function DashboardShell({
         </header>
 
         <main className="p-10">
+          <PilotBanner />
           {children}
         </main>
       </div>

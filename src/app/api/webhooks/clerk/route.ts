@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { sendEmailSafe } from "@/lib/email/sendgrid";
 import { welcomeEmail } from "@/lib/email/templates";
 import { syncUserFromClerk } from "@/lib/userSync";
+import { ensureUserOrg } from "@/lib/workspace/orgAccess";
 
 export const dynamic = "force-dynamic";
 
@@ -78,6 +79,17 @@ export async function POST(req: NextRequest) {
           name,
           image: data.image_url ?? null,
         });
+
+        // Start the 14-day Business trial at signup. Previously this only
+        // happened when the user happened to open a billing page or create a
+        // workspace, so many new accounts never got a trial. ensureUserOrg is
+        // idempotent and skips people who already own workspaces. A failure
+        // here must not fail the webhook (the lazy paths still create it).
+        try {
+          await ensureUserOrg(data.id);
+        } catch (err) {
+          console.error(`CLERK WEBHOOK: could not start trial for ${data.id}:`, err);
+        }
 
         // Fulfill any pending workspace invites sent to this email address
         // before they had an account - see workspaceInvitePendingEmail /

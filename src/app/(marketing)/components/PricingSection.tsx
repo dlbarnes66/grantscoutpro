@@ -358,7 +358,7 @@ export default function PricingSection() {
     marginTop: "20px",
   }}
 >
-  Start Business
+  Start 14-Day Free Trial
 </a>
 
           </div>
