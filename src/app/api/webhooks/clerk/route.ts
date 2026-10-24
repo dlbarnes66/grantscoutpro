@@ -55,7 +55,11 @@ export async function POST(req: NextRequest) {
 
   try {
     const wh = new Webhook(secret);
-    event = wh.verify(rawBody, headerEntries) as { type: string; data: ClerkUserData };
+    // svix 2.x verify() only throws on a bad signature and returns nothing,
+    // so the event is parsed from the body we just verified. (Relying on its
+    // return value made every delivery fail with a 500.)
+    wh.verify(rawBody, headerEntries);
+    event = JSON.parse(rawBody) as { type: string; data: ClerkUserData };
   } catch (err) {
     console.error("CLERK WEBHOOK SIGNATURE VERIFICATION FAILED:", err);
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
