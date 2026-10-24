@@ -1,16 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isAuthorizedCronRequest, safeEqual } from "@/lib/security/cronAuth";
 import { checkDeadlines } from "@/lib/notifications/checkDeadlines";
 
 // See the identical helper in ../../grants/scan/route.ts - accepts either
 // a plain x-cron-secret header (external scheduler) or Vercel's native
 // Cron Jobs format (Authorization: Bearer <CRON_SECRET>, which Vercel
 // controls and can't be changed).
-function isAuthorizedCronRequest(req: NextRequest, secret: string): boolean {
-  const provided = req.headers.get("x-cron-secret");
-  if (provided === secret) return true;
-  const authHeader = req.headers.get("authorization");
-  return authHeader === `Bearer ${secret}`;
-}
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -50,7 +45,7 @@ export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET;
   const queryProvided = req.nextUrl.searchParams.get("secret");
 
-  if (!secret || (!isAuthorizedCronRequest(req, secret) && queryProvided !== secret)) {
+  if (!secret || (!isAuthorizedCronRequest(req, secret) && !safeEqual(queryProvided, secret))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

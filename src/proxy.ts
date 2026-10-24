@@ -24,6 +24,11 @@ const isPublicRoute = createRouteMatcher([
   "/pilot(.*)",
   "/api/pilot",
 
+  // Uptime-monitor target (see app/api/health/route.ts: "unauthenticated on
+  // purpose"). Monitors cannot sign in, so without this entry they were
+  // redirected to /sign-in and could never see the real status.
+  "/api/health",
+
   // Legal pages - must stay public: besides being publicly accessible by
   // law, Google's OAuth consent screen verification (and any other
   // automated compliance check) fetches these unauthenticated and treats

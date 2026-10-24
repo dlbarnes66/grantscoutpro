@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isAuthorizedCronRequest, safeEqual } from "@/lib/security/cronAuth";
 import { runGrantScan } from "@/lib/grants/runGrantScan";
 
 // Accepts either a plain x-cron-secret header (what an external
@@ -7,12 +8,6 @@ import { runGrantScan } from "@/lib/grants/runGrantScan";
 // `Authorization: Bearer <CRON_SECRET>` and has no way to change that.
 // Supporting both means this route works no matter which scheduler ends
 // up calling it.
-function isAuthorizedCronRequest(req: NextRequest, secret: string): boolean {
-  const provided = req.headers.get("x-cron-secret");
-  if (provided === secret) return true;
-  const authHeader = req.headers.get("authorization");
-  return authHeader === `Bearer ${secret}`;
-}
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -62,7 +57,7 @@ export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET;
   const queryProvided = req.nextUrl.searchParams.get("secret");
 
-  if (!secret || (!isAuthorizedCronRequest(req, secret) && queryProvided !== secret)) {
+  if (!secret || (!isAuthorizedCronRequest(req, secret) && !safeEqual(queryProvided, secret))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

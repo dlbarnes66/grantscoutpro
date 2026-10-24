@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { callUnifiedModel } from "@/app/api/ai/autoeditor/_lib/unifiedModel";
 import { guardAIRequest } from "@/lib/ai/guardAIRequest";
 
-console.log("RISK ROUTE LOADED");
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +27,6 @@ export async function POST(
 
     const params = await context.params;
 
-    console.log("RISK ROUTE HIT");
     console.log("WORKSPACE:", params.id);
     console.log("DOCUMENT:", params.documentId);
 
