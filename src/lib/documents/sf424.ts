@@ -130,13 +130,13 @@ export function extractCfdaNumber(grant: Sf424Grant): string | null {
   return grant.cfdaNumber?.trim() || readRawKey(grant.raw, RAW_CFDA_KEYS);
 }
 
-const ORG_TYPE_CODES: Record<string, string> = {
+export const ORG_TYPE_CODES: Record<string, string> = {
   Nonprofit: "M: Nonprofit with 501(c)(3) IRS Status (Other than Institution of Higher Education)",
-  "School District": "H: Independent School District",
+  "School District": "G: Independent School District",
   "College / University": "O: Private Institution of Higher Education",
   Municipality: "C: City or Township Government",
   "Tribal Government": "I: Indian/Native American Tribal Government (Federally Recognized)",
-  "For-Profit": "P: Individual",
+  "For-Profit": "Q: For-Profit Organization (Other than Small Business)",
 };
 
 export type Sf424ABuckets = {

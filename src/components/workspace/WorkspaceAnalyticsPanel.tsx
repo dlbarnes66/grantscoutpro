@@ -21,15 +21,12 @@ export default function WorkspaceAnalyticsPanel({
   const [analytics, setAnalytics] = useState<WorkspaceAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
 
-  if (acl.loading) {
-    return <div className="p-4">Loading permissions…</div>;
-  }
-
-  if (!acl.canManageMembers) {
-    return null; // auto-hide for non-admins
-  }
-
+  // Hooks must run in the same order on every render, so the effect sits
+  // above the early returns and simply skips the fetch for people who are
+  // not allowed to see analytics.
   useEffect(() => {
+    if (acl.loading || !acl.canManageMembers) return;
+
     async function loadAnalytics() {
       const res = await fetch(`/api/workspaces/${workspaceId}/analytics`);
       const data = await res.json();
@@ -38,7 +35,15 @@ export default function WorkspaceAnalyticsPanel({
     }
 
     loadAnalytics();
-  }, [workspaceId]);
+  }, [workspaceId, acl.loading, acl.canManageMembers]);
+
+  if (acl.loading) {
+    return <div className="p-4">Loading permissions…</div>;
+  }
+
+  if (!acl.canManageMembers) {
+    return null; // auto-hide for non-admins
+  }
 
   if (loading || !analytics) {
     return <div className="p-4">Loading analytics…</div>;

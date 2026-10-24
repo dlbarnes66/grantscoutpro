@@ -290,7 +290,7 @@ export default function MarketingHomePage() {
                 fontWeight: 700,
               }}
             >
-              Grant Match Score: 96%
+              Sample Match Score: 96%
             </div>
           </div>
 
@@ -382,7 +382,7 @@ export default function MarketingHomePage() {
                 color: "#F5C542",
               }}
             >
-              15,000+
+              50 States
             </div>
 
             <div
@@ -391,7 +391,7 @@ export default function MarketingHomePage() {
                 color: "#CBD5E1",
               }}
             >
-              Funding Opportunities
+              Federal Grant Coverage
             </div>
           </div>
 
@@ -410,7 +410,7 @@ export default function MarketingHomePage() {
                 color: "#F5C542",
               }}
             >
-              96%
+              2x Daily
             </div>
 
             <div
@@ -419,7 +419,7 @@ export default function MarketingHomePage() {
                 color: "#CBD5E1",
               }}
             >
-              Grant Match Accuracy
+              Automated Grant Scans
             </div>
           </div>
 
@@ -438,7 +438,7 @@ export default function MarketingHomePage() {
                 color: "#F5C542",
               }}
             >
-              50+
+              1 Platform
             </div>
 
             <div
@@ -447,7 +447,7 @@ export default function MarketingHomePage() {
                 color: "#CBD5E1",
               }}
             >
-              Proposal Templates
+              Search, Draft, Budget &amp; Track
             </div>
           </div>
 

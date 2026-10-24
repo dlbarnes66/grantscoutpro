@@ -4,7 +4,7 @@ import PricingSection from "../components/PricingSection";
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Simple, transparent pricing for nonprofits and small businesses — plans starting at $29/month with federal grant access, scaling up to state and foundation grants, AI proposal writing, and unlimited search.",
+    "Simple, transparent pricing for nonprofits and small businesses — plans starting at $29/month with federal grant access, scaling up to state and foundation grant sources, AI proposal writing, and higher daily search limits.",
   alternates: { canonical: "/pricing" },
   openGraph: {
     title: "Grant Scout Pro Pricing",
