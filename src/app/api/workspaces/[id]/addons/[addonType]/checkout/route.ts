@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { stripe, getAddonPriceId, type AddonType, type BillingInterval } from "@/lib/stripe";
 import { hasCrmAccess } from "@/lib/crm/entitlement";
 import { hasStateAccess, hasFoundationAccess } from "@/lib/grants/entitlement";
+import { hasNonprofitAccess } from "@/lib/nonprofit/entitlement";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -27,21 +28,24 @@ const ADDON_LABELS: Record<AddonType, string> = {
   crm: "CRM",
   state: "State grants",
   foundations: "Private foundation grants",
+  nonprofit: "Nonprofit Management",
 };
 
 const ADDON_RETURN_PATH: Record<AddonType, string> = {
   crm: "crm",
   state: "grants",
   foundations: "grants",
+  nonprofit: "settings/integrations",
 };
 
 function isAddonType(value: string): value is AddonType {
-  return value === "crm" || value === "state" || value === "foundations";
+  return value === "crm" || value === "state" || value === "foundations" || value === "nonprofit";
 }
 
 function hasAccess(addonType: AddonType, workspaceId: string): Promise<boolean> {
   if (addonType === "crm") return hasCrmAccess(workspaceId);
   if (addonType === "state") return hasStateAccess(workspaceId);
+  if (addonType === "nonprofit") return hasNonprofitAccess(workspaceId);
   return hasFoundationAccess(workspaceId);
 }
 

@@ -96,7 +96,10 @@ export function getPlanIdFromPriceId(priceId: string | undefined | null): PlanId
 // purchasable on its own by any workspace whose plan doesn't include it
 // yet - see src/app/api/workspaces/[id]/addons/[addonType]/checkout.
 
-export type AddonType = "crm" | "state" | "foundations";
+// "nonprofit" is Nonprofit Management (a separate app at its own domain that
+// signs in with the same Clerk users). It's never included in a plan tier;
+// it's always a standalone addon. See src/lib/nonprofit/entitlement.ts.
+export type AddonType = "crm" | "state" | "foundations" | "nonprofit";
 
 const ADDON_PRICE_ENV: Record<AddonType, Record<BillingInterval, string | undefined>> = {
   crm: {
@@ -110,6 +113,10 @@ const ADDON_PRICE_ENV: Record<AddonType, Record<BillingInterval, string | undefi
   foundations: {
     monthly: process.env.STRIPE_PRICE_ADDON_FOUNDATIONS_MONTHLY,
     yearly: process.env.STRIPE_PRICE_ADDON_FOUNDATIONS_YEARLY,
+  },
+  nonprofit: {
+    monthly: process.env.STRIPE_PRICE_ADDON_NONPROFIT_MONTHLY,
+    yearly: process.env.STRIPE_PRICE_ADDON_NONPROFIT_YEARLY,
   },
 };
 
