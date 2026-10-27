@@ -22,12 +22,16 @@ const STATUS_LABEL: Record<string, string> = {
 // since this is a client component). Federal search is on every plan, so
 // there's no addon for it - only State, Foundations, and CRM are sold
 // standalone for workspaces whose tier doesn't already include them.
-const ADDON_ACCESS_BY_PLAN: Record<string, { state: boolean; foundation: boolean; crm: boolean }> = {
-  basic: { state: false, foundation: false, crm: false },
-  team: { state: true, foundation: false, crm: false },
-  business: { state: true, foundation: true, crm: false },
-  enterprise: { state: true, foundation: true, crm: true },
+// Nonprofit Management is never included in a plan; it's always bought on its own.
+const ADDON_ACCESS_BY_PLAN: Record<string, { state: boolean; foundation: boolean; crm: boolean; nonprofit: boolean }> = {
+  basic: { state: false, foundation: false, crm: false, nonprofit: false },
+  team: { state: true, foundation: false, crm: false, nonprofit: false },
+  business: { state: true, foundation: true, crm: false, nonprofit: false },
+  enterprise: { state: true, foundation: true, crm: true, nonprofit: false },
 };
+
+// The Nonprofit Management app's address. Its card only appears once this is set.
+const NONPROFIT_APP_URL = process.env.NEXT_PUBLIC_NONPROFIT_OS_URL?.replace(/\/+$/, "") || null;
 
 const ADDONS = [
   {
@@ -48,7 +52,13 @@ const ADDONS = [
     label: "CRM",
     description: "Track funder/donor relationships with a pipeline and contacts.",
   },
-];
+  {
+    type: "nonprofit" as const,
+    accessKey: "nonprofit" as const,
+    label: "Nonprofit Management",
+    description: "Compliance calendar, document vault, board approvals and tasks for your organization.",
+  },
+].filter((a) => a.type !== "nonprofit" || NONPROFIT_APP_URL);
 
 export default function BillingPage() {
   const routeParams = useParams();
@@ -254,9 +264,16 @@ export default function BillingPage() {
                         Included in your plan
                       </span>
                     ) : activeAddon ? (
-                      <span className="inline-block text-xs font-medium px-2 py-1 rounded-full bg-green-100 text-green-800">
-                        Active
-                      </span>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <span className="inline-block text-xs font-medium px-2 py-1 rounded-full bg-green-100 text-green-800">
+                          Active
+                        </span>
+                        {addon.type === "nonprofit" && NONPROFIT_APP_URL && (
+                          <a href={NONPROFIT_APP_URL} className="text-sm text-blue-600 hover:underline">
+                            Open Nonprofit Management →
+                          </a>
+                        )}
+                      </div>
                     ) : (
                       <button
                         onClick={() => purchaseAddon(addon.type)}
