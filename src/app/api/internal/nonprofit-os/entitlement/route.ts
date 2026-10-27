@@ -1,6 +1,6 @@
-import { timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { SAFE_ID, nonprofitOsAuthorized } from "@/lib/nonprofit/internalAuth";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -16,17 +16,8 @@ export const runtime = "nodejs";
 //
 // Without the secret configured, the route answers 503 and does nothing.
 
-function authorized(req: NextRequest): boolean | null {
-  const secret = process.env.NONPROFIT_OS_SHARED_SECRET;
-  if (!secret || secret.length < 32) return null;
-  const header = req.headers.get("authorization") ?? "";
-  const provided = header.startsWith("Bearer ") ? header.slice(7) : "";
-  const a = Buffer.from(provided);
-  const b = Buffer.from(secret);
-  return a.length === b.length && timingSafeEqual(a, b);
-}
-
-const ID = /^[A-Za-z0-9_-]{1,64}$/;
+const authorized = nonprofitOsAuthorized;
+const ID = SAFE_ID;
 
 export async function GET(req: NextRequest) {
   const ok = authorized(req);
