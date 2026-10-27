@@ -79,6 +79,10 @@ const isPublicRoute = createRouteMatcher([
   // there's no auth to fall back on for abuse control.
   "/forms/(.*)",
   "/api/forms/public/(.*)",
+
+  // Server-to-server check from the Nonprofit Management app; protected by
+  // its own shared secret (see the route), not a Clerk session.
+  "/api/internal/nonprofit-os(.*)",
 ]);
 
 // ---------------------------------------------------------
