@@ -20,6 +20,10 @@ const isPublicRoute = createRouteMatcher([
   // Clerk auth routes
   "/sign-in(.*)",
   "/sign-up(.*)",
+
+  // Server-to-server check from the Nonprofit Management app; protected by
+  // its own shared secret (see the route), not a Clerk session.
+  "/api/internal/nonprofit-os(.*)",
 ]);
 
 export const proxy = clerkMiddleware(

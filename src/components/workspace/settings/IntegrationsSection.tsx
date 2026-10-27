@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import NonprofitManagementCard from "./NonprofitManagementCard";
 
 type ProviderField = {
   key: string;
@@ -292,6 +293,8 @@ export default function IntegrationsSection({ workspaceId }: { workspaceId: stri
         Bring your own API keys — everything here stays scoped to this workspace and is encrypted
         before it's stored. Only workspace owners and admins can view or change these.
       </p>
+
+      <NonprofitManagementCard workspaceId={workspaceId} />
 
       {Array.from(byCategory.entries()).map(([category, items]) => (
         <div key={category} className="space-y-3">
